@@ -12,11 +12,6 @@ RUN groupadd -r imaptest && \
 
 WORKDIR /opt/stunnel
 COPY ./imapssl.conf ./imapssl.conf
-RUN stunnel imapssl.conf
-
-USER zimbra
-RUN /opt/zimbra/bin/zmcontrol start; exit 0
-RUN zmprov ca imaptest@zmc-dev.f9teams.engineering imaptest
 
 USER imaptest
 WORKDIR /opt/imaptest
@@ -29,3 +24,10 @@ WORKDIR /opt/imaptest
 RUN curl https://dovecot.org/nightly/imaptest/imaptest-latest.tar.gz > imaptest-latest.tar.gz
 RUN tar -xzf imaptest-latest.tar.gz
 RUN cd imaptest-* && ./configure --with-dovecot=$(ls -d ../dovecot-*/) && make
+
+# USER root
+# RUN stunnel imapssl.conf
+#
+# USER zimbra
+# RUN /opt/zimbra/bin/zmcontrol start; exit 0
+# RUN zmprov ca imaptest@zmc-dev.f9teams.engineering imaptest
