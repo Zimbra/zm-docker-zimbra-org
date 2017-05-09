@@ -8,6 +8,7 @@ docker run --network=zmc-bridge --hostname=zmc-dev.f9teams.engineering --ip 10.0
 ```
 Then some manual steps:
 ```
+/opt/zimbra/libexec/zmsetup.pl -c /tmp/install-config
 cd /opt/stunnel
 stunnel imapssl.conf
 
