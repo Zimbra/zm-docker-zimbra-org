@@ -1,4 +1,4 @@
-FROM f9teams/zmc-dev:develop
+FROM f9teams/zmc-dev:build
 
 RUN apt-get update && \
     apt-get install -y libssl-dev stunnel
