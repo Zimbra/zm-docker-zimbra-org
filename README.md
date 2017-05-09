@@ -15,7 +15,7 @@ docker pull f9teams/zmc-dev:base
 docker run --privileged -i -t f9teams/zmc-dev:base ./resolvconf-setup
 ```
 
-## f9teams/zmc-dev:develop
+## f9teams/zmc-dev:build
 See ./develop/Dockerfile
 
 This is a Docker container running a recent pull of the develop branch of https://github.com/Zimbra/zm-build
