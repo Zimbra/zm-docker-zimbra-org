@@ -1,0 +1,14 @@
+FROM f9teams/zmc-dev:develop
+
+RUN apt-get update && apt-get install -y libssl-dev
+
+WORKDIR /opt/imaptest
+
+RUN curl https://dovecot.org/nightly/dovecot-latest.tar.gz > dovecot-latest.tar.gz
+RUN tar -xzf dovecot-latest.tar.gz
+RUN cd dovecot-* && ./configure && make
+
+WORKDIR /opt/imaptest
+RUN curl https://dovecot.org/nightly/imaptest/imaptest-latest.tar.gz > imaptest-latest.tar.gz
+RUN tar -xzf imaptest-latest.tar.gz
+RUN cd imaptest-* && ./configure --with-dovecot=$(ls -d ../dovecot-*/) && make

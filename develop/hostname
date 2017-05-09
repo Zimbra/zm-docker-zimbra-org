@@ -1,0 +1,15 @@
+#! /bin/bash
+
+# This is a hack used during ZMC installation
+# Docker does not allow the hostname to be set via `hostname zmc-dev.f9teams.engineering`
+# and ZMC installation will fail with the default Docker assigned hostname.
+# This is a bug in ZMC installation, where they arbitrarily required multiple '.'s
+# in the FQDN
+
+if [ $1 == '--fqdn' ]; then
+    echo 'zmc-dev.f9teams.engineering'
+elif [ $1 == '-i' ]; then
+    echo '127.0.0.1'
+else
+    echo ''
+fi
