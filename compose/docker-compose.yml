@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  bind:
+    image: quay.io/sameersbn/bind
+    volumes:
+      - ./bind/:/data/bind/etc
+    environment:
+      WEBMIN_ENABLED: 'false'
+    networks:
+      zm-dev:
+        ipv4_address: 12.0.0.255
+
+networks:
+  zm-dev:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 12.0.0.0/16
