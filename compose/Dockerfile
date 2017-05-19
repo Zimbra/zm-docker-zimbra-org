@@ -4,7 +4,7 @@ ARG ZM_RELEASE=8.8.0
 
 RUN apt-get update && apt-get upgrade -y && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y software-properties-common openjdk-8-jdk ant ant-contrib \
-                                                      ruby git maven build-essential wget
+                                                      ruby git maven build-essential wget netcat net-tools
 
 # Build ZCS and prep for installation in child containers
 RUN cd /tmp/ && git clone https://github.com/Zimbra/zm-build.git && \
