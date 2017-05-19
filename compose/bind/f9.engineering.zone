@@ -1,7 +1,7 @@
 $TTL 30
 
 @           IN      SOA     ns1.f9.engineering. admin.f9.engineering. (
-                                      3         ; Serial
+                                      4         ; Serial
                                  604800         ; Refresh
                                   86400         ; Retry
                                 2419200         ; Expire
@@ -9,10 +9,6 @@ $TTL 30
 
 @			IN		NS		ns1.f9.engineering.;
 ns1			IN		A		12.0.0.255;
-
-ldap        IN      A       12.0.0.1;
-zm-dev      IN      A       12.0.0.2;
-smtp        IN      A       12.0.0.3;
 
             IN      MX      10          smtp.f9.engineering.;
 ldap        IN      MX      10          smtp.f9.engineering.;
