@@ -7,9 +7,22 @@ services:
       - ./bind/:/data/bind/etc
     environment:
       WEBMIN_ENABLED: 'false'
+    hostname: ns1.f9.engineering
     networks:
       zm-dev:
         ipv4_address: 12.0.0.255
+
+  ldap:
+    build: .
+    command: /bin/bash
+    depends_on:
+      - bind
+    dns:
+      - 12.0.0.255
+    hostname: ldap.f9.engineering
+    networks:
+      zm-dev:
+        ipv4_address: 12.0.0.2
 
 networks:
   zm-dev:

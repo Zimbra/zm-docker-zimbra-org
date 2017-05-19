@@ -10,7 +10,8 @@ $TTL 30
 @			IN		NS		ns1.f9.engineering.;
 ns1			IN		A		12.0.0.255;
 
-zm-dev      IN      A       12.0.0.1;
-smtp        IN      A       12.0.0.2;
+ldap        IN      A       12.0.0.1;
+zm-dev      IN      A       12.0.0.2;
+smtp        IN      A       12.0.0.3;
 
             IN      MX      10          smtp.f9.engineering.;
