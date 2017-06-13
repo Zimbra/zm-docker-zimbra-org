@@ -13,7 +13,7 @@ services:
         ipv4_address: 12.0.0.255
 
   ldap:
-    build: .
+    build: ./ldap
     depends_on:
       - bind
     dns:
@@ -21,13 +21,9 @@ services:
     hostname: ldap.f9.engineering
     volumes:
       - ./ldap:/zimbra
-    command: /zimbra/ldap-entrypoint.sh
-    healthcheck:
-      test: 'if [ -e /opt/zimbra-installed ]; then; exit 0; else; exit 1; fi'
-      interval: 30s
-      retries: 50
     networks:
-      - zm-dev
+      zm-dev:
+        ipv4_address: 12.0.0.2
 
   mailbox:
     build: .
