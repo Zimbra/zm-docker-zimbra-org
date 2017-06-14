@@ -5,29 +5,72 @@ If you do not have access to the f9teams organization on Docker Hub, @spoon16 in
 
 `docker login --username <your docker hub username>`
 
-## f9teams/zmc-dev:base
-See ./base/Dockerfile
+These containers are _large_ (~105GB) :cry:.
 
-This is the base Docker container that has should allow the successful installation of Zimbra Collaboration Suite.
-
+### Docker Machine with VirtualBox
 ```
-docker pull f9teams/zmc-dev:base
-docker run --privileged -i -t f9teams/zmc-dev:base ./resolvconf-setup
+brew install docker docker-compose docker-machine && \
+brew cask install virtualbox
 ```
 
-## f9teams/zmc-dev:build
-See ./develop/Dockerfile
+I've had the best luck in terms of Docker responsiveness for macOS using Docker Machine with VirtualBox.
 
-This is a Docker container running a recent pull of the develop branch of https://github.com/Zimbra/zm-build
-
-```
-docker network create --driver=bridge --subnet=10.0.0.0/24 zmc-bridge
-docker pull f9teams/zmc-dev:build
-```
-
-Run the following command once your container starts. This is frustratingly the only way I have been able to get a recent build of ZCS working in a container. All forms of automated setup fail and committing a container even with all Zimbra services stopped results in a container that will not start properly, `ldap` fails to come online.
+To configured a VirtualBox Docker Machine run.
 
 ```
-docker run --rm --network=zmc-bridge --hostname=zmc-dev.f9teams.engineering --ip 10.0.0.2 -p 443:443 -p 7071:7071 -i -t f9teams/zmc-dev:build bash
-> /opt/zimbra/libexec/zmsetup.pl
+docker-machine create --virtualbox-disk-size 180000 --virtualbox-memory 8096 --virtualbox-cpu-count 4 --driver virtualbox default
 ```
+
+Add this to your shell profile.
+
+```
+eval "$(docker-machine env default)"
+```
+
+`docker`, `docker-compose`, etc... should all work now.
+
+### Docker Native
+```
+brew cask install docker && \
+brew install docker-compose
+```
+
+I've had difficulty with Docker Native responsiveness for macOS. Using `docker-machine` with VirtualBox seems much consistent.
+
+To get things working at all you'll need to increase the number of cores and the amount of memory that Docker can utilize on your macOS.
+
+Use `qemu` (`brew install qemu`) to increase the available size from 64G to 128G. This will effectively hard reset your local docker state (all containers gone).
+
+```
+cd ~/Library/Containers/com.docker.docker/Data/com.docker.driver.amd64-linux/
+rm Docker.qcow2
+qemu-img create -f qcow2 ./Docker.qcow2 128G
+```
+
+## Starting a Zimbra Cluster
+
+```
+docker-compose up
+```
+
+## Service Containers
+
+### f9teams/zmc-ldap
+
+### f9teams/zmc-mta
+
+### f9teams/zmc-mailbox
+
+### f9teams/zmc-proxy
+
+## Other Containers
+
+### f9teams/zmc-base
+This is the base Docker container from which all other Zimbra containers are derived. Allows the successful build, install, and configure of Zimbra Collaboration Suite.
+
+See [zmc-base README.md](./base/README.md)
+
+### f9teams/zmc-build
+This is a Docker container that will pull and build the master branch of https://github.com/f9teams/zm-build
+
+See [zmc-build README.md](./build/README.md)

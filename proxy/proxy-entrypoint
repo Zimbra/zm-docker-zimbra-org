@@ -1,0 +1,24 @@
+#! /bin/bash
+
+echo "Waiting for MAILBOX"
+status=$(curl --silent --output /dev/null --write-out "%{http_code}" http://zmc-mailbox.f9teams.engineering:5000/)
+while [ $status -ne 200 ]; do
+  echo "MAILBOX unavailable"
+  sleep 20
+  status=$(curl --silent --output /dev/null --write-out "%{http_code}" http://zmc-mailbox.f9teams.engineering:5000/)
+done
+echo "MAILBOX available"
+
+/opt/zimbra/libexec/zmsetup.pl -c /tmp/config
+status=$?
+if [ $status -ne 0 ]; then
+  echo "Failed to start PROXY: $status"
+  exit $status
+fi
+
+# TODO: not sure if this is necessary
+su -c /opt/zimbra/bin/zmupdateauthkeys zimbra
+
+# start simple healthcheck so other nodes in the cluster can coordinate startup
+echo "PROXY started"
+./healthcheck.py

@@ -1,0 +1,58 @@
+version: '3'
+
+services:
+  ldap:
+    build:
+      context: './'
+      dockerfile: './Dockerfile-ldap'
+    image: 'f9teams/zmc-ldap'
+    networks:
+      default:
+        ipv4_address: '10.0.0.2'
+    ports:
+      - '7389:389'
+      - '7000:5000'
+  mta:
+    build:
+      context: './'
+      dockerfile: './Dockerfile-mta'
+    image: 'f9teams/zmc-mta'
+    networks:
+      default:
+        ipv4_address: '10.0.0.3'
+    ports:
+      - '6000:5000'
+  mailbox:
+    image: 'f9teams/zmc-mailbox'
+    build:
+      context: './'
+      dockerfile: './Dockerfile-mailbox'
+    networks:
+      default:
+        ipv4_address: '10.0.0.4'
+    ports:
+      - '9080:8080'
+      - '9443:8443'
+      - '9071:7071'
+      - '9000:5000'
+  proxy:
+    image: 'f9teams/zmc-proxy'
+    build:
+      context: './'
+      dockerfile: './Dockerfile-proxy'
+    networks:
+      default:
+        ipv4_address: '10.0.0.5'
+    ports:
+      - '8080:80'
+      - '8443:443'
+      - '8071:7071'
+      - '8000:5000'
+
+networks:
+  default:
+    driver: 'bridge'
+    ipam:
+      driver: 'default'
+      config:
+        - subnet: '10.0.0.0/24'

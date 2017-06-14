@@ -7,6 +7,9 @@ RUN apt-get update && \
   wget \
   curl \
   gettext \
+  slay \
+  python \
+  python-pip \
 # install zimbra pre-requisites
   ant \
   ant-contrib \
@@ -20,5 +23,9 @@ RUN apt-get update && \
   software-properties-common
 
 WORKDIR /tmp/zimbra
+COPY ./rsyslog-fix ./rsyslog-fix
+RUN chmod +x ./rsyslog-fix && \
+    ./rsyslog-fix
+
 COPY ./resolvconf-setup ./resolvconf-setup
 RUN chmod +x ./resolvconf-setup
