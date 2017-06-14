@@ -18,29 +18,27 @@ services:
       - bind
     dns:
       - 12.0.0.255
-    hostname: ldap.f9.engineering
     volumes:
       - ./ldap:/zimbra
+    hostname: ldap.f9.engineering
     networks:
       zm-dev:
         ipv4_address: 12.0.0.2
 
   mailbox:
-    build: .
+    build: ./mailbox
     depends_on:
       - bind
+      - ldap
     dns:
       - 12.0.0.255
-    hostname: ldap.f9.engineering
     volumes:
       - ./mailbox:/zimbra
     command: /zimbra/mailbox-entrypoint.sh
-    healthcheck:
-      test: 'if [ -e /opt/zimbra-installed ]; then; exit 0; else; exit 1; fi'
-      interval: 30s
-      retries: 50
+    hostname: mailbox.f9.engineering
     networks:
-      - zm-dev
+      zm-dev:
+        ipv4_address: 12.0.0.4
 
 networks:
   zm-dev:

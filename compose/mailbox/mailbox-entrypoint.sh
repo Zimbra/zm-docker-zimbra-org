@@ -2,39 +2,21 @@
 
 if [ ! -f /opt/zimbra-installed ]; then
 	cd /opt/zimbra-build
-	./install.sh -s <<-EOF
-		y
-		y
-	    n
-		n
-		n
-		n
-		n
-	    y
-		n
-		n
-		n
-		n
-		n
-		n
-		y
-	EOF
-    RESULT=$?
+	./install.sh < /zimbra/install-commands
 
-    if [ $RESULT -eq 0 ]; then
-	    touch /opt/zimbra-installed
-        echo "INSTALL SUCCEEDED"
-    else
-        echo "INSTALL FAILED"
-    fi
-else
-    echo "INSTALLED"
+	result=$?
+	if [ $result -eq 0 ]; then
+		echo "INSTALL SUCCEEDED"
+	else
+		echo "INSTALL FAILED"
+        exit 1
+	fi
 fi
 
-#        1
-#        2
-#        ldap.f9.engineering
-#        4
-#        ldapAdminPassword
-#        r
-
+if [ -f /opt/zimbra-installed ]; then
+    sudo -u zimbra /opt/zimbra/bin/zmcontrol start
+	tail -f /opt/zimbra/log/* /var/log/zimbra.log
+else
+    echo "Zimbra Mailbox not installed - failing."
+    exit 1
+fi
