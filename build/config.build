@@ -11,8 +11,11 @@ BUILD_THIRDPARTY_SERVER = files.zimbra.com
 INTERACTIVE             = 0
 GIT_DEFAULT_BRANCH      = master
 
+%GIT_OVERRIDES          = zm-mailbox.remote=gh-f9
+%GIT_OVERRIDES          = zm-zcs.remote=gh-f9
+
 # Example of GIT_OVERRIDES (hash)
-# %GIT_OVERRIDES          = myremote.url-prefix=ssh://git@stash.corp.synacor.com:7999/~user/zm-mailbox.git
-# %GIT_OVERRIDES          = zm-mailbox.branch=dev
-# %GIT_OVERRIDES          = zm-mailbox.remote=myremote
-# %GIT_OVERRIDES          = zm-mailbox.tag=judaspriest-872    # .tag always overrides .branch
+# %GIT_OVERRIDES        = myremote.url-prefix=ssh://git@stash.corp.synacor.com:7999/~user/zm-mailbox.git
+# %GIT_OVERRIDES        = zm-mailbox.branch=dev
+# %GIT_OVERRIDES        = zm-mailbox.remote=myremote
+# %GIT_OVERRIDES        = zm-mailbox.tag=judaspriest-872    # .tag always overrides .branch

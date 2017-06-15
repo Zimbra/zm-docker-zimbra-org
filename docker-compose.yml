@@ -6,6 +6,10 @@ services:
       context: './'
       dockerfile: './Dockerfile-ldap'
     image: 'f9teams/zmc-ldap'
+    volumes:
+      - ~/src/:/src/
+    domainname: 'f9teams.engineering'
+    hostname: 'zmc-ldap'
     networks:
       default:
         ipv4_address: '10.0.0.2'
@@ -17,16 +21,24 @@ services:
       context: './'
       dockerfile: './Dockerfile-mta'
     image: 'f9teams/zmc-mta'
+    volumes:
+      - ~/src/:/src/
+    domainname: 'f9teams.engineering'
+    hostname: 'zmc-mta'
     networks:
       default:
         ipv4_address: '10.0.0.3'
     ports:
       - '6000:5000'
   mailbox:
-    image: 'f9teams/zmc-mailbox'
     build:
       context: './'
       dockerfile: './Dockerfile-mailbox'
+    image: 'f9teams/zmc-mailbox'
+    volumes:
+      - ~/src/:/src/
+    domainname: 'f9teams.engineering'
+    hostname: 'zmc-mailbox'
     networks:
       default:
         ipv4_address: '10.0.0.4'
@@ -36,10 +48,14 @@ services:
       - '9071:7071'
       - '9000:5000'
   proxy:
-    image: 'f9teams/zmc-proxy'
     build:
       context: './'
       dockerfile: './Dockerfile-proxy'
+    image: 'f9teams/zmc-proxy'
+    volumes:
+      - ~/src/:/src/
+    domainname: 'f9teams.engineering'
+    hostname: 'zmc-proxy'
     networks:
       default:
         ipv4_address: '10.0.0.5'

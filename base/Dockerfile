@@ -20,12 +20,12 @@ RUN apt-get update && \
   ruby \
   net-tools \
   rsyslog \
-  software-properties-common
+  software-properties-common \
+  npm
 
-WORKDIR /tmp/zimbra
-COPY ./rsyslog-fix ./rsyslog-fix
-RUN chmod +x ./rsyslog-fix && \
-    ./rsyslog-fix
+RUN npm install -g n && \
+    n latest
 
-COPY ./resolvconf-setup ./resolvconf-setup
-RUN chmod +x ./resolvconf-setup
+RUN npm install -g junit-merge
+
+RUN echo "resolvconf resolvconf/linkify-resolvconf boolean false" | debconf-set-selections
