@@ -11,7 +11,7 @@ RUN groupadd -r zimbra && \
     usermod -d /opt/zimbra zimbra
 
 WORKDIR /tmp
-RUN git clone -b master https://github.com/Zimbra/zm-build.git
+RUN git clone -b master https://github.com/f9teams/zm-build.git
 
 WORKDIR /tmp/zm-build
 COPY ./config.build ./config.build
