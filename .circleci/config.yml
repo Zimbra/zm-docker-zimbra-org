@@ -5,5 +5,7 @@ jobs:
       - image: docker:17.05.0-ce
     steps:
       - setup_remote_docker
-      - docker build -t f9teams/zmc-ldap:$CIRCLE_SHA1 -f ldap/Dockerfile .
+      - docker build -t f9teams/zmc-base:$CIRCLE_SHA1 -f base/Dockerfile ./base
+      - docker build -t f9teams/zmc-build:$CIRCLE_SHA1 -f base/Dockerfile --build-arg base_tag=$CIRCLE_SHA1 ./base
+      - docker build -t f9teams/zmc-ldap:$CIRCLE_SHA1 -f ldap/Dockerfile --build-arg base_tag=$CIRCLE_SHA1 .
 

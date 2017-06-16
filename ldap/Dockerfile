@@ -1,4 +1,5 @@
-FROM f9teams/zmc-build
+ARG base_tag=latest
+FROM f9teams/zmc-build:$base_tag
 
 WORKDIR /tmp
 # This is my hack to trick Zimbra into picking up the eventual hostname, instead

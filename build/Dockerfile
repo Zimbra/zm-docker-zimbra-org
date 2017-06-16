@@ -1,4 +1,5 @@
-FROM f9teams/zmc-base
+ARG base_tag=latest
+FROM f9teams/zmc-base:$base_tag
 
 WORKDIR /opt/zimbra
 RUN pip install --upgrade pip && \
