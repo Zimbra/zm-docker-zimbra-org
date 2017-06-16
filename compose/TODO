@@ -1,0 +1,4 @@
+ - install zimbra logger server for log aggregation?
+ - can we just build and say no to the "Do you want to change the hostname?" and then use docker compose dns?
+        - or can we just set the hostname after installation?
+ - can we ./install.sh -s and then just run the configure phase on boot?
