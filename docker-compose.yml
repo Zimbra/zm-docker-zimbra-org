@@ -4,7 +4,7 @@ services:
   ldap:
     build:
       context: './'
-      dockerfile: './Dockerfile-ldap'
+      dockerfile: './ldap/Dockerfile'
     image: 'f9teams/zmc-ldap'
     volumes:
       - ~/src/:/src/
@@ -19,7 +19,7 @@ services:
   mta:
     build:
       context: './'
-      dockerfile: './Dockerfile-mta'
+      dockerfile: './mta/Dockerfile'
     image: 'f9teams/zmc-mta'
     volumes:
       - ~/src/:/src/
@@ -33,7 +33,7 @@ services:
   mailbox:
     build:
       context: './'
-      dockerfile: './Dockerfile-mailbox'
+      dockerfile: './mailbox/Dockerfile'
     image: 'f9teams/zmc-mailbox'
     volumes:
       - ~/src/:/src/
@@ -50,7 +50,7 @@ services:
   proxy:
     build:
       context: './'
-      dockerfile: './Dockerfile-proxy'
+      dockerfile: './proxy/Dockerfile'
     image: 'f9teams/zmc-proxy'
     volumes:
       - ~/src/:/src/
