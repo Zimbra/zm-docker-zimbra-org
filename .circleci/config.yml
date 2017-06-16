@@ -1,0 +1,9 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: docker:17.05.0-ce
+    steps:
+      - setup_remote_docker
+      - docker build -t f9teams/zmc-ldap:$CIRCLE_SHA1 -f ldap/Dockerfile .
+
