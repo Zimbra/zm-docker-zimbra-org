@@ -12,6 +12,7 @@ INTERACTIVE             = 0
 GIT_DEFAULT_BRANCH      = master
 
 %GIT_OVERRIDES          = zm-mailbox.remote=gh-f9
+%GIT_OVERRIDES          = zm-mailbox.branch=develop
 %GIT_OVERRIDES          = zm-zcs.remote=gh-f9
 
 # Example of GIT_OVERRIDES (hash)
