@@ -1,4 +1,4 @@
-FROM f9teams/zmc-build
+FROM f9teams/zmc-base:latest
 
 WORKDIR /tmp
 # This is my hack to trick Zimbra into picking up the eventual hostname, instead
@@ -19,8 +19,7 @@ RUN cat ./zmc-config ./mta-config | sed '/^\s*$/d' >> ./config
 
 WORKDIR /opt/zimbra
 COPY ./mta/mta-entrypoint ./mta-entrypoint
-RUN chmod +x ./mta-entrypoint && \
-    mv /tmp/healthcheck.py ./healthcheck.py
+RUN chmod +x ./mta-entrypoint
 
 ENTRYPOINT ./mta-entrypoint
 EXPOSE 22 25 465 587 110 143 993 995 80 443 8080 8443 7071

@@ -8,8 +8,7 @@ services:
     image: 'f9teams/zmc-ldap'
     volumes:
       - ~/src/:/src/
-    domainname: 'f9teams.engineering'
-    hostname: 'zmc-ldap'
+    hostname: zmc-ldap.f9teams.engineering
     networks:
       default:
         ipv4_address: '10.0.0.2'

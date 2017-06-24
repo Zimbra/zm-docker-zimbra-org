@@ -1,9 +1,0 @@
-#!/bin/bash
-
-# not sure if this is required, copied from
-# https://github.com/Zimbra/zimbra-cd/blob/9535b71f72645f2c8682b56aefcde4e80481a670/zimbra/zimbra-ldap/install.sh#L69
-cat <<EOF >> /etc/rsyslog.conf
-\$ModLoad imudp
-\$UDPServerRun 514
-EOF
-service rsyslog restart

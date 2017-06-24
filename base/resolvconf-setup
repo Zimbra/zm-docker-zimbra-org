@@ -1,7 +1,0 @@
-#!/bin/bash
-
-cp /etc/resolv.conf /tmp/resolv.conf
-umount /etc/resolv.conf
-rm /etc/resolv.conf
-ln -s /tmp/resolv.conf /etc/resolv.conf
-apt-get install -y resolvconf

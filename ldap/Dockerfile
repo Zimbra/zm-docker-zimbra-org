@@ -1,5 +1,4 @@
-ARG base_tag=latest
-FROM f9teams/zmc-build:$base_tag
+FROM f9teams/zmc-base:latest
 
 WORKDIR /tmp
 # This is my hack to trick Zimbra into picking up the eventual hostname, instead
@@ -20,8 +19,8 @@ RUN cat ./zmc-config ./ldap-config | sed '/^\s*$/d' >> ./config
 
 WORKDIR /opt/zimbra
 COPY ./ldap/ldap-entrypoint ./ldap-entrypoint
-RUN chmod +x ./ldap-entrypoint && \
-    mv /tmp/healthcheck.py ./healthcheck.py
+RUN chmod +x ./ldap-entrypoint
 
 ENTRYPOINT ./ldap-entrypoint
+RUN ls -la
 EXPOSE 22 25 465 587 110 143 993 995 80 443 8080 8443 7071
