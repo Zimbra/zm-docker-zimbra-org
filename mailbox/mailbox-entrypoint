@@ -1,11 +1,11 @@
 #! /bin/bash
 
 echo "Waiting for MTA"
-status=$(curl --silent --output /dev/null --write-out "%{http_code}" http://zmc-mta.f9teams.engineering:5000/)
+status=$(curl --silent --output /dev/null --write-out "%{http_code}" http://mta:5000/)
 while [ $status -ne 200 ]; do
   echo "MTA unavailable"
   sleep 20
-  status=$(curl --silent --output /dev/null --write-out "%{http_code}" http://zmc-mta.f9teams.engineering:5000/)
+  status=$(curl --silent --output /dev/null --write-out "%{http_code}" http://mta:5000/)
 done
 echo "MTA available"
 

@@ -19,8 +19,7 @@ RUN cat ./zmc-config ./proxy-config | sed '/^\s*$/d' >> ./config
 
 WORKDIR /opt/zimbra
 COPY ./proxy/proxy-entrypoint ./proxy-entrypoint
-RUN chmod +x ./proxy-entrypoint && \
-    mv /tmp/healthcheck.py ./healthcheck.py
+RUN chmod +x ./proxy-entrypoint
 
 ENTRYPOINT ./proxy-entrypoint
 EXPOSE 22 25 465 587 110 143 993 995 80 443 8080 8443 7071
