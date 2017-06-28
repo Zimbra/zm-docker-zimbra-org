@@ -9,14 +9,4 @@ jobs:
       - setup_remote_docker
       - run:
           command: |
-            docker build -t f9teams/zmc-base:${CIRCLE_SHA1} -f base/Dockerfile ./base
-            docker tag f9teams/zmc-base:${CIRCLE_SHA1} f9teams/zmc-base:latest
-      - run:
-          command: |
-            docker build -t f9teams/zmc-build:${CIRCLE_SHA1} -f build/Dockerfile --build-arg base_tag=${CIRCLE_SHA1} ./build
-            docker tag f9teams/zmc-build:${CIRCLE_SHA1} f9teams/zmc-build:latest
-      - run:
-          command: |
-            docker build -t f9teams/zmc-ldap:${CIRCLE_SHA1} -f ldap/Dockerfile --build-arg base_tag=${CIRCLE_SHA1} .
-            docker tag f9teams/zmc-ldap:${CIRCLE_SHA1} f9teams/zmc-ldap:latest
-
+            docker-compose build
