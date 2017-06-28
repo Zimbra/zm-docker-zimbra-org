@@ -1,15 +1,22 @@
 #! /bin/bash
 
-/opt/zimbra/libexec/zmsetup.pl -c /tmp/config
-status=$?
-if [ $status -ne 0 ]; then
-  echo "Failed to start LDAP: $status"
-  exit $status
+if [ ! -f /zimbra/configured ]; then
+    echo "Configuring LDAP"
+    /opt/zimbra/libexec/zmsetup.pl -c /tmp/config
+    status=$?
+    if [ $status -ne 0 ]; then
+      echo "Failed to configure LDAP: $status"
+      exit $status
+    fi
+
+    touch /zimbra/configured
 fi
+
+sudo -u zimbra /opt/zimbra/bin/zmcontrol start
 
 # TODO: not sure if this is necessary
 su -c /opt/zimbra/bin/zmupdateauthkeys zimbra
 
 # start simple healthcheck so other nodes in the cluster can coordinate startup
 echo "LDAP started"
-/opt/zimbra/healthcheck.py
+/zimbra/healthcheck.py

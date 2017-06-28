@@ -9,12 +9,21 @@ while [ $status -ne 200 ]; do
 done
 echo "MTA available"
 
-/opt/zimbra/libexec/zmsetup.pl -c /tmp/config
-status=$?
-if [ $status -ne 0 ]; then
-  echo "Failed to start MAILBOX: $status"
-  exit $status
+if [ ! -f /zimbra/configured ]; then
+    echo "Setting MAILBOX configuration..."
+
+    /opt/zimbra/libexec/zmsetup.pl -c /tmp/config
+    status=$?
+    if [ $status -ne 0 ]; then
+      echo "Failed to configure MAILBOX: $status"
+      exit $status
+    fi
+
+    touch /zimbra/configured
 fi
+
+echo "Starting MAILBOX"
+sudo -u zimbra /opt/zimbra/bin/zmcontrol start
 
 # TODO: not sure if this is necessary
 su -c /opt/zimbra/bin/zmupdateauthkeys zimbra

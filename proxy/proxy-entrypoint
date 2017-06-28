@@ -9,12 +9,19 @@ while [ $status -ne 200 ]; do
 done
 echo "MAILBOX available"
 
-/opt/zimbra/libexec/zmsetup.pl -c /tmp/config
-status=$?
-if [ $status -ne 0 ]; then
-  echo "Failed to start PROXY: $status"
-  exit $status
+if [ ! -f /zimbra/configured ]; then
+    echo "Configuring PROXY"
+    /opt/zimbra/libexec/zmsetup.pl -c /tmp/config
+    status=$?
+    if [ $status -ne 0 ]; then
+      echo "Failed to configure PROXY: $status"
+      exit $status
+    fi
+
+    touch /zimbra/configured
 fi
+
+sudo -u zimbra /opt/zimbra/bin/zmcontrol start
 
 # TODO: not sure if this is necessary
 su -c /opt/zimbra/bin/zmupdateauthkeys zimbra
