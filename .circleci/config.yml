@@ -7,11 +7,28 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
-      - run: Install compose
-          set -x
-          curl -L https://github.com/docker/compose/releases/download/1.11.2/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
-          chmod +x /usr/local/bin/docker-compose
-      - run: Build containers
+      - run:
+          name: Install compose
+          command: |
+            set -x
+            apk add --update py-pip
+            pip install docker-compose
+      - run:
+          name: Build containers
           command: |
             docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
             docker-compose build
+      - run:
+          name: Test containers
+          command: |
+            docker-compose up -d
+
+            n=60
+            status=0
+            while [ $n -gt 0 ] && [ $status -ne 200 ]; do
+              curl -k --silent --output /dev/null --write-out "%{http_code}" https://localhost:8443/ && break
+
+              n=$[$n+1]
+              sleep 10
+            end
+
