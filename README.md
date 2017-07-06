@@ -53,6 +53,10 @@ qemu-img create -f qcow2 ./Docker.qcow2 128G
 docker-compose up
 ```
 
+This will take forever. Health checks for each container will be on `http://10.0.0.x:9000/`
+
+The web UI should load (after clicking through an SSL warning) on `https://10.0.0.4:9443`
+
 ## Service Containers
 
 ### f9teams/zmc-ldap
