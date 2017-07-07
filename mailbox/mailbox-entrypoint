@@ -1,4 +1,5 @@
 #! /bin/bash
+#!
 
 echo "Waiting for MTA"
 status=$(curl --silent --output /dev/null --write-out "%{http_code}" http://zmc-mta.f9teams.engineering:5000/)
@@ -17,8 +18,9 @@ if [ $status -ne 0 ]; then
 fi
 
 # TODO: not sure if this is necessary
+su - zimbra
 su -c /opt/zimbra/bin/zmupdateauthkeys zimbra
-
+/opt/zimbra/bin/zmcontrol start
 # start simple healthcheck so other nodes in the cluster can coordinate startup
 echo "MAILBOX started"
 ./healthcheck.py

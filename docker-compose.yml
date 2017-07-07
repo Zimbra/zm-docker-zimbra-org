@@ -2,6 +2,7 @@ version: '3'
 
 services:
   ldap:
+    container_name: 'zmc-ldap.f9teams.engineering'
     build:
       context: './'
       dockerfile: './Dockerfile-ldap'
@@ -17,6 +18,7 @@ services:
       - '7389:389'
       - '7000:5000'
   mta:
+    container_name: 'zmc-mta.f9teams.engineering'
     build:
       context: './'
       dockerfile: './Dockerfile-mta'
@@ -31,6 +33,7 @@ services:
     ports:
       - '6000:5000'
   mailbox:
+    container_name: 'zmc-mailbox.f9teams.engineering'
     build:
       context: './'
       dockerfile: './Dockerfile-mailbox'
@@ -48,6 +51,7 @@ services:
       - '9071:7071'
       - '9000:5000'
   proxy:
+    container_name: 'zmc-proxy.f9teams.engineering'
     build:
       context: './'
       dockerfile: './Dockerfile-proxy'
