@@ -10,8 +10,8 @@ RUN chmod +x ./hack/hostname
 COPY ./proxy/install-proxy ./install-proxy
 RUN export PATH=/tmp/hack:$PATH && \
     echo "`hostname -i` `hostname --fqdn`" >> /etc/hosts && \
-    cd /tmp/BUILDS/*/*/*/zm-build/zcs-* && \
-    ./install.sh -s < /tmp/install-proxy
+    cd /zimbra/release && \
+    /zimbra/release/install.sh -s < /tmp/install-proxy
 
 COPY ./zmc-config ./zmc-config
 COPY ./proxy/proxy-config ./proxy-config

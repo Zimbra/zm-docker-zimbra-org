@@ -10,8 +10,8 @@ RUN chmod +x ./hack/hostname
 COPY ./mta/install-mta ./install-mta
 RUN export PATH=/tmp/hack:$PATH && \
     echo "`hostname -i` `hostname --fqdn`" >> /etc/hosts && \
-    cd /tmp/BUILDS/*/*/*/zm-build/zcs-* && \
-    ./install.sh -s < /tmp/install-mta
+    cd /zimbra/release && \
+    /zimbra/release/install.sh -s < /tmp/install-mta
 
 COPY ./zmc-config ./zmc-config
 COPY ./mta/mta-config ./mta-config

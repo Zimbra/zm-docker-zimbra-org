@@ -10,8 +10,8 @@ RUN chmod +x ./hack/hostname
 COPY ./ldap/install-ldap ./install-ldap
 RUN export PATH=/tmp/hack:$PATH && \
     echo "`hostname -i` `hostname --fqdn`" >> /etc/hosts && \
-    cd /tmp/BUILDS/*/*/*/zm-build/zcs-* && \
-    ./install.sh -s < /tmp/install-ldap
+    cd /zimbra/release && \
+    /zimbra/release/install.sh -s < /tmp/install-ldap
 
 COPY ./zmc-config ./zmc-config
 COPY ./ldap/ldap-config ./ldap-config
@@ -22,5 +22,4 @@ COPY ./ldap/ldap-entrypoint ./ldap-entrypoint
 RUN chmod +x ./ldap-entrypoint
 
 ENTRYPOINT ./ldap-entrypoint
-RUN ls -la
 EXPOSE 22 25 465 587 110 143 993 995 80 443 8080 8443 7071
