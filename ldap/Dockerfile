@@ -21,5 +21,5 @@ WORKDIR /opt/zimbra
 COPY ./ldap/ldap-entrypoint ./ldap-entrypoint
 RUN chmod +x ./ldap-entrypoint
 
-ENTRYPOINT ./ldap-entrypoint
+CMD [ "./ldap-entrypoint" ]
 EXPOSE 22 25 465 587 110 143 993 995 80 443 8080 8443 7071

@@ -10,6 +10,14 @@ if [ ! -f /zimbra/configured ]; then
     fi
 
     touch /zimbra/configured
+else
+    # Bad shutdowns will leave containers in an unstable state for the next start.
+    # Ensure no latent PID files are hanging around that trick startup into
+    # thinking things are running.
+
+    echo "Wiping old PID files..."
+    zm_log_dir=$(/opt/zimbra/bin/zmlocalconfig -x -m nokey zimbra_log_directory)
+    rm -f $zm_log_dir/*.pid
 fi
 
 sudo -u zimbra /opt/zimbra/bin/zmcontrol start
@@ -17,6 +25,15 @@ sudo -u zimbra /opt/zimbra/bin/zmcontrol start
 # TODO: not sure if this is necessary
 su -c /opt/zimbra/bin/zmupdateauthkeys zimbra
 
+cleanup() {
+    code=$?
+    sudo -u zimbra /opt/zimbra/bin/zmcontrol stop
+    exit $code
+}
+
+trap "cleanup" INT TERM EXIT
+
 # start simple healthcheck so other nodes in the cluster can coordinate startup
 echo "LDAP started"
-/zimbra/healthcheck.py
+/zimbra/healthcheck.py &
+wait
