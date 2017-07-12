@@ -18,3 +18,5 @@ POPSSLPROXYPORT="7995"
 USESPELL="no"
 INSTALL_PACKAGES="zimbra-core zimbra-mta "
 mailboxd_keystore="/opt/zimbra/conf/keystore"
+ldap_starttls_supported="0"
+

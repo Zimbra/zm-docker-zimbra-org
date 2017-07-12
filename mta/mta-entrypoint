@@ -18,6 +18,14 @@ if [ ! -f /zimbra/configured ]; then
       exit $status
     fi
 
+    # Disable LDAP TLS Use
+    # TODO this should be controlled via ldap_starttls_supported="0"
+    # but it doesn't seem to be picked up when fed via config
+    pushd /opt/zimbra
+    sudo -u zimbra /opt/zimbra/bin/zmlocalconfig -e ldap_starttls_required=false
+    sudo -u zimbra /opt/zimbra/bin/zmlocalconfig -e ldap_starttls_supported=0
+    popd
+
     touch /zimbra/configured
 else
     # Bad shutdowns will leave containers in an unstable state for the next start.
