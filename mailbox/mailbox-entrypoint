@@ -18,9 +18,21 @@ if [ $status -ne 0 ]; then
 fi
 
 # TODO: not sure if this is necessary
-su - zimbra
+
 su -c /opt/zimbra/bin/zmupdateauthkeys zimbra
-/opt/zimbra/bin/zmcontrol start
+su -c "/opt/zimbra/bin/zmcontrol start" zimbra
 # start simple healthcheck so other nodes in the cluster can coordinate startup
 echo "MAILBOX started"
 ./healthcheck.py
+
+white /bin/true; do
+  su -c "/opt/zimbra/bin/zmcontrol status" zimbra |grep Stopped
+  ZMC_STATUS=$?
+  if [ $ZMC_STATUS -ne 0 ]; then
+    echo "One of the processes has exited"
+    echo "restarted processes"
+    su -c "/opt/zimbra/bin/zmcontrol start" zimbra
+    echo "MAILBOX restarted"
+  fi
+  sleep 60
+done
