@@ -21,5 +21,5 @@ WORKDIR /opt/zimbra
 COPY ./mta/mta-entrypoint ./mta-entrypoint
 RUN chmod +x ./mta-entrypoint
 
-ENTRYPOINT ./mta-entrypoint
+CMD [ "./mta-entrypoint" ]
 EXPOSE 22 25 465 587 110 143 993 995 80 443 8080 8443 7071

@@ -21,5 +21,5 @@ WORKDIR /opt/zimbra
 COPY ./proxy/proxy-entrypoint ./proxy-entrypoint
 RUN chmod +x ./proxy-entrypoint
 
-ENTRYPOINT ./proxy-entrypoint
+CMD [ "./proxy-entrypoint" ]
 EXPOSE 22 25 465 587 110 143 993 995 80 443 8080 8443 7071
