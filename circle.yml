@@ -1,0 +1,11 @@
+machine:
+  services:
+    - docker
+
+depedencies:
+  pre:
+    - docker-compose up -d
+
+test:
+  post:
+    - curl --retry 10 --retry-delay 5 -v https://localhost:9443
