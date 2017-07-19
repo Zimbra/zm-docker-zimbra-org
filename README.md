@@ -29,6 +29,9 @@ eval "$(docker-machine env default)"
 
 `docker`, `docker-compose`, etc... should all work now.
 
+### Note re: Port Mapping
+When using `docker-machine` the ports you map from the docker container using `-p` or configured in the `ports` section of your `docker-compose.yml` will not be bound to localhost. They will be bound to the port returned by `docker-machine ip`. So the mailbox will be exposed on https://192.168.99.100:9443/.
+
 ### Docker Native
 ```
 brew cask install docker && \
