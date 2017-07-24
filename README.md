@@ -16,6 +16,7 @@ brew cask install virtualbox
 I've had the best luck in terms of Docker responsiveness for macOS using Docker Machine with VirtualBox.
 
 To configured a VirtualBox Docker Machine run.
+Minimum config is 3 cpus and 5000 MB of RAM. Otherwise services won't start.
 
 ```
 docker-machine create --virtualbox-disk-size 180000 --virtualbox-memory 8096 --virtualbox-cpu-count 4 --driver virtualbox default
@@ -32,7 +33,8 @@ eval "$(docker-machine env default)"
 ### Note re: Port Mapping
 When using `docker-machine` the ports you map from the docker container using `-p` or configured in the `ports` section of your `docker-compose.yml` will not be bound to localhost. They will be bound to the port returned by `docker-machine ip`. So the mailbox will be exposed on https://192.168.99.100:9443/.
 
-### Docker Native
+### Docker Native (This will be flakey)
+
 ```
 brew cask install docker && \
 brew install docker-compose
@@ -40,7 +42,8 @@ brew install docker-compose
 
 I've had difficulty with Docker Native responsiveness for macOS. Using `docker-machine` with VirtualBox seems much consistent.
 
-To get things working at all you'll need to increase the number of cores and the amount of memory that Docker can utilize on your macOS.
+To get things working at all you'll need to increase the number of cores to at least 3
+and the amount of memory to at least 5G that Docker can utilize on your macOS.
 
 Use `qemu` (`brew install qemu`) to increase the available size from 64G to 128G. This will effectively hard reset your local docker state (all containers gone).
 
@@ -64,9 +67,54 @@ The web UI should load (after clicking through an SSL warning) on `https://10.0.
 
 ### f9teams/zmc-ldap
 
-### f9teams/zmc-mta
-
 ### f9teams/zmc-mailbox
+
+### f9teams/zmc-mysql
+
+Runs on `10.0.0.10` port `7306`. Password for root and zimbra are `f9teams`
+
+Why this was hard. Starting with a baseline config of `zm-store`
+
+#### DB passwords are generated at install
+```
+su -c '/opt/zimbra/bin/zmmypasswd f9teams' zimbra
+ su -c '/opt/zimbra/bin/zmmypasswd --root f9teams' zimbra
+```
+
+#### DB is configured to lock out remote connections
+This happens in two ways: mariadb doesn't bind to anything except localhost, and the DB schema itself is locked.
+
+```
+# remove the entry that only lets mysql listen on localhost. Yes this is gross.
+ sed -i -e '/bind-address/d' /opt/zimbra/conf/my.cnf
+```
+
+Next fix the schema
+```
+/opt/zimbra/bin/mysql -u root --password=f9teams -e 'grant all privileges on *.* to zimbra;'
+su -c '/opt/zimbra/bin/zmcontrol restart' zimbra
+```
+
+#### Tell the mailbox server where to find mysql
+```
+su -c "/opt/zimbra/bin/zmlocalconfig -e mysql_bind_address=zmc-mysql.f9teams.engineering mysql_port=7306" zimbra
+```
+
+#### `zm-store` insists on running a mailbox server
+
+This mailbox server runs and registers in LDAP, which makes it part of the mailbox pool. We don't want this.
+
+Shut off the mysql mailbox server and remove it from the pool
+```
+su -c '/opt/zimbra/bin/zmprov deleteServer zmc-mysql.f9teams.engineering' zimbra
+```
+
+From the mailbox server, move the admin account to be hosted there
+```
+su -c 'zmprov ma admin zimbraMailHost zmc-mailbox.f9teams.engineering' zimbra
+```
+
+### f9teams/zmc-mta
 
 ### f9teams/zmc-proxy
 

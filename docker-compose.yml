@@ -47,6 +47,20 @@ services:
       - '9443:8443'
       - '9071:7071'
       - '9000:5000'
+  mysql:
+    build:
+      context: './'
+      dockerfile: './Dockerfile-mysql'
+    image: 'f9teams/zmc-mysql'
+    volumes:
+      - ~/src/:/src/
+    domainname: 'f9teams.engineering'
+    hostname: 'zmc-mysql'
+    networks:
+      default:
+        ipv4_address: '10.0.0.10'
+    ports:
+      - '10000:5000'
   proxy:
     build:
       context: './'

@@ -9,12 +9,31 @@ while [ $status -ne 200 ]; do
 done
 echo "MTA available"
 
+echo "Waiting for MYSQL"
+status=$(curl --silent --output /dev/null --write-out "%{http_code}" http://zmc-mysql.f9teams.engineering:5000/)
+while [ $status -ne 200 ]; do
+  echo "MYSQL unavailable"
+  sleep 20
+  status=$(curl --silent --output /dev/null --write-out "%{http_code}" http://zmc-mysql.f9teams.engineering:5000/)
+done
+echo "MYSQL available"
+
 /opt/zimbra/libexec/zmsetup.pl -c /tmp/config
 status=$?
 if [ $status -ne 0 ]; then
   echo "Failed to start MAILBOX: $status"
   exit $status
 fi
+
+su -c "/opt/zimbra/bin/zmlocalconfig -e mysql_bind_address=zmc-mysql.f9teams.engineering mysql_port=7306" zimbra
+
+# Change mysql config so it starts on the wrong port
+sed -i -e 's/7306/7307/' /opt/zimbra/conf/my.cnf
+su -c '/opt/zimbra/bin/zmmypasswd f9teams' zimbra
+su -c '/opt/zimbra/bin/zmmypasswd --root f9teams' zimbra
+
+su -c '/opt/zimbra/bin/zmcontrol restart' zimbra
+su -c '/opt/zimbra/bin/zmprov ma admin zimbraMailHost zmc-mailbox.f9teams.engineering' zimbra
 
 # TODO: not sure if this is necessary
 su -c /opt/zimbra/bin/zmupdateauthkeys zimbra
