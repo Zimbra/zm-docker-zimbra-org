@@ -78,6 +78,32 @@ services:
       - '8443:443'
       - '8071:7071'
       - '8000:5000'
+  solr1:
+    image: solr:6.2-alpine
+    ports:
+      - "8983:8983"
+    links:
+      - zookeeper
+    command: bash -c '/opt/solr/bin/solr start -f -z zookeeper:2181'
+  solr2:
+    image: solr:6.2-alpine
+    links:
+      - zookeeper
+      - solr1
+    command: bash -c '/opt/solr/bin/solr start -f -z zookeeper:2181'
+  solr3:
+    image: solr:6.2-alpine
+    links:
+      - zookeeper
+      - solr1
+      - solr2
+    command: bash -c '/opt/solr/bin/solr start -f -z zookeeper:2181'
+  zookeeper:
+    image: jplock/zookeeper:3.4.8
+    ports:
+      - "2181:2181"
+      - "2888:2888"
+      - "3888:3888"
 
 networks:
   default:
