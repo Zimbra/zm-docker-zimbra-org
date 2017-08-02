@@ -1,6 +1,6 @@
 # Zimbra Collaboration Suite Docker Containers
 
-## Setup
+## Setup (MacOS)
 If you do not have access to the f9teams organization on Docker Hub, @spoon16 in Slack with your Docker Hub username.
 
 `docker login --username <your docker hub username>`
@@ -52,6 +52,50 @@ cd ~/Library/Containers/com.docker.docker/Data/com.docker.driver.amd64-linux/
 rm Docker.qcow2
 qemu-img create -f qcow2 ./Docker.qcow2 128G
 ```
+
+## Setup (Ubuntu 16.04)
+
+Add the GPG key for official Docker repository, so you can install the latest version:
+
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+
+Add the Docker repository to APT sources:
+
+    sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+
+Update the package database with the Docker packages from the newly added repo:
+
+    sudo apt-get update
+
+Make sure you are about to install from the Docker repo instead of the default Ubuntu 16.04 repo.
+
+    apt-cache policy docker-ce
+
+Install Docker.
+
+    sudo apt-get install -y docker-ce
+
+Verify it is running:
+
+    sudo systemctl status docker
+    ● docker.service - Docker Application Container Engine
+       Loaded: loaded (/lib/systemd/system/docker.service; enabled; vendor preset: enabled)
+       Active: active (running) since Tue 2017-08-01 14:38:48 CDT; 5s ago
+         Docs: https://docs.docker.com
+     Main PID: 6430 (dockerd)
+
+Add (your) host-machine user to the docker group so you don't have to use
+`sudo` with Docker commands. You will have to log out and back in for it to
+take effect.
+
+    sudo usermod -aG docker ${USER}
+
+Install docker-compose:
+
+    sudo mkdir -p /usr/local/bin
+    sudo chown ${USER}:${USER} /usr/local/bin
+    curl -L https://github.com/docker/compose/releases/download/1.15.0/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+    sudo chmod +x /usr/local/bin/docker-compose
 
 ## Starting a Zimbra Cluster
 
