@@ -52,6 +52,7 @@ services:
     volumes:
       - ~/src/:/src/
       - blobvolume:/opt/zimbra/store
+      - tmpvolume:/opt/zimbra/data/tmp
     domainname: 'f9teams.engineering'
     hostname: 'zmc-mailbox'
     networks:
@@ -65,6 +66,7 @@ services:
     volumes:
       - ~/src/:/src/
       - blobvolume:/opt/zimbra/store
+      - tmpvolume:/opt/zimbra/data/tmp
     domainname: 'f9teams.engineering'
     hostname: 'zmc-mailbox'
     networks:
@@ -103,6 +105,7 @@ services:
       - '8000:5000'
 volumes:
   blobvolume: {}
+  tmpvolume: {}
 
 networks:
   default:
