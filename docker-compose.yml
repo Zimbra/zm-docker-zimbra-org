@@ -5,7 +5,7 @@ services:
     build:
       context: './'
       dockerfile: './Dockerfile-ldap'
-    image: 'f9teams/zmc-ldap'
+    image: 'zimbra/zmc-ldap'
     volumes:
       - ~/src/:/src/
     domainname: 'f9teams.engineering'
@@ -20,7 +20,7 @@ services:
     build:
       context: './'
       dockerfile: './Dockerfile-mta'
-    image: 'f9teams/zmc-mta'
+    image: 'zimbra/zmc-mta'
     volumes:
       - ~/src/:/src/
     domainname: 'f9teams.engineering'
@@ -48,7 +48,7 @@ services:
     build:
       context: './'
       dockerfile: './Dockerfile-mailbox'
-    image: 'f9teams/zmc-mailbox'
+    image: 'zimbra/zmc-mailbox'
     volumes:
       - ~/src/:/src/
       - blobvolume:/opt/zimbra/store
@@ -62,7 +62,7 @@ services:
     build:
       context: './'
       dockerfile: './Dockerfile-mailbox'
-    image: 'f9teams/zmc-mailbox'
+    image: 'zimbra/zmc-mailbox'
     volumes:
       - ~/src/:/src/
       - blobvolume:/opt/zimbra/store
@@ -76,7 +76,7 @@ services:
     build:
       context: './'
       dockerfile: './Dockerfile-mysql'
-    image: 'f9teams/zmc-mysql'
+    image: 'zimbra/zmc-mysql'
     volumes:
       - ~/src/:/src/
     domainname: 'f9teams.engineering'
@@ -90,7 +90,7 @@ services:
     build:
       context: './'
       dockerfile: './Dockerfile-proxy'
-    image: 'f9teams/zmc-proxy'
+    image: 'zimbra/zmc-proxy'
     volumes:
       - ~/src/:/src/
     domainname: 'f9teams.engineering'

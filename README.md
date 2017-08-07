@@ -1,5 +1,17 @@
 # Zimbra Collaboration Suite Docker Containers
 
+## Starting a Zimbra Cluster
+
+Go build the docker image for `zm-docker-base` then
+
+```
+docker-compose up
+```
+
+This will take forever. Health checks for each container will be on `http://10.0.0.x:9000/`
+
+The web UI should load (after clicking through an SSL warning) on `https://10.0.0.4:9443`
+
 ## Setup (MacOS)
 If you do not have access to the f9teams organization on Docker Hub, @spoon16 in Slack with your Docker Hub username.
 
@@ -109,11 +121,11 @@ The web UI should load (after clicking through an SSL warning) on `https://10.0.
 
 ## Service Containers
 
-### f9teams/zmc-ldap
+### zimbra/zmc-ldap
 
-### f9teams/zmc-mailbox
+### zimbra/zmc-mailbox
 
-### f9teams/zmc-mysql
+### zimbra/zmc-mysql
 
 Runs on `10.0.0.10` port `7306`. Password for root and zimbra are `f9teams`
 
@@ -158,18 +170,18 @@ From the mailbox server, move the admin account to be hosted there
 su -c 'zmprov ma admin zimbraMailHost zmc-mailbox.f9teams.engineering' zimbra
 ```
 
-### f9teams/zmc-mta
+### zimbra/zmc-mta
 
-### f9teams/zmc-proxy
+### zimbra/zmc-proxy
 
 ## Other Containers
 
-### f9teams/zmc-base
+### zimbra/zmc-base
 This is the base Docker container from which all other Zimbra containers are derived. Allows the successful build, install, and configure of Zimbra Collaboration Suite.
 
 See [zmc-base README.md](./base/README.md)
 
-### f9teams/zmc-build
-This is a Docker container that will pull and build the master branch of https://github.com/f9teams/zm-build
+### zimbra/zmc-build
+This is a Docker container that will pull and build the master branch of https://github.com/zimbra/zm-build
 
 See [zmc-build README.md](./build/README.md)

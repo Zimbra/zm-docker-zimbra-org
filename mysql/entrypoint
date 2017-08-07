@@ -19,10 +19,10 @@ fi
 
 # remove the entry that only lets mysql listen on localhost. Yes this is gross.
 sed -i -e '/bind-address/d' /opt/zimbra/conf/my.cnf
-su -c '/opt/zimbra/bin/zmmypasswd f9teams' zimbra
-su -c '/opt/zimbra/bin/zmmypasswd --root f9teams' zimbra
+su -c '/opt/zimbra/bin/zmmypasswd zimbra' zimbra
+su -c '/opt/zimbra/bin/zmmypasswd --root zimbra' zimbra
 
-/opt/zimbra/bin/mysql -u root --password=f9teams -e 'grant all privileges on *.* to zimbra;'
+/opt/zimbra/bin/mysql -u root --password=zimbra -e 'grant all privileges on *.* to zimbra;'
 su -c '/opt/zimbra/bin/zmcontrol stop' zimbra
 su -c '/opt/zimbra/bin/zmprov deleteServer zmc-mysql.f9teams.engineering' zimbra
 su -c '/opt/zimbra/bin/mysql.server start' zimbra

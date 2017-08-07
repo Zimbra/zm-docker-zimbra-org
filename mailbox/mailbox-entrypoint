@@ -25,7 +25,7 @@ if [ $status -ne 0 ]; then
   exit $status
 fi
 
-su -c "/opt/zimbra/bin/zmlocalconfig -f -e mysql_bind_address=zmc-mysql.f9teams.engineering mysql_port=7306 zimbra_mysql_password=f9teams" zimbra
+su -c "/opt/zimbra/bin/zmlocalconfig -f -e mysql_bind_address=zmc-mysql.f9teams.engineering mysql_port=7306 zimbra_mysql_password=zimbra" zimbra
 
 # Change mysql config so it starts on the wrong port
 sed -i -e 's/7306/7307/' /opt/zimbra/conf/my.cnf
