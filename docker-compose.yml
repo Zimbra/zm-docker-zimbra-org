@@ -31,12 +31,9 @@ services:
     ports:
       - '6000:5000'
   mailbox:
-    build:
-      context: './'
-      dockerfile: './Dockerfile-mailbox'
-    image: 'f9teams/zmc-mailbox'
+    image: nginx
     volumes:
-      - ~/src/:/src/
+      - ./nginx.conf:/etc/nginx/nginx.conf
     domainname: 'f9teams.engineering'
     hostname: 'zmc-mailbox'
     networks:
@@ -47,6 +44,34 @@ services:
       - '9443:8443'
       - '9071:7071'
       - '9000:5000'
+  mailbox1:
+    build:
+      context: './'
+      dockerfile: './Dockerfile-mailbox'
+    image: 'f9teams/zmc-mailbox'
+    volumes:
+      - ~/src/:/src/
+      - blobvolume:/opt/zimbra/store
+      - tmpvolume:/opt/zimbra/data/tmp
+    domainname: 'f9teams.engineering'
+    hostname: 'zmc-mailbox'
+    networks:
+      default:
+        ipv4_address: '10.0.0.14'
+  mailbox2:
+    build:
+      context: './'
+      dockerfile: './Dockerfile-mailbox'
+    image: 'f9teams/zmc-mailbox'
+    volumes:
+      - ~/src/:/src/
+      - blobvolume:/opt/zimbra/store
+      - tmpvolume:/opt/zimbra/data/tmp
+    domainname: 'f9teams.engineering'
+    hostname: 'zmc-mailbox'
+    networks:
+      default:
+        ipv4_address: '10.0.0.15'
   mysql:
     build:
       context: './'
@@ -78,6 +103,9 @@ services:
       - '8443:443'
       - '8071:7071'
       - '8000:5000'
+volumes:
+  blobvolume: {}
+  tmpvolume: {}
 
 networks:
   default:
