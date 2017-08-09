@@ -1,4 +1,4 @@
-FROM f9teams/zmc-build
+FROM zimbra/zmc-base
 
 WORKDIR /tmp
 # This is my hack to trick Zimbra into picking up the eventual hostname, instead
