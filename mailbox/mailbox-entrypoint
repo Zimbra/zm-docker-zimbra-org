@@ -1,4 +1,8 @@
 #! /bin/bash
+chmod -R o+w /opt/zimbra/lib/ /opt/zimbra/jetty/
+
+su -c 'mkdir -p /opt/zimbra/git && mkdir /opt/zimbra/.zcs-deps/ && mkdir -p /opt/zimbra/.ivy2/cache' zimbra
+su -c 'cd /opt/zimbra/git/zm-mailbox && ant -Dzimbra.buildinfo.version=8.7.6_GA_1001 publish-local-all' zimbra
 
 echo "Waiting for MTA"
 status=$(curl --silent --output /dev/null --write-out "%{http_code}" http://zmc-mta.f9teams.engineering:5000/)
@@ -30,8 +34,8 @@ su -c "/opt/zimbra/bin/zmlocalconfig -f -e mysql_bind_address=zmc-mysql.f9teams.
 # Change mysql config so it starts on the wrong port
 sed -i -e 's/7306/7307/' /opt/zimbra/conf/my.cnf
 
-
-su -c '/opt/zimbra/bin/zmcontrol restart' zimbra
+#su -c '/opt/zimbra/bin/zmcontrol restart' zimbra
+su -c 'cd /opt/zimbra/git/zm-mailbox && ant -Dzimbra.buildinfo.version=8.7.6_GA_1001 -f store/build.xml deploy' zimbra
 su -c '/opt/zimbra/bin/zmprov ma admin zimbraMailHost zmc-mailbox.f9teams.engineering' zimbra
 
 # TODO: not sure if this is necessary

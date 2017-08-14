@@ -11,7 +11,8 @@ COPY ./mailbox/install-mailbox ./install-mailbox
 RUN export PATH=/tmp/hack:$PATH && \
     echo "`hostname -i` `hostname --fqdn`" >> /etc/hosts && \
     cd /zimbra/release && \
-    ./install.sh -s < /tmp/install-mailbox
+    ./install.sh -s < /tmp/install-mailbox \
+    chown zimbra:zimbra /opt/zimbra
 
 COPY ./zmc-config ./zmc-config
 COPY ./mailbox/mailbox-config ./mailbox-config

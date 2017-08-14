@@ -50,9 +50,8 @@ services:
       dockerfile: './Dockerfile-mailbox'
     image: 'zimbra/zmc-mailbox'
     volumes:
-      - ~/src/:/src/
       - blobvolume:/opt/zimbra/store
-      - tmpvolume:/opt/zimbra/data/tmp
+      - ~/code/zimbra/zimbra-build-f9/zm-mailbox:/opt/zimbra/git/zm-mailbox
     domainname: 'f9teams.engineering'
     hostname: 'zmc-mailbox'
     networks:
@@ -64,9 +63,8 @@ services:
       dockerfile: './Dockerfile-mailbox'
     image: 'zimbra/zmc-mailbox'
     volumes:
-      - ~/src/:/src/
       - blobvolume:/opt/zimbra/store
-      - tmpvolume:/opt/zimbra/data/tmp
+      - ~/code/zimbra/zimbra-build-f9/zm-mailbox:/opt/zimbra/git/zm-mailbox
     domainname: 'f9teams.engineering'
     hostname: 'zmc-mailbox'
     networks:
