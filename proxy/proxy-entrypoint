@@ -1,11 +1,11 @@
 #! /bin/bash
 
 echo "Waiting for MAILBOX"
-status=$(curl --silent --output /dev/null --write-out "%{http_code}" http://zmc-mailbox.f9teams.engineering:5000/)
+status=$(curl --silent --output /dev/null --write-out "%{http_code}" http://zmc-mailbox:5000/)
 while [ $status -ne 200 ]; do
   echo "MAILBOX unavailable"
   sleep 20
-  status=$(curl --silent --output /dev/null --write-out "%{http_code}" http://zmc-mailbox.f9teams.engineering:5000/)
+  status=$(curl --silent --output /dev/null --write-out "%{http_code}" http://zmc-mailbox:5000/)
 done
 echo "MAILBOX available"
 
@@ -16,8 +16,8 @@ if [ $status -ne 0 ]; then
   exit $status
 fi
 
-su -c '/opt/zimbra/bin/zmprov ms zmc-mysql.f9teams.engineering zimbraReverseProxyLookupTarget FALSE' zimbra
-su -c '/opt/zimbra/bin/zmprov ms zmc-mailbox.f9teams.engineering zimbraReverseProxyLookupTarget TRUE' zimbra
+su -c '/opt/zimbra/bin/zmprov ms zmc-mysql zimbraReverseProxyLookupTarget FALSE' zimbra
+su -c '/opt/zimbra/bin/zmprov ms zmc-mailbox zimbraReverseProxyLookupTarget TRUE' zimbra
 
 su -c '/opt/zimbra/bin/zmcontrol restart' zimbra
 
