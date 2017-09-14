@@ -8,9 +8,10 @@ COPY ./hostname ./hack/hostname
 RUN chmod +x ./hack/hostname
 
 COPY ./ldap/install-ldap ./install-ldap
+RUN tar xfz release-zimbra-8.tgz
 RUN export PATH=/tmp/hack:$PATH && \
     echo "`hostname -i` `hostname --fqdn`" >> /etc/hosts && \
-    cd /tmp/BUILDS/*/*/*/zm-build/zcs-* && \
+    cd /tmp/zcs-* && \
     ./install.sh -s < /tmp/install-ldap
 
 COPY ./zmc-config ./zmc-config
@@ -20,7 +21,7 @@ RUN cat ./zmc-config ./ldap-config | sed '/^\s*$/d' >> ./config
 WORKDIR /opt/zimbra
 COPY ./ldap/ldap-entrypoint ./ldap-entrypoint
 RUN chmod +x ./ldap-entrypoint && \
-    mv /tmp/healthcheck.py ./healthcheck.py
+    mv /zimbra/healthcheck.py ./healthcheck.py
 
 ENTRYPOINT ./ldap-entrypoint
 EXPOSE 22 25 465 587 110 143 993 995 80 443 8080 8443 7071
