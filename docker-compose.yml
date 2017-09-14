@@ -105,20 +105,20 @@ services:
       - '8071:7071'
       - '8000:5000'
   solr1:
-    image: solr:6.2-alpine
+    image: solr:6.6-alpine
     ports:
       - "8983:8983"
     links:
       - zookeeper
     command: bash -c '/opt/solr/bin/solr start -f -z zookeeper:2181'
   solr2:
-    image: solr:6.2-alpine
+    image: solr:6.6-alpine
     links:
       - zookeeper
       - solr1
     command: bash -c '/opt/solr/bin/solr start -f -z zookeeper:2181'
   solr3:
-    image: solr:6.2-alpine
+    image: solr:6.6-alpine
     links:
       - zookeeper
       - solr1
