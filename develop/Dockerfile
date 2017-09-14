@@ -1,4 +1,4 @@
-FROM f9teams/zmc-dev:base
+FROM zimbra/zmc-dev:base
 
 RUN groupadd -r zimbra && \
     useradd -r -g zimbra zimbra && \

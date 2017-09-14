@@ -1,17 +1,9 @@
-FROM f9teams/zmc-build
+FROM zimbra/zmc-base
 
 WORKDIR /tmp
-# This is my hack to trick Zimbra into picking up the eventual hostname, instead
-# of the current Docker assigned hostname. Zimbra has some goofy rules, example;
-# a FQDN must have 2 or more '.'s
-COPY ./hostname ./hack/hostname
-RUN chmod +x ./hack/hostname
 
 COPY ./mailbox/install-mailbox ./install-mailbox
-RUN tar xfz release-zimbra-8.tgz
-RUN export PATH=/tmp/hack:$PATH && \
-    echo "`hostname -i` `hostname --fqdn`" >> /etc/hosts && \
-    cd /tmp/zcs-* && \
+RUN cd /zimbra/release && \
     ./install.sh -s < /tmp/install-mailbox
 
 COPY ./zmc-config ./zmc-config
