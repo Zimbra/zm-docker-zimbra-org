@@ -1,5 +1,15 @@
 #! /bin/bash
 
+# FIXME: AMAVISD refuses to start if myhostname does not have [.] in its FQDN
+#  zmamavisdctl start
+#  Starting amavisd-mc...amavisd-mc is already running.
+#  Starting amavisd...  The value of variable $myhostname is "zmc-mta", but should have been
+#    a fully qualified domain name; perhaps uname(3) did not provide such.
+#    You must explicitly assign a FQDN of this host to variable $myhostname
+#    in amavisd.conf, or fix what uname(3) provides as a host's network name!
+#  failed
+sed -i -e 's/\(^[$]myhostname = \)\(.\)@@/\1\2localhost\2; #/' /opt/zimbra/conf/amavisd.conf.in
+
 echo "Waiting for LDAP"
 status=$(curl --silent --output /dev/null --write-out "%{http_code}" http://zmc-ldap:5000/)
 while [ $status -ne 200 ]; do
