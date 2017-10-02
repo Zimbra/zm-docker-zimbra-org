@@ -1,0 +1,211 @@
+### Basic start
+
+docker run solr:latest
+
+# we can't connect, so let's stop
+
+docker run -p 8983:8983 solr:latest
+
+# it is attached to foreground - not good
+
+docker run -d -p 8983:8983 solr:latest
+
+docker ps
+
+docker stop CONTAINER_NAME
+
+# stop and give name to Solr container
+
+docker run --name lr_single_solr -d -p 8983:8983 -t solr:6.2.1
+
+docker run --name lr_single_solr_latest -d -p 8983:8983 -t solr:latest
+
+# stop and remove the container
+
+docker stop lr_single_solr
+docker stop lr_single_solr_latest
+
+docker rm lr_single_solr
+docker rm lr_single_solr_latest
+
+# we can also run Alpine based distribution
+
+docker run --name lr_alpine_solr -d -p 8983:8983 -t solr:6.2-alpine
+
+docker stop lr_alpine_solr
+
+docker rm lr_alpine_solr
+
+### Let's set heap
+
+## first let's set Solr heap (show script)
+
+#!/bin/bash
+set -e
+cp /opt/solr/bin/solr.in.sh /opt/solr/bin/solr.in.sh.original
+sed -e 's/SOLR_HEAP=".*"/SOLR_HEAP="1024m"/' </opt/solr/bin/solr.in.sh.original >/opt/solr/bin/solr.in.sh
+grep '^SOLR_HEAP=' /opt/solr/bin/solr.in.sh
+
+docker run --name lr_solr_heap -p 8983:8983 -d -P -v $PWD/lr-set-heap.sh:/docker-entrypoint-initdb.d/lr-set-heap.sh solr:6.2.1
+
+# show logs
+
+docker logs lr_solr_heap
+
+docker stop lr_solr_heap
+
+### Let's limit container memory
+
+docker run -it --name lr_solr_mem -p 8983:8983 -d -m 1G solr:6.2.1
+
+### We can turn swappiness off
+
+docker run -it --name lr_solr_swap -p 8983:8983 -d -m 2G --memory-swappiness=0 solr:6.2.1
+
+### Let's give a two CPU cores only
+
+docker run -it --cpuset-cpus="0,1" --name lr_solr_cpu -p 8983:8983 -d solr:6.2.1
+
+### Creating core
+
+docker run --name lr_single_solr -d -p 8983:8983 -t solr:6.2.1
+
+docker exec -it --user solr lr_single_solr bin/solr create_core -c gettingstarted
+
+docker logs lr_single_solr
+
+### Create a collection
+
+docker stop lr_single_solr
+docker rm lr_single_solr
+
+docker run --name lr_solr_one -d -p 8983:8983 -p 9983:9983 -t solr:6.2.1 -c
+
+docker logs lr_solr_one
+
+docker exec -it --user solr lr_solr_one bin/solr zk -upconfig -n example -z localhost:9983 -d server/solr/configsets/data_driven_schema_configs/conf
+
+curl 'localhost:8983/solr/admin/collections?action=CREATE&name=lr&numShards=1&replicationFactor=1&maxShardsPerNode=1&collection.configName=example'
+
+### Now let's add new nodes
+
+# this will not work, but is nice to show what is happening
+
+docker run --name lr_solr_two -d -p 6983:6983 -t solr:6.2.1 -z localhost:9983
+
+docker stop lr_solr_two
+
+docker rm lr_solr_two
+
+# this will work
+
+docker run --name lr_solr_two -d --link lr_solr_one -p 6983:6983 -t solr:6.2.1 -z lr_solr_one:9983
+
+### We can create replicas
+
+curl 'localhost:8983/solr/admin/collections?action=ADDREPLICA&collection=lr&shard=shard1&node=172.17.0.3:8983_solr'
+
+docker stop lr_solr_two
+docker stop lr_solr_one
+docker rm lr_solr_one
+docker rm lr_solr_two
+
+### And now the disks
+
+# this won't work, because of solr.xml
+
+docker run --name lr_solr_disk -d -p 8983:8983 -t -v /tmp/solr:/opt/solr/server/solr solr:6.2.1
+
+docker rm lr_solr_disk
+
+<solr>
+  <solrcloud>
+    <str name="host">${host:}</str>
+    <int name="hostPort">${jetty.port:8983}</int>
+    <str name="hostContext">${hostContext:solr}</str>
+    <bool name="genericCoreNodeNames">${genericCoreNodeNames:true}</bool>
+    <int name="zkClientTimeout">${zkClientTimeout:30000}</int>
+    <int name="distribUpdateSoTimeout">${distribUpdateSoTimeout:600000}</int>
+    <int name="distribUpdateConnTimeout">${distribUpdateConnTimeout:60000}</int>
+    <str name="zkCredentialsProvider">${zkCredentialsProvider:org.apache.solr.common.cloud.DefaultZkCredentialsProvider}</str>
+    <str name="zkACLProvider">${zkACLProvider:org.apache.solr.common.cloud.DefaultZkACLProvider}</str>
+  </solrcloud>
+  <shardHandlerFactory name="shardHandlerFactory"
+    class="HttpShardHandlerFactory">
+    <int name="socketTimeout">${socketTimeout:600000}</int>
+    <int name="connTimeout">${connTimeout:60000}</int>
+  </shardHandlerFactory>
+</solr>
+
+docker run --name lr_solr_disk -d -p 8983:8983 -t -v /tmp/solr:/opt/solr/server/solr solr:6.2.1
+
+docker stop lr_solr_disk
+docker rm lr_solr_disk
+
+### And storage only volumes usage
+
+docker create -v /opt/solr --name solr_lr_volume solr:6.2.1
+
+docker volume inspect solr_lr_volume
+
+docker run --name lr_solr_with_volume --volumes-from solr_lr_volume -d -p 8983:8983 -t solr:6.2.1
+
+docker stop lr_solr_with_volume
+docker volume rm solr_lr_volume
+
+### And now, compose
+
+version: "2"
+services:
+  solr:
+    image: solr:6.2.1
+    ports:
+      - "8983:8983"
+    links:
+      - zookeeper
+    command: bash -c '/opt/solr/bin/solr start -f -z zookeeper:2181'
+  zookeeper:
+    image: jplock/zookeeper:3.4.8
+    ports:
+      - "2181:2181"
+      - "2888:2888"
+      - "3888:3888"
+
+docker-compose up
+
+version: "2"
+services:
+  solr1:
+    image: solr:6.2.1
+    ports:
+      - "8983:8983"
+    links:
+      - zookeeper
+    command: bash -c '/opt/solr/bin/solr start -f -z zookeeper:2181'
+  solr2:
+    image: solr:6.2.1
+    links:
+      - zookeeper
+      - solr1
+    command: bash -c '/opt/solr/bin/solr start -f -z zookeeper:2181'
+  solr3:
+    image: solr:6.2.1
+    links:
+      - zookeeper
+      - solr1
+      - solr2
+    command: bash -c '/opt/solr/bin/solr start -f -z zookeeper:2181'
+  solr4:
+    image: solr:6.2.1
+    links:
+      - zookeeper
+      - solr1
+      - solr2
+      - solr3
+    command: bash -c '/opt/solr/bin/solr start -f -z zookeeper:2181'
+  zookeeper:
+    image: jplock/zookeeper:3.4.8
+    ports:
+      - "2181:2181"
+      - "2888:2888"
+      - "3888:3888"
