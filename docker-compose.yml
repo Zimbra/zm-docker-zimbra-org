@@ -45,7 +45,7 @@ services:
       - '9443:8443'
       - '9071:7071'
       - '9000:5000'
-  mailbox1:
+  mailbox:
     build:
       context: './mailbox'
     image: 'zimbra/zmc-mailbox'
@@ -57,18 +57,11 @@ services:
     networks:
       default:
         ipv4_address: '10.0.0.14'
-  mailbox2:
-    build:
-      context: './mailbox'
-    image: 'zimbra/zmc-mailbox'
-    volumes:
-      - ~/src/:/src/
-      - blobvolume:/opt/zimbra/store
-      - tmpvolume:/opt/zimbra/data/tmp
-    hostname: 'zmc-mailbox'
-    networks:
-      default:
-        ipv4_address: '10.0.0.15'
+    ports:
+      - '19080:8080'
+      - '19443:8443'
+      - '19071:7071'
+      - '19000:5000'
   mysql:
     build:
       context: './mysql'

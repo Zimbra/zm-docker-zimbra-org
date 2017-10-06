@@ -4,8 +4,7 @@ SERVICES =
 SERVICES += ldap
 SERVICES += mysql
 SERVICES += mta
-SERVICES += mailbox1
-SERVICES += mailbox2
+SERVICES += mailbox
 SERVICES += proxy
 
 ################################################################
