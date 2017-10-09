@@ -6,7 +6,7 @@ services:
       context: './ldap'
     image: 'zimbra/zmc-ldap'
     volumes:
-      - ~/src/:/src/
+      - .:/code
     hostname: 'zmc-ldap'
     networks:
       default:
@@ -21,7 +21,7 @@ services:
       context: './mta'
     image: 'zimbra/zmc-mta'
     volumes:
-      - ~/src/:/src/
+      - .:/code
     hostname: 'zmc-mta'
     networks:
       default:
@@ -50,7 +50,7 @@ services:
       context: './mailbox'
     image: 'zimbra/zmc-mailbox'
     volumes:
-      - ~/src/:/src/
+      - .:/code
       - blobvolume:/opt/zimbra/store
       - tmpvolume:/opt/zimbra/data/tmp
     hostname: 'zmc-mailbox'
@@ -67,7 +67,7 @@ services:
       context: './mysql'
     image: 'zimbra/zmc-mysql'
     volumes:
-      - ~/src/:/src/
+      - .:/code
     hostname: 'zmc-mysql'
     networks:
       default:
@@ -81,7 +81,7 @@ services:
       context: './proxy'
     image: 'zimbra/zmc-proxy'
     volumes:
-      - ~/src/:/src/
+      - .:/code
     hostname: 'zmc-proxy'
     networks:
       default:
@@ -91,6 +91,7 @@ services:
       - '8443:443'
       - '8071:7071'
       - '8000:5000'
+
 volumes:
   blobvolume: {}
   tmpvolume: {}
