@@ -4,67 +4,28 @@
 
 use strict;
 
-sub ExCmd
-{
-   my $args = shift;
+#use lib '/code/_base/';
+use lib '/opt/zimbra/common/lib/perl5';
 
-   my $user = $args->{user} || "zimbra";
-   my $script = ( $args->{script} || "" ) . "\n";
+use Zimbra::DockerLib;
 
-   open( FD, "|-" ) or exec( "sudo", "su", "-l", $user, "-c", "bash -s" );
+########################################################
 
-   print FD "echo ==================================================================\n";
-   print FD "echo 'USER : $user\n'";
-   print FD "export TIMEFORMAT='r: %R, u: %U, s: %S'\n";
-   print FD "set -u\n";
-   print FD "set -x\n";
-   print FD $script . "\n";
-   print FD "echo ==================================================================\n";
+my $LDAP_MASTER_PASSWORD = Secret("ldap.master_password");
+my $LDAP_ROOT_PASSWORD   = Secret("ldap.root_password");
+my $LDAP_NGINX_PASSWORD  = Secret("ldap.nginx_password");
 
-   close(FD);
+########################################################
 
-   return $?;
-}
+chomp( my $THIS_HOST = `hostname -f` );
 
-sub WaitForHost
-{
-   my $name = shift;
-   my $url  = shift;
-   my $c    = 0;
-   while (1)
-   {
-      chomp( my $o = `curl --silent --output /dev/null --write-out "%{http_code}" '$url'` );
-      last if ( $o eq "200" );
-      print "$name unavailable\n" if ( $c % 30 eq "0" );
-      sleep(1);
-      ++$c;
-   }
-
-   print "$name available\n";
-}
-
-sub RandomStr
-{
-   my $w      = shift || 10;
-   my $prefix = shift || "zimbra";
-
-   return $prefix . "-" . ( 'X' x $w );    #   return `tr -cd '[0-9a-z_]' < /dev/urandom | head -c $w`;
-}
-
-my $BENCH_START = time();
-
-chomp( my $HOSTNAME = `hostname -f` );
-my $DOMAIN_NAME = "zmc";
-
-my $LDAP_MASTER_PORT = 389;
 my $LDAP_MASTER_HOST = "zmc-ldap";
-my $LDAP_PORT        = 389;
+my $LDAP_MASTER_PORT = 389;
 my $LDAP_HOST        = "zmc-ldap";
+my $LDAP_PORT        = 389;
 my $MAILBOX_HOST     = "zmc-mailbox";
 
-my $LDAP_MASTER_PASSWORD = RandomStr( 10, "ldap-master" );
-my $LDAP_ROOT_PASSWORD   = RandomStr( 10, "ldap-root" );
-my $LDAP_NGINX_PASSWORD  = RandomStr( 10, "ldap-nginx" );
+########################################################
 
 my $ADMIN_PORT = 7071;
 my $HTTPS_PORT = 8443;
@@ -82,19 +43,23 @@ my $PROXY_IMAP_PORT  = 143;
 my $PROXY_POP3S_PORT = 995;
 my $PROXY_POP3_PORT  = 110;
 
-## SYNCHRONIZE
-WaitForHost( "LDAP",    "http://$LDAP_HOST:5000/" );
-WaitForHost( "MAILBOX", "http://$MAILBOX_HOST:5000/" );
+########################################################
 
-ExCmd(
-   {
-      user   => "zimbra",
-      script => <<"END_BASH"
+EntryExec(
+   $THIS_HOST,
+   [
+      { wait_for => { service => $LDAP_HOST, }, },
+      { wait_for => { service => $MAILBOX_HOST, }, },
+      {
+         desc => "Configuring",    # FIXME - split
+         exec => {
+            user   => "zimbra",
+            script => <<"END_BASH"
 echo "## Local Config"
 /opt/zimbra/bin/zmlocalconfig -f -e \\
    "zimbra_uid=\$(id -u zimbra)" \\
    "zimbra_gid=\$(id -g zimbra)" \\
-   "zimbra_server_hostname=$HOSTNAME" \\
+   "zimbra_server_hostname=$THIS_HOST" \\
    "zimbra_user=zimbra" \\
    'ldap_starttls_supported=1' \\
    'zimbra_zmprov_default_to_ldap=true' \\
@@ -108,8 +73,8 @@ echo "## Local Config"
 
 echo "## Server Level Config"
 V=( \$(/opt/zimbra/bin/zmcontrol -v | grep -o '[0-9A-Za-z_]*') )
-/opt/zimbra/bin/zmprov -r -m -l cs '$HOSTNAME'
-/opt/zimbra/bin/zmprov -r -m -l ms '$HOSTNAME' \\
+/opt/zimbra/bin/zmprov -r -m -l cs '$THIS_HOST'
+/opt/zimbra/bin/zmprov -r -m -l ms '$THIS_HOST' \\
    zimbraIPMode ipv4 \\
    zimbraServiceInstalled stats \\
    zimbraServiceEnabled stats \\
@@ -156,37 +121,31 @@ echo "## CA and Certs"
 /opt/zimbra/bin/zmcertmgr savecrt self
 
 END_BASH
-   }
-);
-
-ExCmd(
-   {
-      user   => "root",
-      script => <<"END_BASH"
-echo "## Syslog"
+         },
+      },
+      {
+         desc => "Setting up syslog",
+         exec => {
+            user   => "root",
+            script => <<"END_BASH"
 /opt/zimbra/libexec/zmsyslogsetup
 # zmschedulebackup
 # crontab
 END_BASH
-   }
-);
-
-ExCmd(
-   {
-      user   => "zimbra",
-      script => <<"END_BASH"
-echo "## Start/Restart"
+         },
+      },
+      {
+         desc => "Bringing up services",
+         exec => {
+            user   => "zimbra",
+            script => <<"END_BASH"
 /opt/zimbra/bin/zmlocalconfig -f -e \\
    'ssl_allow_untrusted_certs=false' \\
    'ssl_allow_mismatched_certs=false'
 
 /opt/zimbra/bin/zmcontrol restart
 END_BASH
-   }
+         },
+      },
+   ],
 );
-
-chomp( my $BENCH_DURATION = `date -u '+%Hh %Mm %Ss' -d '@@{[time() - $BENCH_START]}' | sed -e 's/00[hm] \\?//g' -e 's/\\<0//g'` );
-
-print "PROXY STARTED - SETUP - $BENCH_DURATION\n";
-
-system("./healthcheck.py");    # start simple healthcheck so other nodes in the cluster can coordinate startup

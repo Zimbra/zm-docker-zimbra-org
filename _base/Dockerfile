@@ -64,4 +64,5 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 9BE6ED79
 RUN apt-get update -qq
 RUN apt-get install -y zimbra-core
 
+COPY ./Zimbra/DockerLib.pm ./common/lib/perl5/Zimbra/DockerLib.pm
 COPY ./healthcheck.py /zimbra/healthcheck.py

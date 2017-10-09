@@ -1,4 +1,4 @@
-version: '3'
+version: '3.3'
 
 services:
   zmc-ldap:
@@ -8,6 +8,15 @@ services:
       context: './ldap'
     volumes:
       - .:/code
+    configs:
+      - domain_name
+    secrets:
+      - ldap.master_password
+      - ldap.root_password
+      - ldap.replication_password
+      - ldap.postfix_password
+      - ldap.amavis_password
+      - ldap.nginx_password
 
   zmc-mta:
     image: 'zimbra/zmc-mta'
@@ -16,6 +25,13 @@ services:
       context: './mta'
     volumes:
       - .:/code
+    configs:
+      - av_notify_email
+    secrets:
+      - ldap.master_password
+      - ldap.root_password
+      - ldap.postfix_password
+      - ldap.amavis_password
 
   zmc-mailbox:
     image: 'zimbra/zmc-mailbox'
@@ -26,6 +42,21 @@ services:
       - .:/code
       - blobvolume:/opt/zimbra/store
       - tmpvolume:/opt/zimbra/data/tmp
+    configs:
+      - domain_name
+      - admin_account_name
+      - spam_account_name
+      - ham_account_name
+      - virus_quarantine_account_name
+      - gal_sync_account_name
+    secrets:
+      - ldap.master_password
+      - ldap.root_password
+      - mysql.password
+      - admin_account_password
+      - spam_account_password
+      - ham_account_password
+      - virus_quarantine_account_password
 
   zmc-mysql:
     image: 'zimbra/zmc-mysql'
@@ -34,6 +65,8 @@ services:
       context: './mysql'
     volumes:
       - .:/code
+    secrets:
+      - mysql.password
 
   zmc-proxy:
     image: 'zimbra/zmc-proxy'
@@ -42,11 +75,10 @@ services:
       context: './proxy'
     volumes:
       - .:/code
-    ports:
-      - '8080:80'
-      - '8443:443'
-      - '8071:7071'
-      - '8000:5000'
+    secrets:
+      - ldap.master_password
+      - ldap.root_password
+      - ldap.nginx_password
 
   zmc-nginx:
     image: nginx
@@ -58,6 +90,46 @@ services:
       - '9443:8443'
       - '9071:7071'
       - '9000:5000'
+
+secrets:
+   ldap.master_password:
+     file: .secrets/ldap.master_password
+   ldap.root_password:
+     file: .secrets/ldap.root_password
+   ldap.replication_password:
+     file: .secrets/ldap.replication_password
+   ldap.postfix_password:
+     file: .secrets/ldap.postfix_password
+   ldap.amavis_password:
+     file: .secrets/ldap.amavis_password
+   ldap.nginx_password:
+     file: .secrets/ldap.nginx_password
+   mysql.password:
+     file: .secrets/mysql.password
+   admin_account_password:
+     file: .secrets/admin_account_password
+   spam_account_password:
+     file: .secrets/spam_account_password
+   ham_account_password:
+     file: .secrets/ham_account_password
+   virus_quarantine_account_password:
+     file: .secrets/virus_quarantine_account_password
+
+configs:
+   av_notify_email:
+     file: .config/av_notify_email
+   domain_name:
+     file: .config/domain_name
+   admin_account_name:
+     file: .config/admin_account_name
+   spam_account_name:
+     file: .config/spam_account_name
+   ham_account_name:
+     file: .config/ham_account_name
+   virus_quarantine_account_name:
+     file: .config/virus_quarantine_account_name
+   gal_sync_account_name:
+     file: .config/gal_sync_account_name
 
 volumes:
   blobvolume: {}
