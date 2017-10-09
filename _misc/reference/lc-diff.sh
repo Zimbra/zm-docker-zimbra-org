@@ -11,5 +11,5 @@ fi
 M="$1"; shift;
 
 diff -w -u \
-   <(docker exec "zmdocker_${M}_1" su - zimbra -c "zmlocalconfig -s" | sort) \
+   <(docker exec "zmdocker_zmc-${M}_1" su - zimbra -c "zmlocalconfig -s" | sort) \
    <(sort "$SCD/LC-${M}_1.txt")

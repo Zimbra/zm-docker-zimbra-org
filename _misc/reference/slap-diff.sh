@@ -2,7 +2,7 @@
 
 SCD="$(cd "$(dirname "$0")" && pwd)"
 
-docker exec zmdocker_ldap_1 su - zimbra -c 'source ~/bin/zmshutil; zmsetvars; ldapsearch -x -H "$ldap_master_url" -D "$zimbra_ldap_userdn" -w "$zimbra_ldap_password"' | perl -p0e 's/\n //g' > /tmp/SLDAP.txt
+docker exec zmdocker_zmc-ldap_1 su - zimbra -c 'source ~/bin/zmshutil; zmsetvars; ldapsearch -x -H "$ldap_master_url" -D "$zimbra_ldap_userdn" -w "$zimbra_ldap_password"' | perl -p0e 's/\n //g' > /tmp/SLDAP.txt
 
 GetAllDn()
 {

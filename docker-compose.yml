@@ -1,105 +1,64 @@
 version: '3'
 
 services:
-  ldap:
+  zmc-ldap:
+    image: 'zimbra/zmc-ldap'
+    hostname: 'zmc-ldap'
     build:
       context: './ldap'
-    image: 'zimbra/zmc-ldap'
     volumes:
       - .:/code
-    hostname: 'zmc-ldap'
-    networks:
-      default:
-        aliases:
-          - 'zmc-ldap'
-        ipv4_address: '10.0.0.2'
-    ports:
-      - '7389:389'
-      - '7000:5000'
-  mta:
+
+  zmc-mta:
+    image: 'zimbra/zmc-mta'
+    hostname: 'zmc-mta'
     build:
       context: './mta'
-    image: 'zimbra/zmc-mta'
     volumes:
       - .:/code
-    hostname: 'zmc-mta'
-    networks:
-      default:
-        aliases:
-          - 'zmc-mta'
-        ipv4_address: '10.0.0.3'
-    ports:
-      - '6000:5000'
-  nginx:
-    image: nginx
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+
+  zmc-mailbox:
+    image: 'zimbra/zmc-mailbox'
     hostname: 'zmc-mailbox'
-    networks:
-      default:
-        aliases:
-          - 'zmc-mailbox'
-        ipv4_address: '10.0.0.4'
-    ports:
-      - '9080:8080'
-      - '9443:8443'
-      - '9071:7071'
-      - '9000:5000'
-  mailbox:
     build:
       context: './mailbox'
-    image: 'zimbra/zmc-mailbox'
     volumes:
       - .:/code
       - blobvolume:/opt/zimbra/store
       - tmpvolume:/opt/zimbra/data/tmp
-    hostname: 'zmc-mailbox'
-    networks:
-      default:
-        ipv4_address: '10.0.0.14'
-    ports:
-      - '19080:8080'
-      - '19443:8443'
-      - '19071:7071'
-      - '19000:5000'
-  mysql:
+
+  zmc-mysql:
+    image: 'zimbra/zmc-mysql'
+    hostname: 'zmc-mysql'
     build:
       context: './mysql'
-    image: 'zimbra/zmc-mysql'
     volumes:
       - .:/code
-    hostname: 'zmc-mysql'
-    networks:
-      default:
-        aliases:
-          - 'zmc-mysql'
-        ipv4_address: '10.0.0.10'
-    ports:
-      - '10000:5000'
-  proxy:
+
+  zmc-proxy:
+    image: 'zimbra/zmc-proxy'
+    hostname: 'zmc-proxy'
     build:
       context: './proxy'
-    image: 'zimbra/zmc-proxy'
     volumes:
       - .:/code
-    hostname: 'zmc-proxy'
-    networks:
-      default:
-        ipv4_address: '10.0.0.5'
     ports:
       - '8080:80'
       - '8443:443'
       - '8071:7071'
       - '8000:5000'
 
+  zmc-nginx:
+    image: nginx
+    hostname: 'zmc-nginx'
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - '9080:8080'
+      - '9443:8443'
+      - '9071:7071'
+      - '9000:5000'
+
 volumes:
   blobvolume: {}
   tmpvolume: {}
-
-networks:
-  default:
-    driver: 'bridge'
-    ipam:
-      driver: 'default'
-      config:
-        - subnet: '10.0.0.0/24'
