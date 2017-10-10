@@ -5,7 +5,8 @@ services:
     image: 'zimbra/zmc-ldap'
     hostname: 'zmc-ldap'
     build:
-      context: './ldap'
+      context: '.'
+      dockerfile: 'ldap/Dockerfile'
     volumes:
       - .:/code
     configs:
@@ -22,7 +23,8 @@ services:
     image: 'zimbra/zmc-mta'
     hostname: 'zmc-mta'
     build:
-      context: './mta'
+      context: '.'
+      dockerfile: 'mta/Dockerfile'
     volumes:
       - .:/code
     configs:
@@ -37,7 +39,8 @@ services:
     image: 'zimbra/zmc-mailbox'
     hostname: 'zmc-mailbox'
     build:
-      context: './mailbox'
+      context: '.'
+      dockerfile: 'mailbox/Dockerfile'
     volumes:
       - .:/code
       - blobvolume:/opt/zimbra/store
@@ -62,7 +65,8 @@ services:
     image: 'zimbra/zmc-mysql'
     hostname: 'zmc-mysql'
     build:
-      context: './mysql'
+      context: '.'
+      dockerfile: 'mysql/Dockerfile'
     volumes:
       - .:/code
     secrets:
@@ -72,7 +76,8 @@ services:
     image: 'zimbra/zmc-proxy'
     hostname: 'zmc-proxy'
     build:
-      context: './proxy'
+      context: '.'
+      dockerfile: 'proxy/Dockerfile'
     volumes:
       - .:/code
     secrets:
