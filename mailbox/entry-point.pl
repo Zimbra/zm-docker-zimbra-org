@@ -4,12 +4,17 @@
 
 use strict;
 
-#use lib '/code/_base/';
-use lib '/opt/zimbra/common/lib/perl5';
+BEGIN
+{
+   push( @INC, grep { -d $_ } map { use Cwd; use File::Basename; join( '/', dirname( Cwd::abs_path($0) ), $_ ); } ( "common/lib/perl5", "../common" ) );
+}
 
 use Zimbra::DockerLib;
 
-########################################################
+$| = 1;
+my $ENTRY_PID = $$;
+
+## SECRETS AND CONFIGS #################################
 
 my $DOMAIN_NAME                   = Config("domain_name");
 my $LDAP_MASTER_PASSWORD          = Secret("ldap.master_password");
@@ -25,18 +30,20 @@ my $VIRUS_QUARANTINE_ACCOUNT_NAME = Config("virus_quarantine_account_name");
 my $VIRUS_QUARANTINE_PASSWORD     = Secret("virus_quarantine_account_password");
 my $GAL_SYNC_ACCOUNT_NAME         = Config("gal_sync_account_name");
 
-########################################################
+## CONNECTIONS TO OTHER HOSTS ##########################
 
-chomp( my $THIS_HOST = `hostname -f` );
-
+my $LDAP_HOST        = "zmc-ldap";
 my $LDAP_MASTER_HOST = "zmc-ldap";
 my $LDAP_MASTER_PORT = 389;
-my $LDAP_HOST        = "zmc-ldap";
 my $LDAP_PORT        = 389;
-my $SMTP_HOST        = 'zmc-mta';
 my $MYSQL_HOST       = 'zmc-mysql';
+my $SMTP_HOST        = 'zmc-mta';
 
-########################################################
+## THIS HOST LOCAL VARS ################################
+
+chomp( my $THIS_HOST = `hostname -f` );
+chomp( my $ZUID      = `id -u zimbra` );
+chomp( my $ZGID      = `id -g zimbra` );
 
 my $ADMIN_PORT = 7071;
 my $HTTPS_PORT = 8443;
@@ -60,201 +67,229 @@ my $HAM_ACCOUNT              = "$HAM_ACCOUNT_NAME\@$DOMAIN_NAME";
 my $VIRUS_QUARANTINE_ACCOUNT = "$VIRUS_QUARANTINE_ACCOUNT_NAME\@$DOMAIN_NAME";
 my $GAL_SYNC_ACCOUNT         = "$GAL_SYNC_ACCOUNT_NAME\@$DOMAIN_NAME";
 
-
-########################################################
+## CONFIGURATION ENTRY POINT ###########################
 
 EntryExec(
-   $THIS_HOST,
-   [
-      { wait_for => { service => $LDAP_HOST, }, },
-      { wait_for => { service => $SMTP_HOST, }, },
-      { wait_for => { service => $MYSQL_HOST, }, },
-      {
-         desc => "Configuring",    # FIXME - split
-         exec => {
-            user   => "zimbra",
-            script => <<"END_BASH"
-echo "## Local Config"
-/opt/zimbra/bin/zmlocalconfig -f -e \\
-   "zimbra_uid=\$(id -u zimbra)" \\
-   "zimbra_gid=\$(id -g zimbra)" \\
-   "zimbra_server_hostname=$THIS_HOST" \\
-   "zimbra_user=zimbra" \\
-   'ldap_starttls_supported=1' \\
-   'zimbra_zmprov_default_to_ldap=false' \\
-   'zimbra_mail_service_port=$HTTP_PORT' \\
-   'mailboxd_server=jetty' \\
-   'ldap_master_url=ldap://$LDAP_MASTER_HOST:$LDAP_MASTER_PORT' \\
-   'ldap_url=ldap://$LDAP_HOST:$LDAP_PORT' \\
-   'zimbra_ldap_password=$LDAP_MASTER_PASSWORD' \\
-   'ldap_root_password=$LDAP_ROOT_PASSWORD' \\
-   'ssl_allow_untrusted_certs=true' \\
-   'ssl_allow_mismatched_certs=true' \\
-   'mysql_bind_address=$MYSQL_HOST' \\
-   'zimbra_mysql_password=$MYSQL_PASSWORD' \\
-   'zimbra_mysql_connector_maxActive=100' \\
-   'mailboxd_java_heap_size=512' \\
+   seq => [
+      sub {
+         {
+            local_config => {
+               zimbra_uid                       => $ZUID,
+               zimbra_gid                       => $ZGID,
+               zimbra_user                      => "zimbra",
+               zimbra_server_hostname           => $THIS_HOST,
+               ldap_starttls_supported          => 1,
+               zimbra_zmprov_default_to_ldap    => "false",
+               ssl_allow_untrusted_certs        => "true",
+               ssl_allow_mismatched_certs       => "true",
+               ldap_master_url                  => "ldap://$LDAP_MASTER_HOST:$LDAP_MASTER_PORT",
+               ldap_url                         => "ldap://$LDAP_HOST:$LDAP_PORT",
+               ldap_root_password               => $LDAP_ROOT_PASSWORD,
+               zimbra_ldap_password             => $LDAP_MASTER_PASSWORD,
+               zimbra_mysql_password            => $MYSQL_PASSWORD,
+               mysql_bind_address               => $MYSQL_HOST,
+               mailboxd_java_heap_size          => 512,
+               mailboxd_server                  => "jetty",
+               zimbra_mail_service_port         => $HTTP_PORT,
+               zimbra_mysql_connector_maxActive => 100,
+            },
+         };
+      },
 
-echo "## Server Level Config"
-V=( \$(/opt/zimbra/bin/zmcontrol -v | grep -o '[0-9A-Za-z_]*') )
-/opt/zimbra/bin/zmprov -r -m -l cs '$THIS_HOST'
-/opt/zimbra/bin/zmprov -r -m -l ms '$THIS_HOST' \\
-   zimbraIPMode ipv4 \\
-   zimbraServiceInstalled stats \\
-   zimbraServiceEnabled stats \\
-   zimbraServiceInstalled mailbox \\
-   zimbraServiceEnabled mailbox \\
-   zimbraServiceEnabled service \\
-   zimbraServiceInstalled imapd \\
-   zimbraServiceEnabled imapd \\
-   zimbraServiceInstalled spell \\
-   zimbraServiceEnabled spell \\
-   zimbraServiceEnabled zimbra \\
-   zimbraServiceEnabled zimlet \\
-   zimbraServiceEnabled zimbraAdmin \\
-   \\
-   zimbraSpellCheckURL 'http://$THIS_HOST:7780/aspell.php' \\
-   zimbraConvertdURL 'http://$THIS_HOST:7047/convert' \\
-   \\
-   zimbraAdminPort '$ADMIN_PORT' \\
-   zimbraAdminProxyPort '$PROXY_ADMIN_PORT' \\
-   zimbraImapBindPort '$IMAP_PORT' \\
-   zimbraImapCleartextLoginEnabled FALSE \\
-   zimbraImapProxyBindPort '$PROXY_IMAP_PORT' \\
-   zimbraImapSSLBindPort '$IMAPS_PORT' \\
-   zimbraImapSSLProxyBindPort '$PROXY_IMAPS_PORT' \\
-   zimbraMailMode https \\
-   zimbraMailPort '$HTTP_PORT' \\
-   zimbraMailProxyPort '$PROXY_HTTP_PORT' \\
-   zimbraMailReferMode reverse-proxied \\
-   zimbraMailSSLPort '$HTTPS_PORT' \\
-   zimbraMailSSLProxyPort '$PROXY_HTTPS_PORT' \\
-   zimbraPop3BindPort '$POP3_PORT' \\
-   zimbraPop3CleartextLoginEnabled FALSE \\
-   zimbraPop3ProxyBindPort '$PROXY_POP3_PORT' \\
-   zimbraPop3SSLBindPort '$POP3S_PORT' \\
-   zimbraPop3SSLProxyBindPort '$PROXY_POP3S_PORT' \\
-   \\
-   zimbraReverseProxyHttpEnabled TRUE \\
-   zimbraReverseProxyMailEnabled TRUE \\
-   zimbraReverseProxyAdminEnabled TRUE \\
-   zimbraReverseProxyLookupTarget TRUE \\
-   zimbraMtaAuthTarget TRUE \\
-   +zimbraSmtpHostname '$SMTP_HOST' \\
-   \\
-   zimbraServerVersionMajor \${V[1]} \\
-   zimbraServerVersionMinor \${V[2]} \\
-   zimbraServerVersionMicro \${V[3]} \\
-   zimbraServerVersionType \${V[4]} \\
-   zimbraServerVersionBuild \${V[5]} \\
-   zimbraServerVersion \${V[1]}_\${V[2]}_\${V[3]}_\${V[4]}_\${V[5]}
+      #######################################################################
 
-/opt/zimbra/libexec/zmiptool
-
-echo "## CA and Certs"
-/opt/zimbra/bin/zmcertmgr createca
-/opt/zimbra/bin/zmcertmgr deployca -localonly
-/opt/zimbra/bin/zmcertmgr createcrt -new
-/opt/zimbra/bin/zmcertmgr deploycrt self
-/opt/zimbra/bin/zmcertmgr savecrt self
-
-echo "## ACCOUNTS"
-/opt/zimbra/bin/zmprov -r -m -l ca '$ADMIN_ACCOUNT' '$ADMIN_PASSWORD' \\
-   description 'Administrative Account' \\
-   zimbraIsAdminAccount TRUE \\
-   zimbraAdminConsoleUIComponents cartBlancheUI
-
-/opt/zimbra/bin/zmprov -r -m -l aaa '$ADMIN_ACCOUNT' 'root\@$DOMAIN_NAME'
-/opt/zimbra/bin/zmprov -r -m -l aaa '$ADMIN_ACCOUNT' 'postmaster\@$DOMAIN_NAME'
-
-/opt/zimbra/bin/zmprov -r -m -l ca '$SPAM_ACCOUNT' '$SPAM_PASSWORD' \\
-   description 'System account for spam training.' \\
-   amavisBypassSpamChecks TRUE \\
-   zimbraAttachmentsIndexingEnabled FALSE \\
-   zimbraIsSystemResource TRUE \\
-   zimbraIsSystemAccount TRUE \\
-   zimbraHideInGal TRUE \\
-   zimbraMailQuota 0
-
-/opt/zimbra/bin/zmprov -r -m -l ca '$HAM_ACCOUNT' '$HAM_PASSWORD' \\
-   description 'System account for Non-Spam (Ham) training.' \\
-   amavisBypassSpamChecks TRUE \\
-   zimbraAttachmentsIndexingEnabled FALSE \\
-   zimbraIsSystemResource TRUE \\
-   zimbraIsSystemAccount TRUE \\
-   zimbraHideInGal TRUE \\
-   zimbraMailQuota 0
-
-/opt/zimbra/bin/zmprov -r -m -l ca '$VIRUS_QUARANTINE_ACCOUNT' '$VIRUS_QUARANTINE_PASSWORD' \\
-   description 'System account for Anti-virus quarantine.' \\
-   amavisBypassSpamChecks TRUE \\
-   zimbraAttachmentsIndexingEnabled FALSE \\
-   zimbraIsSystemResource TRUE \\
-   zimbraIsSystemAccount TRUE \\
-   zimbraHideInGal TRUE \\
-   zimbraMailMessageLifetime 30d \\
-   zimbraMailQuota 0
-
-/opt/zimbra/bin/zmprov -r -m -l mcf \\
-   zimbraSpamIsSpamAccount '$SPAM_ACCOUNT' \\
-   zimbraSpamIsNotSpamAccount '$HAM_ACCOUNT' \\
-   zimbraAmavisQuarantineAccount '$HAM_ACCOUNT' \\
-   +zimbraReverseProxyAvailableLookupTargets '$THIS_HOST' \\
-   +zimbraReverseProxyUpstreamEwsServers '$THIS_HOST' \\
-   +zimbraReverseProxyUpstreamLoginServers '$THIS_HOST' \\
-   zimbraRemoteImapServerEnabled 'TRUE' \\
-   zimbraRemoteImapSSLServerEnabled 'TRUE' \\
-
-echo "## Zimlets"
-for file in /opt/zimbra/zimlets/*.zip
-do
-   zmzimletctl -l deploy zimlets/\$(basename \$file)
-done
-
-echo "## COS"
-/opt/zimbra/bin/zmprov -r -m -l mc default \\
-   zimbraMailHostPool "\$(/opt/zimbra/bin/zmprov -r -m -l gs '$THIS_HOST' zimbraId | sed -n -e '/zimbraId:/{s/.*: *//p;}')" \\
-   zimbraZimletAvailableZimlets '!com_zimbra_attachcontacts' \\
-   zimbraZimletAvailableZimlets '!com_zimbra_date' \\
-   zimbraZimletAvailableZimlets '!com_zimbra_email' \\
-   zimbraZimletAvailableZimlets '!com_zimbra_attachmail' \\
-   zimbraZimletAvailableZimlets '!com_zimbra_url'
-
-/opt/zimbra/bin/zmmailboxdctl restart # Required for GAL sync account to work
-
-echo "## GAL Sync"
-/opt/zimbra/bin/zmgsautil createAccount -a '$GAL_SYNC_ACCOUNT' \\
-   -n InternalGAL \\
-   --domain '$DOMAIN_NAME' \\
-   -s '$THIS_HOST' \\
-   -t zimbra \\
-   -f _InternalGAL
-END_BASH
+      sub { { wait_for => { services => [$LDAP_HOST] }, }; },
+      sub {
+         {
+            server_config => {
+               $THIS_HOST => {
+                  zimbraIPMode                    => "ipv4",
+                  zimbraSpellCheckURL             => "http://$THIS_HOST:7780/aspell.php",
+                  zimbraServiceInstalled          => [ "stats", "mailbox", "imapd" ],
+                  zimbraServiceEnabled            => [ "stats", "mailbox", "service", "imapd", "zimbra", "zimlet", "zimbraAdmin" ],
+                  zimbraConvertdURL               => "http://$THIS_HOST:7047/convert",
+                  zimbraAdminPort                 => $ADMIN_PORT,
+                  zimbraAdminProxyPort            => $PROXY_ADMIN_PORT,
+                  zimbraImapBindPort              => $IMAP_PORT,
+                  zimbraImapCleartextLoginEnabled => "FALSE",
+                  zimbraImapProxyBindPort         => $PROXY_IMAP_PORT,
+                  zimbraImapSSLBindPort           => $IMAPS_PORT,
+                  zimbraImapSSLProxyBindPort      => $PROXY_IMAPS_PORT,
+                  zimbraMailMode                  => "https",
+                  zimbraMailPort                  => $HTTP_PORT,
+                  zimbraMailProxyPort             => $PROXY_HTTP_PORT,
+                  zimbraMailReferMode             => "reverse-proxied",
+                  zimbraMailSSLPort               => $HTTPS_PORT,
+                  zimbraMailSSLProxyPort          => $PROXY_HTTPS_PORT,
+                  zimbraPop3BindPort              => $POP3_PORT,
+                  zimbraPop3CleartextLoginEnabled => "FALSE",
+                  zimbraPop3ProxyBindPort         => $PROXY_POP3_PORT,
+                  zimbraPop3SSLBindPort           => $POP3S_PORT,
+                  zimbraPop3SSLProxyBindPort      => $PROXY_POP3S_PORT,
+                  zimbraReverseProxyHttpEnabled   => "TRUE",
+                  zimbraReverseProxyMailEnabled   => "TRUE",
+                  zimbraReverseProxyAdminEnabled  => "TRUE",
+                  zimbraReverseProxyLookupTarget  => "TRUE",
+                  zimbraMtaAuthTarget             => "TRUE",
+               },
+            },
          },
       },
-      {
-         desc => "Setting up syslog",
-         exec => {
-            user   => "root",
-            script => <<"END_BASH"
-/opt/zimbra/libexec/zmsyslogsetup
-# zmschedulebackup
-# crontab
-END_BASH
-         },
-      },
-      {
-         desc => "Bringing up services",
-         exec => {
-            user   => "zimbra",
-            script => <<"END_BASH"
-/opt/zimbra/bin/zmlocalconfig -f -e \\
-   'ssl_allow_untrusted_certs=false' \\
-   'ssl_allow_mismatched_certs=false'
 
-/opt/zimbra/bin/zmcontrol restart
-END_BASH
-         },
+      sub { { desc => "Setting up syslog", exec => { user => "root", args => ["/opt/zimbra/libexec/zmsyslogsetup"], }, }; },
+
+      sub { { desc => "Updating IP Settings", exec => { user => "zimbra", args => ["/opt/zimbra/libexec/zmiptool"], }, }; },
+
+      sub { { desc => "Fetching CA",    exec => { args => [ "/opt/zimbra/bin/zmcertmgr", "createca" ], }, }; },
+      sub { { desc => "Deploying CA",   exec => { args => [ "/opt/zimbra/bin/zmcertmgr", "deployca", "-localonly" ], }, }; },
+      sub { { desc => "Create Cert",    exec => { args => [ "/opt/zimbra/bin/zmcertmgr", "createcrt", "-new" ], }, }; },
+      sub { { desc => "Deploying Cert", exec => { args => [ "/opt/zimbra/bin/zmcertmgr", "deploycrt", "self" ], }, }; },
+      sub { { desc => "Saving Cert",    exec => { args => [ "/opt/zimbra/bin/zmcertmgr", "savecrt", "self" ], }, }; },
+
+      #######################################################################
+
+      sub { { wait_for => { services => [ $SMTP_HOST, ], }, }; },
+      sub {
+         {
+            server_config => { $THIS_HOST => { '+zimbraSmtpHostname' => $SMTP_HOST, }, },
+         };
+      },
+      sub {
+         {
+            cos_config => {
+               default => {
+                  zimbraMailHostPool => join( '', map { chomp; s/^.*: //; $_ } _EvalExecAs( "zimbra", [ "/opt/zimbra/bin/zmprov", "-r", "-m", "-l", "gs", $THIS_HOST, "zimbraId" ] )->{result} ),
+               },
+            },
+         };
+      },
+      sub {
+         {
+            global_config => {
+               "+zimbraReverseProxyAvailableLookupTargets" => $THIS_HOST,
+               "+zimbraReverseProxyUpstreamEwsServers"     => $THIS_HOST,
+               "+zimbraReverseProxyUpstreamLoginServers"   => $THIS_HOST,
+               zimbraRemoteImapServerEnabled               => "TRUE",
+               zimbraRemoteImapSSLServerEnabled            => "TRUE",
+            },
+         };
+      },
+
+      #######################################################################
+
+      sub { { local_config => { ssl_allow_untrusted_certs => "false", ssl_allow_mismatched_certs => "false", }, }; },
+
+      sub { { desc => "Bringing up services", exec => { args => [ "/opt/zimbra/bin/zmcontrol", "start" ], }, }; },
+
+      sub { { publish_service => {}, }; },
+
+      #######################################################################
+
+      sub { { wait_for => { services => [ $MYSQL_HOST, ], }, }; },
+      sub {
+         {
+            desc => "Admin Account",
+            exec => {
+               args => [
+                  "/opt/zimbra/bin/zmprov", "-r", "-m", "-l", "ca", $ADMIN_ACCOUNT, $ADMIN_PASSWORD, "description", 'Administrative Account',
+                  "zimbraIsAdminAccount", "TRUE", "zimbraAdminConsoleUIComponents", "cartBlancheUI"
+               ],
+            },
+         };
+      },
+      sub { { desc => "Common Admin Alias", exec => { args => [ "/opt/zimbra/bin/zmprov", "-r", "-m", "-l", "aaa", "$ADMIN_ACCOUNT", "root\@$DOMAIN_NAME" ], }, }; },
+      sub { { desc => "Common Admin Alias", exec => { args => [ "/opt/zimbra/bin/zmprov", "-r", "-m", "-l", "aaa", $ADMIN_ACCOUNT, "postmaster\@$DOMAIN_NAME" ], }, }; },
+
+      #######################################################################
+
+      sub {
+         {
+            desc => "Spam Account",
+            exec => {
+               args => [
+                  "/opt/zimbra/bin/zmprov", "-r", "-m", "-l", "ca", $SPAM_ACCOUNT, $SPAM_PASSWORD, "description", "System account for spam training.",
+                  "amavisBypassSpamChecks", "TRUE", "zimbraAttachmentsIndexingEnabled", "FALSE", "zimbraIsSystemResource", "TRUE", "zimbraIsSystemAccount", "TRUE", "zimbraHideInGal", "TRUE", "zimbraMailQuota", "0"
+               ],
+            },
+         };
+      },
+      sub {
+         {
+            desc => "Ham Account",
+            exec => {
+               args => [
+                  "/opt/zimbra/bin/zmprov", "-r", "-m", "-l", "ca", $HAM_ACCOUNT, $HAM_PASSWORD, "description", "System account for Non-Spam (Ham) training.",
+                  "amavisBypassSpamChecks", "TRUE", "zimbraAttachmentsIndexingEnabled", "FALSE", "zimbraIsSystemResource", "TRUE", "zimbraIsSystemAccount", "TRUE", "zimbraHideInGal", "TRUE", "zimbraMailQuota", "0"
+               ],
+            },
+         };
+      },
+      sub {
+         {
+            desc => "Virus Quarantine Account",
+            exec => {
+               args => [
+                  "/opt/zimbra/bin/zmprov", "-r", "-m", "-l", "ca", $VIRUS_QUARANTINE_ACCOUNT, $VIRUS_QUARANTINE_PASSWORD, "description", "System, account for Anti-virus quarantine.",
+                  "amavisBypassSpamChecks", "TRUE", "zimbraAttachmentsIndexingEnabled", "FALSE", "zimbraIsSystemResource", "TRUE", "zimbraIsSystemAccount", "TRUE", "zimbraHideInGal", "TRUE", "zimbraMailMessageLifetime", "30d",
+                  "zimbraMailQuota", "0"
+               ],
+            },
+         };
+      },
+      sub {
+         {
+            desc => "GAL Sync Account",
+            exec => { args => [ "/opt/zimbra/bin/zmgsautil", "createAccount", "-a", $GAL_SYNC_ACCOUNT, "-n", "InternalGAL", "--domain", $DOMAIN_NAME, "-s", $THIS_HOST, "-t", "zimbra", "-f", "_InternalGAL" ], },
+         };
+      },
+      sub {
+         {
+            global_config => {
+               zimbraSpamIsSpamAccount       => $SPAM_ACCOUNT,
+               zimbraSpamIsNotSpamAccount    => $HAM_ACCOUNT,
+               zimbraAmavisQuarantineAccount => $HAM_ACCOUNT,
+            },
+         };
+      },
+      sub { { desc => "Zimlet", exec => { args => [ "/opt/zimbra/bin/zmzimletctl", "-l", "deploy", "zimlets/com_zextras_chat_open.zip", ], }, }; },
+      sub { { desc => "Zimlet", exec => { args => [ "/opt/zimbra/bin/zmzimletctl", "-l", "deploy", "zimlets/com_zextras_drive_open.zip", ], }, }; },
+      sub { { desc => "Zimlet", exec => { args => [ "/opt/zimbra/bin/zmzimletctl", "-l", "deploy", "zimlets/com_zimbra_adminversioncheck.zip", ], }, }; },
+      sub { { desc => "Zimlet", exec => { args => [ "/opt/zimbra/bin/zmzimletctl", "-l", "deploy", "zimlets/com_zimbra_attachcontacts.zip", ], }, }; },
+      sub { { desc => "Zimlet", exec => { args => [ "/opt/zimbra/bin/zmzimletctl", "-l", "deploy", "zimlets/com_zimbra_attachmail.zip", ], }, }; },
+      sub { { desc => "Zimlet", exec => { args => [ "/opt/zimbra/bin/zmzimletctl", "-l", "deploy", "zimlets/com_zimbra_bulkprovision.zip", ], }, }; },
+      sub { { desc => "Zimlet", exec => { args => [ "/opt/zimbra/bin/zmzimletctl", "-l", "deploy", "zimlets/com_zimbra_cert_manager.zip", ], }, }; },
+      sub { { desc => "Zimlet", exec => { args => [ "/opt/zimbra/bin/zmzimletctl", "-l", "deploy", "zimlets/com_zimbra_clientuploader.zip", ], }, }; },
+      sub { { desc => "Zimlet", exec => { args => [ "/opt/zimbra/bin/zmzimletctl", "-l", "deploy", "zimlets/com_zimbra_date.zip", ], }, }; },
+      sub { { desc => "Zimlet", exec => { args => [ "/opt/zimbra/bin/zmzimletctl", "-l", "deploy", "zimlets/com_zimbra_email.zip", ], }, }; },
+      sub { { desc => "Zimlet", exec => { args => [ "/opt/zimbra/bin/zmzimletctl", "-l", "deploy", "zimlets/com_zimbra_mailarchive.zip", ], }, }; },
+      sub { { desc => "Zimlet", exec => { args => [ "/opt/zimbra/bin/zmzimletctl", "-l", "deploy", "zimlets/com_zimbra_phone.zip", ], }, }; },
+      sub { { desc => "Zimlet", exec => { args => [ "/opt/zimbra/bin/zmzimletctl", "-l", "deploy", "zimlets/com_zimbra_proxy_config.zip", ], }, }; },
+      sub { { desc => "Zimlet", exec => { args => [ "/opt/zimbra/bin/zmzimletctl", "-l", "deploy", "zimlets/com_zimbra_srchhighlighter.zip", ], }, }; },
+      sub { { desc => "Zimlet", exec => { args => [ "/opt/zimbra/bin/zmzimletctl", "-l", "deploy", "zimlets/com_zimbra_tooltip.zip", ], }, }; },
+      sub { { desc => "Zimlet", exec => { args => [ "/opt/zimbra/bin/zmzimletctl", "-l", "deploy", "zimlets/com_zimbra_url.zip", ], }, }; },
+      sub { { desc => "Zimlet", exec => { args => [ "/opt/zimbra/bin/zmzimletctl", "-l", "deploy", "zimlets/com_zimbra_viewmail.zip", ], }, }; },
+      sub { { desc => "Zimlet", exec => { args => [ "/opt/zimbra/bin/zmzimletctl", "-l", "deploy", "zimlets/com_zimbra_webex.zip", ], }, }; },
+      sub { { desc => "Zimlet", exec => { args => [ "/opt/zimbra/bin/zmzimletctl", "-l", "deploy", "zimlets/com_zimbra_ymemoticons.zip", ], }, }; },
+      sub {
+         {
+            cos_config => {
+               default => {
+                  zimbraPrefTimeZoneId           => "UTC",
+                  #zimbraFeatureTasksEnabled      => "TRUE",
+                  #zimbraFeatureBriefcasesEnabled => "TRUE",
+                  zimbraZimletAvailableZimlets   => [ "!com_zimbra_attachcontacts", "!com_zimbra_date", "!com_zimbra_email", "!com_zimbra_attachmail", "!com_zimbra_url" ],
+               },
+            },
+         };
       },
    ],
 );
+
+END
+{
+   if ( $$ == $ENTRY_PID )
+   {
+      print "IF YOU ARE HERE, THEN AN ERROR HAS OCCURRED (^C to exit), OR ATTACH TO DEBUG\n";
+      sleep
+   }
+}

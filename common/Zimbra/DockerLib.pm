@@ -3,99 +3,346 @@ package Zimbra::DockerLib;
 use strict;
 use warnings;
 
+use POSIX qw(setgid setuid strftime);
+use Data::Dumper;
+use Term::ANSIColor;
+use Zimbra::TaskDispatch;
+use Time::HiRes qw(usleep);
+
 our $VERSION = '1.00';
 use base 'Exporter';
-our @EXPORT = qw(EntryExec Secret Config);
+our @EXPORT = qw(EntryExec Secret Config _EvalExecAs);
 
-sub EntryExec
+BEGIN
 {
-   my $name  = shift;
-   my $steps = shift;
-
-   my $BENCH_START = time();
-
-   print "SERVICE $name : INITIALIZING ...\n";
-
-   my $step_count = 0;
-
-   for my $step (@$steps)
-   {
-      my $sname = "" . ++$step_count . " of " . scalar(@$steps);
-
-      my $STEP_BENCH_START = time();
-
-      if ( my $entry = $step->{exec} )
-      {
-         print "STEP $sname : $entry->{desc} ...\n";
-
-         _ExCmd( $step->{exec} );
-      }
-      elsif ( $entry = $step->{wait_for} )
-      {
-         print "STEP $sname : Waiting for $entry->{service} ...\n";
-
-         _WaitForService( $entry->{service}, $entry->{check_url} );
-      }
-      else
-      {
-         die "Unknown entry";
-      }
-
-      chomp( my $STEP_BENCH_DURATION = `date -u '+%Hh %Mm %Ss' -d '@@{[time() - $STEP_BENCH_START]}' | sed -e 's/00[hm] \\?//g' -e 's/\\<0//g'` );
-
-      print "STEP $sname : TOOK $STEP_BENCH_DURATION\n";
-   }
-
-   chomp( my $BENCH_DURATION = `date -u '+%Hh %Mm %Ss' -d '@@{[time() - $BENCH_START]}' | sed -e 's/00[hm] \\?//g' -e 's/\\<0//g'` );
-
-   print "SERVICE $name : INITIALIZED IN $BENCH_DURATION\n";
-
-   system("./healthcheck.py");    # start simple healthcheck so other nodes in the cluster can coordinate startup  # FIXME add this explicitly?
+   #   $ENV{ANSI_COLORS_DISABLED} = 1 if ( !-t STDOUT );
 }
 
-sub _ExCmd
+my $BENCH_START = time();
+chomp( my $this_host = `hostname` );
+
+sub _ColorPrintln
 {
-   my $args = shift;
+   my $color = shift;
+   my $prefix   = shift;
+   my $msg   = shift;
+   my $delta_start = shift;
 
-   my $user = $args->{user} || "zimbra";
-   my $script = ( $args->{script} || "" ) . "\n";
+   my $date_str = strftime( "%F %T %z", localtime() );
 
-   open( FD, "|-" ) or exec( "sudo", "su", "-l", $user, "-c", "bash -s" );
+   print color($color) . sprintf( "%s :: %-10s :: %-10s :: %-50s :: %-8s :: %-8s", $date_str, $this_host, $prefix, $msg, $delta_start ? _TimeDurationStr($delta_start) : "", _TimeDurationStr($BENCH_START) ). color('reset') . "\n";
+}
 
-   print FD "echo ==================================================================\n";
-   print FD "echo 'USER : $user\n'";
-   print FD "export TIMEFORMAT='r: %R, u: %U, s: %S'\n";
-   print FD "set -u\n";
-   print FD "set -x\n";
-   print FD $script . "\n";
-   print FD "echo ==================================================================\n";
+sub _TimeDurationStr
+{
+   my $time_pt = shift;
 
-   close(FD);
+   my $duration = time() - $time_pt;
 
-   return $?;
+   my $sec   = $duration % 60;
+   my $min   = int( ( $duration % 3600 ) / 60 );
+   my $hours = int( ( $duration % 86400 ) / 3600 );
+
+   return sprintf("%02d:%02d:%02d", $hours, $min, $sec);
+}
+
+sub EntryExec(%);
+
+my %MAPPING = (
+   local_config => {
+      desc => "Setting local config...",
+      impl => \&_LocalConfig,
+   },
+   global_config => {
+      desc => "Setting global config...",
+      impl => \&_GlobalConfig,
+   },
+   wait_for => {
+      desc => "Wating for service...",
+      impl => sub {
+         my $a = shift;
+         _WaitForService($_)
+           foreach ( $a->{service} || (), @{ $a->{services} || [] } );
+      },
+   },
+   exec => {
+      desc => undef,
+      impl => sub {
+         my $a = shift;
+         if ( $a->{args} )
+         {
+            _ExecAs( $a->{user} || "zimbra", $a->{args}, $a->{bg} );
+         }
+         else
+         {
+            print Dumper($a);
+            die "Unknown exec entry";
+         }
+      },
+   },
+   server_config => {
+      desc => "Setting server config...",
+      impl => sub {
+         my $entry  = shift;
+         my $server = ( keys %$entry )[0];
+
+         _ServerConfig( $server, $entry->{$server} );
+      },
+   },
+   cos_config => {
+      desc => "Setting cos config...",
+      impl => sub {
+         my $entry  = shift;
+         my $server = ( keys %$entry )[0];
+
+         _ServerConfig( $server, $entry->{$server} );
+      },
+   },
+   publish_service => {
+      desc => "Publishing service...",
+      impl => sub {
+         my $entry = shift;
+         _ExecAs( "root", ["./healthcheck.py"], 1 );
+      },
+   },
+);
+
+sub EntryExec(%)
+{
+   my %args = @_;
+
+   _ColorPrintln( 'green', "SERVICE", "INITIALIZING ..." );
+
+   Dispatch(
+      %args,
+      invoke_wrapper => sub {
+         my $func_info = shift;
+
+         my $step_data = $func_info->{func_ref}() || die "step data not provided";
+
+         if ( my $impl_name = ( grep { $step_data->{$_} } keys %MAPPING )[0] )
+         {
+            my $impl = $MAPPING{$impl_name}->{impl};
+            my $desc = $step_data->{desc} || $MAPPING{$impl_name}->{desc};
+
+            my $step_start = time();
+            _ColorPrintln( 'yellow', "BEGIN", $desc, $step_start );
+            $impl->( $step_data->{$impl_name} );
+            _ColorPrintln( 'yellow', "END",   $desc, $step_start );
+         }
+         else
+         {
+            die "unsupported implementation for: " . Data::Dumper->new( [$step_data], ["step"] )->Dump();
+         }
+      },
+   );
+
+   _ColorPrintln( 'green', "SERVICE", "INITIALIZED" );
+   print "(^C to exit)\n";
+
+   wait();
+   _ExecAs( "root", [ "sleep", "infinity" ] );
 }
 
 sub _WaitForService
 {
    my $name = shift;
-   my $url  = shift || "http://$name:5000/";
-   my $c    = 0;
+   my $url = shift || "http://$name:5000/";
+
+   my $c = 0;
    while (1)
    {
       chomp( my $o = `curl --silent --output /dev/null --write-out "%{http_code}" '$url'` );
       last if ( $o eq "200" );
       print "waiting for $name service\n" if ( $c % 30 eq "0" );
-      sleep(1);
+      usleep(250000);
       ++$c;
    }
 
    print "$name service available\n";
 }
 
+sub _ExecAs
+{
+   my $user = shift;
+   my $args = shift;
+   my $bg   = shift;
+
+   my $child_pid = fork() // die "fork failed $!";
+   if ($child_pid)
+   {
+      if ($bg)
+      {
+         return { status => $?, child_pid => $child_pid, };
+      }
+      else
+      {
+         waitpid( $child_pid, 0 );
+         return { child_pid => $child_pid, };
+      }
+   }
+   else
+   {
+      my @user = getpwnam($user);
+
+      my @sec_groups;
+      while ( my @gr_entry = getgrent() )
+      {
+         push( @sec_groups, $gr_entry[2] )
+           if ( grep { $_ eq $user } split( ',', $gr_entry[3] ) );
+      }
+      endgrent();
+
+      $( = $user[3];
+      $) = join( ' ', $user[3], @sec_groups );
+      $< = $user[2];
+      $> = $user[2];
+
+      $ENV{LOGNAME} = $user[0];
+      $ENV{USER}    = $user[0];
+      $ENV{HOME}    = $user[7];
+      $ENV{SHELL}   = $user[8];
+
+
+      exec(@$args) or die "exec failed $!";
+   }
+}
+
+sub _EvalExecAs
+{
+   my $user = shift;
+   my $args = shift;
+
+   my $child_pid = open( my $read_fh, "-|" ) // die "fork failed $!";
+   if ($child_pid)
+   {
+      local $/;
+      my $r = <$read_fh>;
+
+      waitpid( $child_pid, 0 );
+
+      return { result => $r, status => $?, child_pid => $child_pid };
+   }
+   else
+   {
+      my @user = getpwnam($user);
+      $( = $user[3];
+      $) = $user[3];
+      $< = $user[2];
+      $> = $user[2];
+      exec(@$args) or die "exec failed $!";
+   }
+}
+
+sub _VersionInfo
+{
+   my $dir = "/zimbra/release";
+   my @v = split( /[.]/, _ReadFile( $dir, ".BUILD_RELEASE_NO", 1 ) );
+
+   return {
+      major => $v[0],
+      minor => $v[1],
+      micro => $v[2],
+      type  => _ReadFile( $dir, ".BUILD_RELEASE_CANDIDATE", 1 ),
+      build => _ReadFile( $dir, ".BUILD_NUM", 1 ),
+   };
+}
+
+sub _LocalConfig
+{
+   my $params = shift;
+
+   print Data::Dumper->new( [ { map { $_ => ( $_ =~ /password/ ? '*' : $params->{$_} ); } keys %$params } ], ["params"] )->Dump();
+
+   return _ExecAs(
+      "zimbra",
+      [
+         "/opt/zimbra/bin/zmlocalconfig", "-f", "-e",
+         map { "$_=$params->{$_}"; } keys %$params
+      ],
+   );
+}
+
+sub _ServerConfig
+{
+   my $server = shift;
+   my $params = shift;
+
+   my $vinfo = _VersionInfo();
+
+   $params->{zimbraServerVersionMajor} = $vinfo->{major};
+   $params->{zimbraServerVersionMinor} = $vinfo->{minor};
+   $params->{zimbraServerVersionMicro} = $vinfo->{micro};
+   $params->{zimbraServerVersionType}  = $vinfo->{type};
+   $params->{zimbraServerVersionBuild} = $vinfo->{build};
+   $params->{zimbraServerVersion}      = "$vinfo->{major}_$vinfo->{minor}_$vinfo->{micro}_$vinfo->{type}_$vinfo->{build}";
+
+   print Data::Dumper->new( [ { map { $_ => ( $_ =~ /password/ ? '*' : $params->{$_} ); } keys %$params } ], ["params"] )->Dump();
+
+   _ExecAs(
+      "zimbra",
+      [
+         "/opt/zimbra/bin/zmprov", "-r", "-m", "-l", "cs", $server
+      ],
+   );
+
+   return _ExecAs(
+      "zimbra",
+      [
+         "/opt/zimbra/bin/zmprov", "-r", "-m", "-l", "ms", $server,
+         map
+         {
+            my $k = $_;
+            ref( $params->{$k} ) eq "ARRAY" ? map { ( $k, $_ ) } @{ $params->{$k} } : ( $k, $params->{$k} );
+           } keys %$params
+      ],
+   );
+}
+
+sub _CosConfig
+{
+   my $cos_name = shift;
+   my $params   = shift;
+
+   print Data::Dumper->new( [ { map { $_ => ( $_ =~ /password/ ? '*' : $params->{$_} ); } keys %$params } ], ["params"] )->Dump();
+
+   return _ExecAs(
+      "zimbra",
+      [
+         "/opt/zimbra/bin/zmprov", "-r", "-m", "-l", "mc", $cos_name,
+         map
+         {
+            my $k = $_;
+            ref( $params->{$k} ) eq "ARRAY" ? map { ( $k, $_ ) } @{ $params->{$k} } : ( $k, $params->{$k} );
+           } keys %$params
+      ],
+   );
+}
+
+sub _GlobalConfig
+{
+   my $params = shift;
+
+   print Data::Dumper->new( [ { map { $_ => ( $_ =~ /password/ ? '*' : $params->{$_} ); } keys %$params } ], ["params"] )->Dump();
+
+   return _ExecAs(
+      "zimbra",
+      [
+         "/opt/zimbra/bin/zmprov", "-r", "-m", "-l", "mcf",
+         map
+         {
+            my $k = $_;
+            ref( $params->{$k} ) eq "ARRAY" ? map { ( $k, $_ ) } @{ $params->{$k} } : ( $k, $params->{$k} );
+           } keys %$params
+      ],
+   );
+}
+
 sub _ReadFile
 {
-   my $dir   = shift;
-   my $fname = shift;
+   my $dir     = shift;
+   my $fname   = shift;
+   my $chompit = shift || 0;
 
    my $file = "$dir/$fname";
 
@@ -107,21 +354,20 @@ sub _ReadFile
       $r = <$FD>;
    }
 
+   chomp($r) if ($chompit);
    return $r;
 }
 
 sub Secret
 {
    my $name = shift;
-   chomp( my $r = _ReadFile( "/var/run/secrets", $name ) );
-   return $r;
+   return _ReadFile( "/var/run/secrets", $name, 1 );
 }
 
 sub Config
 {
    my $name = shift;
-   chomp( my $r = _ReadFile( "/", $name ) );
-   return $r;
+   return _ReadFile( "/", $name, 1 );
 }
 
 1;
