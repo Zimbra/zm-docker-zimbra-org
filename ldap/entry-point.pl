@@ -42,11 +42,6 @@ my $LDAP_PORT        = 389;
 
 EntryExec(
    seq => [
-      sub { { desc => "Initializing Config", exec => { user => "root", args => [ "rsync", "-a", "--delete", "/opt/zimbra/common/etc/openldap/zimbra/config/", "/opt/zimbra/data/ldap/config" ], } }; },
-      sub { { desc => "Initializing Config", exec => { user => "root", args => [ "chown", "-R", "zimbra:zimbra", "/opt/zimbra/data/ldap/config" ], } }; },
-      sub { { desc => "Initializing Config", exec => { user => "root", args => [ "find", "/opt/zimbra/data/ldap/config", "-name", "*.ldif", "-exec", "chmod", "600", "{}", ";" ], } }; },
-      sub { { desc => "Initializing Schema", exec => { args => ["/opt/zimbra/libexec/zmldapschema"], } }; },
-
       sub {
          {
             local_config => {

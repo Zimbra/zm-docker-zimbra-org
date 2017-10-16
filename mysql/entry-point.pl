@@ -34,11 +34,6 @@ my $MYSQL_PORT = 7306;
 EntryExec(
    seq => [
 
-      #FIXME - manual permission fixed should not be required
-      sub { { desc => "Creating required dirs", exec => { user => "root", args => [ "mkdir", "-p", "/opt/zimbra/index", "/opt/zimbra/store", "/opt/zimbra/mailboxd" ], }, }; },
-      sub { { desc => "Fixing Ownership", exec => { user => "root", args => [ "chown", "-R", "zimbra.zimbra", "/opt/zimbra" ], }, }; },
-      sub { { desc => "Fixing Permissions", exec => { user => "root", args => ["/opt/zimbra/libexec/zmfixperms"], }, }; },
-
       sub {
          {
             local_config => {

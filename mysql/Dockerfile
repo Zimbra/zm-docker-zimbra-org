@@ -3,6 +3,11 @@ FROM zimbra/zmc-base
 WORKDIR /tmp
 RUN apt-get install -y zimbra-mariadb
 
+#FIXME - manual default configs and permissions should not be required outside of apt-get install
+RUN [ "mkdir", "-p", "/opt/zimbra/index", "/opt/zimbra/store", "/opt/zimbra/mailboxd" ]
+RUN [ "chown", "-R", "zimbra.zimbra", "/opt/zimbra" ]
+RUN ["/opt/zimbra/libexec/zmfixperms"]
+
 WORKDIR /opt/zimbra
 COPY common/Zimbra/TaskDispatch.pm common/lib/perl5/Zimbra/TaskDispatch.pm
 COPY common/Zimbra/DockerLib.pm common/lib/perl5/Zimbra/DockerLib.pm

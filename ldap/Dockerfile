@@ -3,6 +3,12 @@ FROM zimbra/zmc-base
 WORKDIR /tmp
 RUN apt-get install -y zimbra-ldap
 
+#FIXME - manual default configs and permissions should not be required outside of apt-get install
+RUN [ "rsync", "-a", "--delete", "/opt/zimbra/common/etc/openldap/zimbra/config/", "/opt/zimbra/data/ldap/config" ]
+RUN [ "chown", "-R", "zimbra:zimbra", "/opt/zimbra/data/ldap/config" ]
+RUN [ "find", "/opt/zimbra/data/ldap/config", "-name", "*.ldif", "-exec", "chmod", "600", "{}", ";" ]
+RUN [ "su", "zimbra", "-c", "/opt/zimbra/libexec/zmldapschema"]
+
 WORKDIR /opt/zimbra
 COPY common/Zimbra/TaskDispatch.pm common/lib/perl5/Zimbra/TaskDispatch.pm
 COPY common/Zimbra/DockerLib.pm common/lib/perl5/Zimbra/DockerLib.pm
