@@ -10,52 +10,40 @@ build-base: _base/*
 
 ################################################################
 
-SETTINGS =
-SETTINGS += .config/domain_name
-SETTINGS += .config/admin_account_name
-SETTINGS += .config/spam_account_name
-SETTINGS += .config/ham_account_name
-SETTINGS += .config/virus_quarantine_account_name
-SETTINGS += .config/gal_sync_account_name
-SETTINGS += .config/av_notify_email
+CONFIGS =
+CONFIGS += .config/domain_name
+CONFIGS += .config/admin_account_name
+CONFIGS += .config/spam_account_name
+CONFIGS += .config/ham_account_name
+CONFIGS += .config/virus_quarantine_account_name
+CONFIGS += .config/gal_sync_account_name
+CONFIGS += .config/av_notify_email
 
-SETTINGS += .secrets/ldap.nginx_password
-SETTINGS += .secrets/ldap.nginx_password
-SETTINGS += .secrets/ldap.master_password
-SETTINGS += .secrets/ldap.root_password
-SETTINGS += .secrets/ldap.replication_password
-SETTINGS += .secrets/ldap.amavis_password
-SETTINGS += .secrets/ldap.postfix_password
-SETTINGS += .secrets/mysql.password
-SETTINGS += .secrets/admin_account_password
-SETTINGS += .secrets/spam_account_password
-SETTINGS += .secrets/ham_account_password
-SETTINGS += .secrets/virus_quarantine_account_password
-
-.config:
+.config/.init:
 	mkdir .config
+	touch "$@"
 
-.config/domain_name: .config
+.config/domain_name: .config/.init
 	@echo zmc.com > $@
 	@echo Created default $@ : $$(cat $@)
 
-.config/admin_account_name: .config
+.config/admin_account_name: .config/.init
 	@echo admin > $@
 	@echo Created default $@ : $$(cat $@)
 
-.config/spam_account_name: .config
+.config/spam_account_name: .config/.init
 	@echo spam.$$(tr -cd '0-9a-z_' < /dev/urandom | head -c 8) > $@
 	@echo Created default $@ : $$(cat $@)
 
-.config/ham_account_name: .config
+.config/ham_account_name: .config/.init
 	@echo ham.$$(tr -cd '0-9a-z_' < /dev/urandom | head -c 8) > $@
 	@echo Created default $@ : $$(cat $@)
 
-.config/virus_quarantine_account_name: .config
+.config/virus_quarantine_account_name: .config/.init
 	@echo virus-quarantine.$$(tr -cd '0-9a-z_' < /dev/urandom | head -c 8) > $@
 	@echo Created default $@ : $$(cat $@)
 
-.config/gal_sync_account_name: .config
+.config/gal_sync_account_name: .config/.init
 	@echo gal-sync.$$(tr -cd '0-9a-z_' < /dev/urandom | head -c 8) > $@
 	@echo Created default $@ : $$(cat $@)
 
@@ -63,23 +51,42 @@ SETTINGS += .secrets/virus_quarantine_account_password
 	@echo admin@$$(cat $<) > $@
 	@echo Created default $@ : $$(cat $@)
 
-.secrets:
-	mkdir .secrets
-
-.secrets/admin_account_password: .secrets
-	@echo admin123 > $@
-	@echo Created default $@ : $$(cat $@)
-
-.secrets/%password: .secrets
-	@tr -cd '0-9a-z_' < /dev/urandom | head -c 15 > $@;
-	@echo Created default $@
-
-init-settings: $(SETTINGS)
-	@echo All Settings Created!
+init-configs: $(CONFIGS)
+	@echo All Configs Created!
 
 ################################################################
 
-up: init-settings
+PASSWORDS += .secrets/ldap.nginx_password
+PASSWORDS += .secrets/ldap.nginx_password
+PASSWORDS += .secrets/ldap.master_password
+PASSWORDS += .secrets/ldap.root_password
+PASSWORDS += .secrets/ldap.replication_password
+PASSWORDS += .secrets/ldap.amavis_password
+PASSWORDS += .secrets/ldap.postfix_password
+PASSWORDS += .secrets/mysql.password
+PASSWORDS += .secrets/admin_account_password
+PASSWORDS += .secrets/spam_account_password
+PASSWORDS += .secrets/ham_account_password
+PASSWORDS += .secrets/virus_quarantine_account_password
+
+.secrets/.init:
+	mkdir .secrets
+	touch "$@"
+
+.secrets/admin_account_password: .secrets/.init
+	@echo admin123 > $@
+	@echo Created default $@ : $$(cat $@)
+
+.secrets/%password: .secrets/.init
+	@tr -cd '0-9a-z_' < /dev/urandom | head -c 15 > $@;
+	@echo Created default $@
+
+init-passwords: $(PASSWORDS)
+	@echo All Passwords Created!
+
+################################################################
+
+up: init-configs init-passwords
 	@docker swarm init 2>/dev/null; echo
 	docker stack deploy -c ./docker-compose.yml '$(shell basename "$$PWD")'
 
@@ -93,3 +100,6 @@ logs:
 	    echo ----------------------------------; \
 	    docker service logs --tail 5 $$i; \
 	 done
+
+clean: down
+	rm -rf .config .secrets
