@@ -3,7 +3,7 @@ package Zimbra::DockerLib;
 use strict;
 use warnings;
 
-use POSIX qw(setgid setuid strftime);
+use POSIX qw(setgid setuid strftime dup2);
 use Data::Dumper;
 use Term::ANSIColor;
 use Zimbra::TaskDispatch;
@@ -23,14 +23,14 @@ chomp( my $this_host = `hostname` );
 
 sub _ColorPrintln
 {
-   my $color = shift;
-   my $prefix   = shift;
-   my $msg   = shift;
+   my $color       = shift;
+   my $prefix      = shift;
+   my $msg         = shift;
    my $delta_start = shift;
 
    my $date_str = strftime( "%F %T %z", localtime() );
 
-   print color($color) . sprintf( "%s :: %-10s :: %-10s :: %-50s :: %-8s :: %-8s", $date_str, $this_host, $prefix, $msg, $delta_start ? _TimeDurationStr($delta_start) : "", _TimeDurationStr($BENCH_START) ). color('reset') . "\n";
+   print color($color) . sprintf( "%s :: %-10s :: %-10s :: %-50s :: %-8s :: %-8s", $date_str, $this_host, $prefix, $msg, $delta_start ? _TimeDurationStr($delta_start) : "", _TimeDurationStr($BENCH_START) ) . color('reset') . "\n";
 }
 
 sub _TimeDurationStr
@@ -43,7 +43,7 @@ sub _TimeDurationStr
    my $min   = int( ( $duration % 3600 ) / 60 );
    my $hours = int( ( $duration % 86400 ) / 3600 );
 
-   return sprintf("%02d:%02d:%02d", $hours, $min, $sec);
+   return sprintf( "%02d:%02d:%02d", $hours, $min, $sec );
 }
 
 sub EntryExec(%);
@@ -58,7 +58,7 @@ my %MAPPING = (
       impl => \&_GlobalConfig,
    },
    wait_for => {
-      desc => "Wating for service...",
+      desc => "Waiting for service...",
       impl => sub {
          my $a = shift;
          _WaitForService($_)
@@ -69,14 +69,11 @@ my %MAPPING = (
       desc => undef,
       impl => sub {
          my $a = shift;
-         if ( $a->{args} )
+
+         foreach my $entry ( ref($a) eq "ARRAY" ? @$a : $a )
          {
-            _ExecAs( $a->{user} || "zimbra", $a->{args}, $a->{bg} );
-         }
-         else
-         {
-            print Dumper($a);
-            die "Unknown exec entry";
+            $entry->{user} ||= "zimbra";
+            _ExecAs($entry);
          }
       },
    },
@@ -102,7 +99,7 @@ my %MAPPING = (
       desc => "Publishing service...",
       impl => sub {
          my $entry = shift;
-         _ExecAs( "root", ["./healthcheck.py"], 1 );
+         _ExecAs( { user => "root", args => ["./healthcheck.py"], bg => 1 } );
       },
    },
 );
@@ -128,7 +125,7 @@ sub EntryExec(%)
             my $step_start = time();
             _ColorPrintln( 'yellow', "BEGIN", $desc, $step_start );
             $impl->( $step_data->{$impl_name} );
-            _ColorPrintln( 'yellow', "END",   $desc, $step_start );
+            _ColorPrintln( 'yellow', "END", $desc, $step_start );
          }
          else
          {
@@ -141,7 +138,7 @@ sub EntryExec(%)
    print "(^C to exit)\n";
 
    wait();
-   _ExecAs( "root", [ "sleep", "infinity" ] );
+   _ExecAs( { user => "root", args => [ "sleep", "infinity" ] } );
 }
 
 sub _WaitForService
@@ -164,14 +161,12 @@ sub _WaitForService
 
 sub _ExecAs
 {
-   my $user = shift;
-   my $args = shift;
-   my $bg   = shift;
+   my $opts = shift;
 
    my $child_pid = fork() // die "fork failed $!";
    if ($child_pid)
    {
-      if ($bg)
+      if ( $opts->{bg} )
       {
          return { status => $?, child_pid => $child_pid, };
       }
@@ -183,13 +178,13 @@ sub _ExecAs
    }
    else
    {
-      my @user = getpwnam($user);
+      my @user = getpwnam( $opts->{user} );
 
       my @sec_groups;
       while ( my @gr_entry = getgrent() )
       {
          push( @sec_groups, $gr_entry[2] )
-           if ( grep { $_ eq $user } split( ',', $gr_entry[3] ) );
+           if ( grep { $_ eq $opts->{user} } split( ',', $gr_entry[3] ) );
       }
       endgrent();
 
@@ -203,15 +198,19 @@ sub _ExecAs
       $ENV{HOME}    = $user[7];
       $ENV{SHELL}   = $user[8];
 
+      dup2( 1, 2 );
 
-      exec(@$args) or die "exec failed $!";
+      chdir( $opts->{cd} )
+        if ( $opts->{cd} );
+
+      exec( @{ $opts->{args} } ) or die "exec failed $!";
    }
 }
 
 sub _EvalExecAs
 {
    my $user = shift;
-   my $args = shift;
+   my $opts = shift;
 
    my $child_pid = open( my $read_fh, "-|" ) // die "fork failed $!";
    if ($child_pid)
@@ -230,7 +229,7 @@ sub _EvalExecAs
       $) = $user[3];
       $< = $user[2];
       $> = $user[2];
-      exec(@$args) or die "exec failed $!";
+      exec(@$opts) or die "exec failed $!";
    }
 }
 
@@ -252,14 +251,16 @@ sub _LocalConfig
 {
    my $params = shift;
 
-   print Data::Dumper->new( [ { map { $_ => ( $_ =~ /password/ ? '*' : $params->{$_} ); } keys %$params } ], ["params"] )->Dump();
+   _DumpParams($params);
 
    return _ExecAs(
-      "zimbra",
-      [
-         "/opt/zimbra/bin/zmlocalconfig", "-f", "-e",
-         map { "$_=$params->{$_}"; } keys %$params
-      ],
+      {
+         user => "zimbra",
+         args => [
+            "/opt/zimbra/bin/zmlocalconfig", "-f", "-e",
+            map { "$_=$params->{$_}"; } keys %$params
+         ],
+      }
    );
 }
 
@@ -277,25 +278,29 @@ sub _ServerConfig
    $params->{zimbraServerVersionBuild} = $vinfo->{build};
    $params->{zimbraServerVersion}      = "$vinfo->{major}_$vinfo->{minor}_$vinfo->{micro}_$vinfo->{type}_$vinfo->{build}";
 
-   print Data::Dumper->new( [ { map { $_ => ( $_ =~ /password/ ? '*' : $params->{$_} ); } keys %$params } ], ["params"] )->Dump();
+   _DumpParams($params);
 
    _ExecAs(
-      "zimbra",
-      [
-         "/opt/zimbra/bin/zmprov", "-r", "-m", "-l", "cs", $server
-      ],
+      {
+         user => "zimbra",
+         args => [
+            "/opt/zimbra/bin/zmprov", "-r", "-m", "-l", "cs", $server
+         ],
+      }
    );
 
    return _ExecAs(
-      "zimbra",
-      [
-         "/opt/zimbra/bin/zmprov", "-r", "-m", "-l", "ms", $server,
-         map
-         {
-            my $k = $_;
-            ref( $params->{$k} ) eq "ARRAY" ? map { ( $k, $_ ) } @{ $params->{$k} } : ( $k, $params->{$k} );
-           } keys %$params
-      ],
+      {
+         user => "zimbra",
+         args => [
+            "/opt/zimbra/bin/zmprov", "-r", "-m", "-l", "ms", $server,
+            map
+            {
+               my $k = $_;
+               ref( $params->{$k} ) eq "ARRAY" ? map { ( $k, $_ ) } @{ $params->{$k} } : ( $k, $params->{$k} );
+              } keys %$params
+         ],
+      }
    );
 }
 
@@ -304,37 +309,55 @@ sub _CosConfig
    my $cos_name = shift;
    my $params   = shift;
 
-   print Data::Dumper->new( [ { map { $_ => ( $_ =~ /password/ ? '*' : $params->{$_} ); } keys %$params } ], ["params"] )->Dump();
+   _DumpParams($params);
 
    return _ExecAs(
-      "zimbra",
-      [
-         "/opt/zimbra/bin/zmprov", "-r", "-m", "-l", "mc", $cos_name,
-         map
-         {
-            my $k = $_;
-            ref( $params->{$k} ) eq "ARRAY" ? map { ( $k, $_ ) } @{ $params->{$k} } : ( $k, $params->{$k} );
-           } keys %$params
-      ],
+      {
+         user => "zimbra",
+         args => [
+            "/opt/zimbra/bin/zmprov", "-r", "-m", "-l", "mc", $cos_name,
+            map
+            {
+               my $k = $_;
+               ref( $params->{$k} ) eq "ARRAY" ? map { ( $k, $_ ) } @{ $params->{$k} } : ( $k, $params->{$k} );
+              } keys %$params
+         ],
+      }
    );
+}
+
+sub _DumpParams
+{
+   my $params = shift;
+
+   print Data::Dumper->new(
+      [
+         {
+            map { $_ => ( $_ =~ /password|key|cert/i ? '*' : $params->{$_} ); } keys %$params
+         }
+      ],
+      ["params"]
+   )->Dump();
 }
 
 sub _GlobalConfig
 {
    my $params = shift;
 
-   print Data::Dumper->new( [ { map { $_ => ( $_ =~ /password/ ? '*' : $params->{$_} ); } keys %$params } ], ["params"] )->Dump();
+   _DumpParams($params);
 
    return _ExecAs(
-      "zimbra",
-      [
-         "/opt/zimbra/bin/zmprov", "-r", "-m", "-l", "mcf",
-         map
-         {
-            my $k = $_;
-            ref( $params->{$k} ) eq "ARRAY" ? map { ( $k, $_ ) } @{ $params->{$k} } : ( $k, $params->{$k} );
-           } keys %$params
-      ],
+      {
+         user => "zimbra",
+         args => [
+            "/opt/zimbra/bin/zmprov", "-r", "-m", "-l", "mcf",
+            map
+            {
+               my $k = $_;
+               ref( $params->{$k} ) eq "ARRAY" ? map { ( $k, $_ ) } @{ $params->{$k} } : ( $k, $params->{$k} );
+              } keys %$params
+         ],
+      }
    );
 }
 
