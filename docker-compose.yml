@@ -1,117 +1,177 @@
-version: '3'
+version: '3.3'
 
 services:
-  ldap:
-    build:
-      context: './'
-      dockerfile: './Dockerfile-ldap'
+  zmc-ldap:
     image: 'zimbra/zmc-ldap'
-    volumes:
-      - ~/src/:/src/
     hostname: 'zmc-ldap'
-    networks:
-      default:
-        aliases:
-          - 'zmc-ldap'
-        ipv4_address: '10.0.0.2'
-    ports:
-      - '7389:389'
-      - '7000:5000'
-  mta:
     build:
-      context: './'
-      dockerfile: './Dockerfile-mta'
+      context: '.'
+      dockerfile: 'ldap/Dockerfile'
+    volumes:
+      - .:/code
+    configs:
+      - domain_name
+    secrets:
+      - ca.key
+      - ca.pem
+      - ldap.key
+      - ldap.crt
+      - ldap.master_password
+      - ldap.root_password
+      - ldap.replication_password
+      - ldap.postfix_password
+      - ldap.amavis_password
+      - ldap.nginx_password
+
+  zmc-mta:
     image: 'zimbra/zmc-mta'
-    volumes:
-      - ~/src/:/src/
     hostname: 'zmc-mta'
-    networks:
-      default:
-        aliases:
-          - 'zmc-mta'
-        ipv4_address: '10.0.0.3'
-    ports:
-      - '6000:5000'
-  nginx:
-    image: nginx
+    build:
+      context: '.'
+      dockerfile: 'mta/Dockerfile'
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
+      - .:/code
+    configs:
+      - av_notify_email
+    secrets:
+      - ca.key
+      - ca.pem
+      - mta.key
+      - mta.crt
+      - ldap.master_password
+      - ldap.root_password
+      - ldap.postfix_password
+      - ldap.amavis_password
+
+  zmc-mailbox:
+    image: 'zimbra/zmc-mailbox'
     hostname: 'zmc-mailbox'
-    networks:
-      default:
-        aliases:
-          - 'zmc-mailbox'
-        ipv4_address: '10.0.0.4'
+    build:
+      context: '.'
+      dockerfile: 'mailbox/Dockerfile'
+    volumes:
+      - .:/code
+      - blobvolume:/opt/zimbra/store
+      - tmpvolume:/opt/zimbra/data/tmp
+    configs:
+      - domain_name
+      - admin_account_name
+      - spam_account_name
+      - ham_account_name
+      - virus_quarantine_account_name
+      - gal_sync_account_name
+    secrets:
+      - ca.key
+      - ca.pem
+      - mailbox.key
+      - mailbox.crt
+      - ldap.master_password
+      - ldap.root_password
+      - mysql.password
+      - admin_account_password
+      - spam_account_password
+      - ham_account_password
+      - virus_quarantine_account_password
+
+  zmc-mysql:
+    image: 'zimbra/zmc-mysql'
+    hostname: 'zmc-mysql'
+    build:
+      context: '.'
+      dockerfile: 'mysql/Dockerfile'
+    volumes:
+      - .:/code
+    secrets:
+      - mysql.password
+
+  zmc-proxy:
+    image: 'zimbra/zmc-proxy'
+    hostname: 'zmc-proxy'
+    build:
+      context: '.'
+      dockerfile: 'proxy/Dockerfile'
+    volumes:
+      - .:/code
+    secrets:
+      - ca.key
+      - ca.pem
+      - proxy.key
+      - proxy.crt
+      - ldap.master_password
+      - ldap.root_password
+      - ldap.nginx_password
+
+  zmc-nginx:
+    image: nginx
+    hostname: 'zmc-nginx'
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
     ports:
       - '9080:8080'
       - '9443:8443'
       - '9071:7071'
       - '9000:5000'
-  mailbox1:
-    build:
-      context: './'
-      dockerfile: './Dockerfile-mailbox'
-    image: 'zimbra/zmc-mailbox'
-    volumes:
-      - ~/src/:/src/
-      - blobvolume:/opt/zimbra/store
-      - tmpvolume:/opt/zimbra/data/tmp
-    hostname: 'zmc-mailbox'
-    networks:
-      default:
-        ipv4_address: '10.0.0.14'
-  mailbox2:
-    build:
-      context: './'
-      dockerfile: './Dockerfile-mailbox'
-    image: 'zimbra/zmc-mailbox'
-    volumes:
-      - ~/src/:/src/
-      - blobvolume:/opt/zimbra/store
-      - tmpvolume:/opt/zimbra/data/tmp
-    hostname: 'zmc-mailbox'
-    networks:
-      default:
-        ipv4_address: '10.0.0.15'
-  mysql:
-    build:
-      context: './'
-      dockerfile: './Dockerfile-mysql'
-    image: 'zimbra/zmc-mysql'
-    volumes:
-      - ~/src/:/src/
-    hostname: 'zmc-mysql'
-    networks:
-      default:
-        aliases:
-          - 'zmc-mysql'
-        ipv4_address: '10.0.0.10'
-    ports:
-      - '10000:5000'
-  proxy:
-    build:
-      context: './'
-      dockerfile: './Dockerfile-proxy'
-    image: 'zimbra/zmc-proxy'
-    volumes:
-      - ~/src/:/src/
-    hostname: 'zmc-proxy'
-    networks:
-      default:
-        ipv4_address: '10.0.0.5'
-    ports:
-      - '8080:80'
-      - '8443:443'
-      - '8071:7071'
-      - '8000:5000'
+
+secrets:
+   ca.key:
+     file: .keystore/ca.key
+   ca.pem:
+     file: .keystore/ca.pem
+   ldap.key:
+     file: .keystore/ldap.key
+   ldap.crt:
+     file: .keystore/ldap.crt
+   mta.key:
+     file: .keystore/mta.key
+   mta.crt:
+     file: .keystore/mta.crt
+   mailbox.key:
+     file: .keystore/mailbox.key
+   mailbox.crt:
+     file: .keystore/mailbox.crt
+   proxy.key:
+     file: .keystore/proxy.key
+   proxy.crt:
+     file: .keystore/proxy.crt
+   ldap.master_password:
+     file: .secrets/ldap.master_password
+   ldap.root_password:
+     file: .secrets/ldap.root_password
+   ldap.replication_password:
+     file: .secrets/ldap.replication_password
+   ldap.postfix_password:
+     file: .secrets/ldap.postfix_password
+   ldap.amavis_password:
+     file: .secrets/ldap.amavis_password
+   ldap.nginx_password:
+     file: .secrets/ldap.nginx_password
+   mysql.password:
+     file: .secrets/mysql.password
+   admin_account_password:
+     file: .secrets/admin_account_password
+   spam_account_password:
+     file: .secrets/spam_account_password
+   ham_account_password:
+     file: .secrets/ham_account_password
+   virus_quarantine_account_password:
+     file: .secrets/virus_quarantine_account_password
+
+configs:
+   av_notify_email:
+     file: .config/av_notify_email
+   domain_name:
+     file: .config/domain_name
+   admin_account_name:
+     file: .config/admin_account_name
+   spam_account_name:
+     file: .config/spam_account_name
+   ham_account_name:
+     file: .config/ham_account_name
+   virus_quarantine_account_name:
+     file: .config/virus_quarantine_account_name
+   gal_sync_account_name:
+     file: .config/gal_sync_account_name
+
 volumes:
   blobvolume: {}
   tmpvolume: {}
-
-networks:
-  default:
-    driver: 'bridge'
-    ipam:
-      driver: 'default'
-      config:
-        - subnet: '10.0.0.0/24'
