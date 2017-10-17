@@ -12,6 +12,10 @@ services:
     configs:
       - domain_name
     secrets:
+      - ca.key
+      - ca.pem
+      - ldap.key
+      - ldap.crt
       - ldap.master_password
       - ldap.root_password
       - ldap.replication_password
@@ -30,6 +34,10 @@ services:
     configs:
       - av_notify_email
     secrets:
+      - ca.key
+      - ca.pem
+      - mta.key
+      - mta.crt
       - ldap.master_password
       - ldap.root_password
       - ldap.postfix_password
@@ -53,6 +61,10 @@ services:
       - virus_quarantine_account_name
       - gal_sync_account_name
     secrets:
+      - ca.key
+      - ca.pem
+      - mailbox.key
+      - mailbox.crt
       - ldap.master_password
       - ldap.root_password
       - mysql.password
@@ -81,6 +93,10 @@ services:
     volumes:
       - .:/code
     secrets:
+      - ca.key
+      - ca.pem
+      - proxy.key
+      - proxy.crt
       - ldap.master_password
       - ldap.root_password
       - ldap.nginx_password
@@ -97,6 +113,26 @@ services:
       - '9000:5000'
 
 secrets:
+   ca.key:
+     file: .keystore/ca.key
+   ca.pem:
+     file: .keystore/ca.pem
+   ldap.key:
+     file: .keystore/ldap.key
+   ldap.crt:
+     file: .keystore/ldap.crt
+   mta.key:
+     file: .keystore/mta.key
+   mta.crt:
+     file: .keystore/mta.crt
+   mailbox.key:
+     file: .keystore/mailbox.key
+   mailbox.crt:
+     file: .keystore/mailbox.crt
+   proxy.key:
+     file: .keystore/proxy.key
+   proxy.crt:
+     file: .keystore/proxy.crt
    ldap.master_password:
      file: .secrets/ldap.master_password
    ldap.root_password:

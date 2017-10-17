@@ -8,6 +8,7 @@ use Data::Dumper;
 use Term::ANSIColor;
 use Zimbra::TaskDispatch;
 use Time::HiRes qw(usleep);
+use File::Copy;
 
 our $VERSION = '1.00';
 use base 'Exporter';
@@ -52,6 +53,10 @@ my %MAPPING = (
    local_config => {
       desc => "Setting local config...",
       impl => \&_LocalConfig,
+   },
+   install_keys => {
+      desc => "Installing keys...",
+      impl => \&_InstallKeys,
    },
    global_config => {
       desc => "Setting global config...",
@@ -245,6 +250,20 @@ sub _VersionInfo
       type  => _ReadFile( $dir, ".BUILD_RELEASE_CANDIDATE", 1 ),
       build => _ReadFile( $dir, ".BUILD_NUM", 1 ),
    };
+}
+
+sub _InstallKeys
+{
+   my $args = shift;
+
+   unlink( $args->{dest} );
+
+   copy( "/var/run/secrets/$args->{name}", $args->{dest} ) || die "Could not copy $args->{name} to $args->{dest}\n";
+
+   my ( $login, $pass, $uid, $gid ) = getpwnam( $args->{user} || "zimbra" );
+
+   chown( $uid, $gid, $args->{dest} );
+   chmod( $args->{mode}, $args->{dest} );
 }
 
 sub _LocalConfig

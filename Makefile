@@ -86,7 +86,73 @@ init-passwords: $(PASSWORDS)
 
 ################################################################
 
-up: init-configs init-passwords
+KEYS =
+KEYS += .keystore/ca.key
+KEYS += .keystore/ca.pem
+KEYS += .keystore/ldap.key
+KEYS += .keystore/ldap.crt
+KEYS += .keystore/mta.key
+KEYS += .keystore/mta.crt
+KEYS += .keystore/mailbox.key
+KEYS += .keystore/mailbox.crt
+KEYS += .keystore/proxy.key
+KEYS += .keystore/proxy.crt
+
+.keystore/.init:
+	mkdir -p         .keystore/demoCA/newcerts
+	echo -n        > .keystore/demoCA/index.txt
+	echo -n "1000" > .keystore/demoCA/serial
+	touch $@
+
+.keystore/%.key: .keystore/.init
+	openssl genrsa -out $@ 2048
+
+.keystore/ca.pem: .keystore/ca.key
+	openssl req -batch -nodes \
+	    -new \
+	    -sha256 \
+	    -subj '/O=CA/OU=Zimbra Collaboration Server/CN=zmc-ldap' \
+	    -days 1825 \
+	    -key .keystore/ca.key \
+	    -extensions v3_ca \
+	    -x509 \
+	    -out $@
+	openssl req -batch -nodes \
+	    -new -sha256 \
+	    -subj '/O=CA/OU=Zimbra Collaboration Server/CN=zmc-ldap' \
+	    -days 1825 \
+	    -out .keystore/ca1.pem \
+	    -newkey rsa:2048 \
+	    -keyout .keystore/ca1.key \
+	    -extensions v3_ca -x509
+
+.keystore/%.csr: .keystore/%.key
+	openssl req -batch -nodes \
+	    -new \
+	    -sha256 \
+	    -subj "/OU=Zimbra Collaboration Server/CN=zmc-$*" \
+	    -days 1825 \
+	    -key .keystore/$*.key \
+	    -out $@
+
+.keystore/%.crt: .keystore/%.csr .keystore/ca.pem .keystore/ca.key
+	cd .keystore && \
+	openssl ca -batch -notext \
+	    -policy policy_anything \
+	    -days 1825 \
+	    -md sha256 \
+	    -in ../.keystore/$*.csr \
+	    -cert ../.keystore/ca.pem \
+	    -keyfile ../.keystore/ca.key \
+	    -extensions v3_req \
+	    -out ../$@
+
+init-keys: $(KEYS)
+	@echo All Keys Created!
+
+################################################################
+
+up: init-configs init-passwords init-keys
 	@docker swarm init 2>/dev/null; echo
 	docker stack deploy -c ./docker-compose.yml '$(shell basename "$$PWD")'
 
@@ -102,4 +168,4 @@ logs:
 	 done
 
 clean: down
-	rm -rf .config .secrets
+	rm -rf .config .secrets .keystore
