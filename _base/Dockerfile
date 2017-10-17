@@ -63,3 +63,6 @@ RUN apt-get install -y apt-transport-https
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 9BE6ED79
 RUN apt-get update -qq
 RUN apt-get install -y zimbra-core
+
+RUN mkdir /opt/zimbra/conf/ca                  # FIXME - this should be part of some package
+RUN chown zimbra.zimbra /opt/zimbra/conf/ca    # FIXME - this should be part of some package

@@ -35,6 +35,9 @@ chomp( my $THIS_HOST = `hostname -f` );
 chomp( my $ZUID      = `id -u zimbra` );
 chomp( my $ZGID      = `id -g zimbra` );
 
+my $CA_TRUSTSTORE          = "/opt/zimbra/common/lib/jvm/java/jre/lib/security/cacerts";
+my $CA_TRUSTSTORE_PASSWORD = "changeit";
+
 ## CONFIGURATION ENTRY POINT ###########################
 
 EntryExec(
@@ -48,10 +51,12 @@ EntryExec(
                zimbra_server_hostname        => $THIS_HOST,
                ldap_starttls_supported       => 1,
                zimbra_zmprov_default_to_ldap => "true",
-               ssl_allow_untrusted_certs     => "true",
-               ssl_allow_mismatched_certs    => "true",
+               ssl_allow_untrusted_certs     => "false",
+               ssl_allow_mismatched_certs    => "false",
                ldap_master_url               => "ldap://$LDAP_MASTER_HOST:$LDAP_MASTER_PORT",
                ldap_url                      => "ldap://$LDAP_HOST:$LDAP_PORT",
+               mailboxd_truststore           => $CA_TRUSTSTORE,
+               mailboxd_truststore_password  => $CA_TRUSTSTORE_PASSWORD,
                ldap_root_password            => $LDAP_ROOT_PASSWORD,
                zimbra_ldap_password          => $LDAP_MASTER_PASSWORD,
                ldap_postfix_password         => $LDAP_POSTFIX_PASSWORD,
@@ -64,6 +69,38 @@ EntryExec(
             },
          };
       },
+
+      sub { { install_keys => { name => "ca.key",  dest => "/opt/zimbra/conf/ca/ca.key", mode => 0600, }, }; },
+      sub { { install_keys => { name => "ca.pem",  dest => "/opt/zimbra/conf/ca/ca.pem", mode => 0644, }, }; },
+      sub { { install_keys => { name => "mta.key", dest => "/opt/zimbra/conf/smtpd.key", mode => 0600, }, }; },
+      sub { { install_keys => { name => "mta.crt", dest => "/opt/zimbra/conf/smtpd.crt", mode => 0644, }, }; },
+
+      sub { { desc => "Hashing certs...", exec => { args => [ "c_rehash", "/opt/zimbra/conf/ca" ], }, }; },
+
+      sub {
+         {
+            desc => "Importing Cert...",
+            exec => [
+               {
+                  args => [
+                     "/opt/zimbra/common/bin/keytool", "-delete", "-alias", "my_ca",
+                     "-keystore",                      $CA_TRUSTSTORE,
+                     "-storepass",                     $CA_TRUSTSTORE_PASSWORD,
+                  ],
+               },
+               {
+                  args => [
+                     "/opt/zimbra/common/bin/keytool", "-import", "-alias", "my_ca", "-noprompt",
+                     "-file",                          "/opt/zimbra/conf/ca/ca.pem",
+                     "-keystore",                      $CA_TRUSTSTORE,
+                     "-storepass",                     $CA_TRUSTSTORE_PASSWORD,
+                  ],
+               }
+            ],
+         };
+      },
+
+      #######################################################################
 
       sub { { desc => "Initializing MTA", exec => { args => [ "/opt/zimbra/libexec/zmmtainit", $LDAP_HOST, $LDAP_PORT ], } }; },
 
@@ -79,31 +116,27 @@ EntryExec(
                   zimbraServiceInstalled => [ "amavis", "antispam", "antivirus", "archiving", "mta", "opendkim", "stats", ],
                   zimbraServiceEnabled   => [ "amavis", "antispam", "antivirus", "archiving", "mta", "opendkim", "stats", ],
                   zimbraMtaMyNetworks    => join( '', map { chomp; s/\n/ /g; $_; } _EvalExecAs( "zimbra", [ "/opt/zimbra/libexec/zmserverips", "-n" ] )->{result} ),
+                  zimbraSSLCertificate   => Secret("mta.crt"),
+                  zimbraSSLPrivateKey    => Secret("mta.key"),
                },
             },
-         },
+         };
       },
 
       # FIXME - requires LDAP
       #sub { { desc => "Updating IP Settings", exec => { args => ["/opt/zimbra/libexec/zmiptool"], }, }; },
 
       # FIXME - requires LDAP
-      sub { { desc => "Fetching CA",    exec => { args => [ "/opt/zimbra/bin/zmcertmgr", "createca" ], }, }; },
-      sub { { desc => "Deploying CA",   exec => { args => [ "/opt/zimbra/bin/zmcertmgr", "deployca", "-localonly" ], }, }; },
-      sub { { desc => "Create Cert",    exec => { args => [ "/opt/zimbra/bin/zmcertmgr", "createcrt", "-new" ], }, }; },
-      sub { { desc => "Deploying Cert", exec => { args => [ "/opt/zimbra/bin/zmcertmgr", "deploycrt", "self" ], }, }; },
-      sub { { desc => "Saving Cert",    exec => { args => [ "/opt/zimbra/bin/zmcertmgr", "savecrt", "self" ], }, }; },
-      sub { { local_config => { ssl_allow_untrusted_certs => "false", ssl_allow_mismatched_certs => "false", }, }; },
-
-      # FIXME - requires LDAP
       sub { { desc => "Setting up syslog", exec => { user => "root", args => ["/opt/zimbra/libexec/zmsyslogsetup"], }, }; },
-
-      #######################################################################
 
       # FIXME - requires LDAP
       sub { { desc => "Bringing up all services", exec => { args => [ "/opt/zimbra/bin/zmcontrol", "start" ], }, }; },
 
+      #######################################################################
+
       sub { { publish_service => {}, }; },
+
+      #######################################################################
    ],
 );
 

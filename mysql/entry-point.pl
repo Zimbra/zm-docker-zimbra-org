@@ -33,7 +33,6 @@ my $MYSQL_PORT = 7306;
 
 EntryExec(
    seq => [
-
       sub {
          {
             local_config => {
@@ -51,7 +50,7 @@ EntryExec(
 
       #######################################################################
 
-      #FIXME - requires LDAP to work!!
+      # FIXME - requires LDAP
       #sub { { desc => "Setting up syslog", exec => { user => "root", args => ["/opt/zimbra/libexec/zmsyslogsetup"], }, }; },
 
       sub { { desc => "Initialize and start MySQL", exec => { user => "zimbra", args => [ "/opt/zimbra/libexec/zmmyinit", "--sql_root_pw", $MYSQL_PASSWORD ], }, }; },
@@ -59,7 +58,11 @@ EntryExec(
       #FIXME - is start required?
       sub { { desc => "Bringing up services", exec => { args => [ "/opt/zimbra/bin/mysql.server", "start" ], }, }; },
 
+      #######################################################################
+
       sub { { publish_service => {}, }; },
+
+      #######################################################################
    ],
 );
 

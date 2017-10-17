@@ -67,6 +67,15 @@ my $HAM_ACCOUNT              = "$HAM_ACCOUNT_NAME\@$DOMAIN_NAME";
 my $VIRUS_QUARANTINE_ACCOUNT = "$VIRUS_QUARANTINE_ACCOUNT_NAME\@$DOMAIN_NAME";
 my $GAL_SYNC_ACCOUNT         = "$GAL_SYNC_ACCOUNT_NAME\@$DOMAIN_NAME";
 
+my $CA_TRUSTSTORE              = "/opt/zimbra/common/lib/jvm/java/jre/lib/security/cacerts";
+my $CA_TRUSTSTORE_PASSWORD     = "changeit";
+my $MAILBOXD_KEYSTORE          = "/opt/zimbra/mailboxd/etc/keystore";
+my $MAILBOXD_KEYSTORE_PASSWORD = "zimbra1";
+my $IMAPD_KEYSTORE             = "/opt/zimbra/conf/imapd.keystore";
+my $IMAPD_KEYSTORE_PASSWORD    = "zimbra2";
+my $JETTY_ALIAS_NAME           = "jetty";                                                      # This likely can't be different
+my $PKCS_PASSWORD              = "zimbra3";
+
 ## CONFIGURATION ENTRY POINT ###########################
 
 EntryExec(
@@ -80,8 +89,8 @@ EntryExec(
                zimbra_server_hostname           => $THIS_HOST,
                ldap_starttls_supported          => 1,
                zimbra_zmprov_default_to_ldap    => "false",
-               ssl_allow_untrusted_certs        => "true",
-               ssl_allow_mismatched_certs       => "true",
+               ssl_allow_untrusted_certs        => "false",
+               ssl_allow_mismatched_certs       => "false",
                ldap_master_url                  => "ldap://$LDAP_MASTER_HOST:$LDAP_MASTER_PORT",
                ldap_url                         => "ldap://$LDAP_HOST:$LDAP_PORT",
                ldap_root_password               => $LDAP_ROOT_PASSWORD,
@@ -89,10 +98,92 @@ EntryExec(
                zimbra_mysql_password            => $MYSQL_PASSWORD,
                mysql_bind_address               => $MYSQL_HOST,
                mailboxd_java_heap_size          => 512,
-               mailboxd_server                  => "jetty",
+               mailboxd_server                  => $JETTY_ALIAS_NAME,
                zimbra_mail_service_port         => $HTTP_PORT,
                zimbra_mysql_connector_maxActive => 100,
+               mailboxd_truststore              => $CA_TRUSTSTORE,
+               mailboxd_truststore_password     => $CA_TRUSTSTORE_PASSWORD,
+               mailboxd_keystore                => $MAILBOXD_KEYSTORE,
+               mailboxd_keystore_password       => $MAILBOXD_KEYSTORE_PASSWORD,
+               imapd_keystore                   => $IMAPD_KEYSTORE,
+               imapd_keystore_password          => $IMAPD_KEYSTORE_PASSWORD,
             },
+         };
+      },
+
+      sub { { install_keys => { name => "ca.key",      dest => "/opt/zimbra/conf/ca/ca.key", mode => 0600, }, }; },
+      sub { { install_keys => { name => "ca.pem",      dest => "/opt/zimbra/conf/ca/ca.pem", mode => 0644, }, }; },
+      sub { { install_keys => { name => "mailbox.key", dest => "/opt/zimbra/conf/jetty.key", mode => 0600, }, }; },
+      sub { { install_keys => { name => "mailbox.crt", dest => "/opt/zimbra/conf/jetty.crt", mode => 0644, }, }; },
+
+      sub { { desc => "Hashing certs...", exec => { args => [ "c_rehash", "/opt/zimbra/conf/ca" ], }, }; },
+
+      sub {
+         {
+            desc => "Importing Cert...",
+            exec => [
+               {
+                  args => [
+                     "/opt/zimbra/common/bin/keytool", "-delete", "-alias", "my_ca",
+                     "-keystore",                      $CA_TRUSTSTORE,
+                     "-storepass",                     $CA_TRUSTSTORE_PASSWORD,
+                  ],
+               },
+               {
+                  args => [
+                     "/opt/zimbra/common/bin/keytool", "-import", "-alias", "my_ca", "-noprompt",
+                     "-file",                          "/opt/zimbra/conf/ca/ca.pem",
+                     "-keystore",                      $CA_TRUSTSTORE,
+                     "-storepass",                     $CA_TRUSTSTORE_PASSWORD,
+                  ],
+               }
+            ],
+         };
+      },
+
+      sub {
+         {
+            desc => "Importing Keystore...",    # FIXME - need to split imapd and mailboxd
+            exec => [
+               {
+                  args => [
+                     "/opt/zimbra/common/bin/openssl", "pkcs12",
+                     "-inkey",                         "/opt/zimbra/conf/jetty.key",
+                     "-in",                            "/opt/zimbra/conf/jetty.crt",
+                     "-name",                          $JETTY_ALIAS_NAME,
+                     "-export",                        "-out", "/opt/zimbra/conf/jetty.pkcs12",
+                     "-passout",                       "pass:$PKCS_PASSWORD"
+                  ],
+               },
+               {
+                  args => [
+                     "/opt/zimbra/common/bin/keytool", "-delete",
+                     "-alias",                         $JETTY_ALIAS_NAME,
+                     "-keystore",                      $MAILBOXD_KEYSTORE,
+                     "-storepass",                     $MAILBOXD_KEYSTORE_PASSWORD,
+                  ],
+               },
+               {
+                  args => [
+                     "/opt/zimbra/common/bin/java", "-classpath", "/opt/zimbra/lib/ext/com_zimbra_cert_manager/com_zimbra_cert_manager.jar",
+                     "com.zimbra.cert.MyPKCS12Import", "/opt/zimbra/conf/jetty.pkcs12", $MAILBOXD_KEYSTORE, $PKCS_PASSWORD, $MAILBOXD_KEYSTORE_PASSWORD,
+                  ],
+               },
+               {
+                  args => [
+                     "/opt/zimbra/common/bin/keytool", "-delete",
+                     "-alias",                         $JETTY_ALIAS_NAME,
+                     "-keystore",                      $IMAPD_KEYSTORE,
+                     "-storepass",                     $IMAPD_KEYSTORE_PASSWORD,
+                  ],
+               },
+               {
+                  args => [
+                     "/opt/zimbra/common/bin/java", "-classpath", "/opt/zimbra/lib/ext/com_zimbra_cert_manager/com_zimbra_cert_manager.jar",
+                     "com.zimbra.cert.MyPKCS12Import", "/opt/zimbra/conf/jetty.pkcs12", $IMAPD_KEYSTORE, $PKCS_PASSWORD, $IMAPD_KEYSTORE_PASSWORD,
+                  ],
+               }
+            ],
          };
       },
 
@@ -131,38 +222,14 @@ EntryExec(
                   zimbraReverseProxyAdminEnabled  => "TRUE",
                   zimbraReverseProxyLookupTarget  => "TRUE",
                   zimbraMtaAuthTarget             => "TRUE",
+                  '+zimbraSmtpHostname'           => $SMTP_HOST,
+                  zimbraSSLCertificate            => Secret("mailbox.crt"),
+                  zimbraSSLPrivateKey             => Secret("mailbox.key"),
                },
             },
          },
       },
 
-      sub { { desc => "Setting up syslog", exec => { user => "root", args => ["/opt/zimbra/libexec/zmsyslogsetup"], }, }; },
-
-      sub { { desc => "Updating IP Settings", exec => { user => "zimbra", args => ["/opt/zimbra/libexec/zmiptool"], }, }; },
-
-      sub { { desc => "Fetching CA",    exec => { args => [ "/opt/zimbra/bin/zmcertmgr", "createca" ], }, }; },
-      sub { { desc => "Deploying CA",   exec => { args => [ "/opt/zimbra/bin/zmcertmgr", "deployca", "-localonly" ], }, }; },
-      sub { { desc => "Create Cert",    exec => { args => [ "/opt/zimbra/bin/zmcertmgr", "createcrt", "-new" ], }, }; },
-      sub { { desc => "Deploying Cert", exec => { args => [ "/opt/zimbra/bin/zmcertmgr", "deploycrt", "self" ], }, }; },
-      sub { { desc => "Saving Cert",    exec => { args => [ "/opt/zimbra/bin/zmcertmgr", "savecrt", "self" ], }, }; },
-
-      #######################################################################
-
-      sub { { wait_for => { services => [ $SMTP_HOST, ], }, }; },
-      sub {
-         {
-            server_config => { $THIS_HOST => { '+zimbraSmtpHostname' => $SMTP_HOST, }, },
-         };
-      },
-      sub {
-         {
-            cos_config => {
-               default => {
-                  zimbraMailHostPool => join( '', map { chomp; s/^.*: //; $_ } _EvalExecAs( "zimbra", [ "/opt/zimbra/bin/zmprov", "-r", "-m", "-l", "gs", $THIS_HOST, "zimbraId" ] )->{result} ),
-               },
-            },
-         };
-      },
       sub {
          {
             global_config => {
@@ -175,13 +242,14 @@ EntryExec(
          };
       },
 
-      #######################################################################
+      # FIXME - requires LDAP
+      #sub { { desc => "Updating IP Settings", exec => { args => ["/opt/zimbra/libexec/zmiptool"], }, }; },
 
-      sub { { local_config => { ssl_allow_untrusted_certs => "false", ssl_allow_mismatched_certs => "false", }, }; },
+      # FIXME - requires LDAP
+      sub { { desc => "Setting up syslog", exec => { user => "root", args => ["/opt/zimbra/libexec/zmsyslogsetup"], }, }; },
 
-      sub { { desc => "Bringing up services", exec => { args => [ "/opt/zimbra/bin/zmcontrol", "start" ], }, }; },
-
-      sub { { publish_service => {}, }; },
+      # FIXME - requires LDAP
+      sub { { desc => "Bringing up all services", exec => { args => [ "/opt/zimbra/bin/zmcontrol", "start" ], }, }; },
 
       #######################################################################
 
@@ -199,6 +267,23 @@ EntryExec(
       },
       sub { { desc => "Common Admin Alias", exec => { args => [ "/opt/zimbra/bin/zmprov", "-r", "-m", "-l", "aaa", "$ADMIN_ACCOUNT", "root\@$DOMAIN_NAME" ], }, }; },
       sub { { desc => "Common Admin Alias", exec => { args => [ "/opt/zimbra/bin/zmprov", "-r", "-m", "-l", "aaa", $ADMIN_ACCOUNT, "postmaster\@$DOMAIN_NAME" ], }, }; },
+
+      #######################################################################
+
+      sub { { wait_for => { services => [ $SMTP_HOST, ], }, }; },
+      sub {
+         {
+            cos_config => {
+               default => {
+                  zimbraMailHostPool => join( '', map { chomp; s/^.*: //; $_ } _EvalExecAs( "zimbra", [ "/opt/zimbra/bin/zmprov", "-r", "-m", "-l", "gs", $THIS_HOST, "zimbraId" ] )->{result} ),
+               },
+            },
+         };
+      },
+
+      #######################################################################
+
+      sub { { publish_service => {}, }; },
 
       #######################################################################
 
@@ -274,10 +359,11 @@ EntryExec(
          {
             cos_config => {
                default => {
-                  zimbraPrefTimeZoneId           => "UTC",
+                  zimbraPrefTimeZoneId => "UTC",
+
                   #zimbraFeatureTasksEnabled      => "TRUE",
                   #zimbraFeatureBriefcasesEnabled => "TRUE",
-                  zimbraZimletAvailableZimlets   => [ "!com_zimbra_attachcontacts", "!com_zimbra_date", "!com_zimbra_email", "!com_zimbra_attachmail", "!com_zimbra_url" ],
+                  zimbraZimletAvailableZimlets => [ "!com_zimbra_attachcontacts", "!com_zimbra_date", "!com_zimbra_email", "!com_zimbra_attachmail", "!com_zimbra_url" ],
                },
             },
          };
