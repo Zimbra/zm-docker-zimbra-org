@@ -104,8 +104,9 @@ KEYS += .keystore/proxy.crt
 
 .keystore/.init:
 	mkdir -p         .keystore/demoCA/newcerts
-	echo -n        > .keystore/demoCA/index.txt
-	echo -n "1000" > .keystore/demoCA/serial
+	rm -f            .keystore/demoCA/index.txt
+	touch            .keystore/demoCA/index.txt
+	echo    "1000" > .keystore/demoCA/serial
 	touch $@
 
 .keystore/%.key: .keystore/.init
