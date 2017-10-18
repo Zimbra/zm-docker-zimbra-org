@@ -53,10 +53,9 @@ EntryExec(
          };
       },
 
-      #######################################################################
+      sub { { desc => "Setting up syslog", exec => { user => "root", args => [ "/opt/zimbra/libexec/zmsyslogsetup", "local" ], }, }; },
 
-      # FIXME - requires LDAP
-      #sub { { desc => "Setting up syslog", exec => { user => "root", args => ["/opt/zimbra/libexec/zmsyslogsetup"], }, }; },
+      #######################################################################
 
       sub { { desc => "Initialize and start MySQL", exec => { user => "zimbra", args => [ "/opt/zimbra/libexec/zmmyinit", "--sql_root_pw", $MYSQL_PASSWORD ], }, }; },
 

@@ -146,6 +146,8 @@ EntryExec(
          };
       },
 
+      sub { { desc => "Setting up syslog", exec => { user => "root", args => [ "/opt/zimbra/libexec/zmsyslogsetup", "local" ], }, }; },
+
       sub {
          {
             desc => "Importing Keystore...",    # FIXME - need to split imapd and mailboxd
@@ -249,9 +251,6 @@ EntryExec(
 
       # FIXME - requires LDAP
       #sub { { desc => "Updating IP Settings", exec => { args => ["/opt/zimbra/libexec/zmiptool"], }, }; },
-
-      # FIXME - requires LDAP
-      sub { { desc => "Setting up syslog", exec => { user => "root", args => ["/opt/zimbra/libexec/zmsyslogsetup"], }, }; },
 
       # FIXME - requires LDAP
       sub { { desc => "Bringing up all services", exec => { args => [ "/opt/zimbra/bin/zmcontrol", "start" ], }, }; },
