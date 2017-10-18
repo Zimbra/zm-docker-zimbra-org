@@ -2,6 +2,10 @@ all: build-all
 
 ################################################################
 
+OPENSSL_CONF = _openssl.cnf     # override via 'make OPENSSL_CONF=...' to use custom ssl configuration
+
+################################################################
+
 build-all: build-base docker-compose.yml
 	docker-compose build
 
@@ -9,10 +13,6 @@ build-base: _base/*
 	cd _base && docker build . -t zimbra/zmc-base
 
 ################################################################
-
-# Uncomment the following (and update the path accordingly) if you 
-# are using private ssl configuration
-# OPENSSL_CONF ?= ${HOME}/Projects/z/zm-docker/zimbra/ca/zmssl.cnf
 
 CONFIGS =
 CONFIGS += .config/domain_name
@@ -109,10 +109,10 @@ KEYS += .keystore/proxy.crt
 	touch $@
 
 .keystore/%.key: .keystore/.init
-	export OPENSSL_CONF=${OPENSSL_CONF}; openssl genrsa -out $@ 2048
+	OPENSSL_CONF=${OPENSSL_CONF} openssl genrsa -out $@ 2048
 
 .keystore/ca.pem: .keystore/ca.key
-	export OPENSSL_CONF=${OPENSSL_CONF}; openssl req -batch -nodes \
+	OPENSSL_CONF=${OPENSSL_CONF} openssl req -batch -nodes \
 	    -new \
 	    -sha256 \
 	    -subj '/O=CA/OU=Zimbra Collaboration Server/CN=zmc-ldap' \
@@ -120,7 +120,7 @@ KEYS += .keystore/proxy.crt
 	    -key .keystore/ca.key \
 	    -x509 \
 	    -out $@
-	export OPENSSL_CONF=${OPENSSL_CONF}; openssl req -batch -nodes \
+	OPENSSL_CONF=${OPENSSL_CONF} openssl req -batch -nodes \
 	    -new -sha256 \
 	    -subj '/O=CA/OU=Zimbra Collaboration Server/CN=zmc-ldap' \
 	    -days 1825 \
@@ -130,7 +130,7 @@ KEYS += .keystore/proxy.crt
 	    -extensions v3_ca -x509
 
 .keystore/%.csr: .keystore/%.key
-	export OPENSSL_CONF=${OPENSSL_CONF}; openssl req -batch -nodes \
+	OPENSSL_CONF=${OPENSSL_CONF} openssl req -batch -nodes \
 	    -new \
 	    -sha256 \
 	    -subj "/OU=Zimbra Collaboration Server/CN=zmc-$*" \
@@ -139,16 +139,15 @@ KEYS += .keystore/proxy.crt
 	    -out $@
 
 .keystore/%.crt: .keystore/%.csr .keystore/ca.pem .keystore/ca.key
-	cd .keystore && \
-	export OPENSSL_CONF=${OPENSSL_CONF}; openssl ca -batch -notext \
+	OPENSSL_CONF=${OPENSSL_CONF} openssl ca -batch -notext \
 	    -policy policy_anything \
 	    -days 1825 \
 	    -md sha256 \
-	    -in ../.keystore/$*.csr \
-	    -cert ../.keystore/ca.pem \
-	    -keyfile ../.keystore/ca.key \
+	    -in .keystore/$*.csr \
+	    -cert .keystore/ca.pem \
+	    -keyfile .keystore/ca.key \
 	    -extensions v3_req \
-	    -out ../$@
+	    -out $@
 
 init-keys: $(KEYS)
 	@echo All Keys Created!
@@ -161,7 +160,6 @@ up: init-configs init-passwords init-keys
 
 down:
 	@docker stack rm $(shell basename "$$PWD")
-
 
 logs:
 	@for i in $$(docker ps --format "table {{.Names}}" | grep '$(shell basename "$$PWD")_'); \
