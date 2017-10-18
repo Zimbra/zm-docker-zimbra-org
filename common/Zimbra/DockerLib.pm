@@ -6,13 +6,14 @@ use warnings;
 use POSIX qw(setgid setuid strftime dup2);
 use Data::Dumper;
 use Term::ANSIColor;
-use Zimbra::TaskDispatch;
+use Zimbra::TaskDispatch qw(Dispatch);
 use Time::HiRes qw(usleep);
 use File::Copy;
+use Net::Domain qw(hostname);
 
 our $VERSION = '1.00';
 use base 'Exporter';
-our @EXPORT = qw(EntryExec Secret Config _EvalExecAs);
+our @EXPORT_OK = qw(EntryExec Secret Config EvalExecAs);
 
 BEGIN
 {
@@ -20,7 +21,7 @@ BEGIN
 }
 
 my $BENCH_START = time();
-chomp( my $this_host = `hostname` );
+my $this_host   = hostname();
 
 sub _ColorPrintln
 {
@@ -32,6 +33,8 @@ sub _ColorPrintln
    my $date_str = strftime( "%F %T %z", localtime() );
 
    print color($color) . sprintf( "%s :: %-10s :: %-10s :: %-50s :: %-8s :: %-8s", $date_str, $this_host, $prefix, $msg, $delta_start ? _TimeDurationStr($delta_start) : "", _TimeDurationStr($BENCH_START) ) . color('reset') . "\n";
+
+   return;
 }
 
 sub _TimeDurationStr
@@ -46,8 +49,6 @@ sub _TimeDurationStr
 
    return sprintf( "%02d:%02d:%02d", $hours, $min, $sec );
 }
-
-sub EntryExec(%);
 
 my %MAPPING = (
    local_config => {
@@ -94,7 +95,7 @@ my %MAPPING = (
    cos_config => {
       desc => "Setting cos config...",
       impl => sub {
-         my $entry  = shift;
+         my $entry    = shift;
          my $cos_name = ( keys %$entry )[0];
 
          _CosConfig( $cos_name, $entry->{$cos_name} );
@@ -109,7 +110,7 @@ my %MAPPING = (
    },
 );
 
-sub EntryExec(%)
+sub EntryExec
 {
    my %args = @_;
 
@@ -144,6 +145,8 @@ sub EntryExec(%)
 
    wait();
    _ExecAs( { user => "root", args => [ "sleep", "infinity" ] } );
+
+   return;    #should not reach here.
 }
 
 sub _WaitForService
@@ -156,72 +159,97 @@ sub _WaitForService
    {
       chomp( my $o = `curl --silent --output /dev/null --write-out "%{http_code}" '$url'` );
       last if ( $o eq "200" );
-      print "waiting for $name service\n" if ( $c % 30 eq "0" );
+      print "waiting for $name service\n" if ( $c % 30 == 0 );
       usleep(250000);
       ++$c;
    }
 
    print "$name service available\n";
+
+   return;
+}
+
+sub _SwitchUserExec
+{
+   my $opts = shift;
+
+   $opts->{user} // die "user not specified";
+   $opts->{args} // die "args not specified";
+
+   my @sec_groups;
+   while ( my ( undef, undef, $entry_gid, $entry_grp_members ) = getgrent() )
+   {
+      push( @sec_groups, $entry_gid )
+        if ( grep { $_ eq $opts->{user} } split( ',', $entry_grp_members ) );
+   }
+   endgrent();
+
+   my ( $name, undef, $uid, $gid, undef, undef, undef, $home, $shell, undef ) = getpwnam( $opts->{user} );
+
+   local $( = $gid;
+   local $) = join( ' ', $gid, @sec_groups );
+   local $< = $uid;
+   local $> = $uid;
+
+   local $ENV{LOGNAME} = $name;
+   local $ENV{USER}    = $name;
+   local $ENV{HOME}    = $home;
+   local $ENV{SHELL}   = $shell;
+
+   dup2( 1, 2 )
+     if ( $opts->{'2>&1'} );
+
+   chdir( $opts->{cd} )
+     if ( $opts->{cd} );
+
+   exec( @{ $opts->{args} } ) or die "exec failed $!";
+
+   return;    #unreachable
 }
 
 sub _ExecAs
 {
    my $opts = shift;
 
+   $opts->{user} // die "user not specified";
+   $opts->{args} // die "args not specified";
+
    my $child_pid = fork() // die "fork failed $!";
-   if ($child_pid)
+   if ($child_pid)    # parent
    {
       if ( $opts->{bg} )
       {
-         return { status => $?, child_pid => $child_pid, };
+         return { child_pid => $child_pid, };
       }
       else
       {
          waitpid( $child_pid, 0 );
-         return { child_pid => $child_pid, };
+         return { status => $?, child_pid => $child_pid, };
       }
    }
    else
    {
-      my @user = getpwnam( $opts->{user} );
+      $opts->{'2>&1'} //= 1;
 
-      my @sec_groups;
-      while ( my @gr_entry = getgrent() )
-      {
-         push( @sec_groups, $gr_entry[2] )
-           if ( grep { $_ eq $opts->{user} } split( ',', $gr_entry[3] ) );
-      }
-      endgrent();
+      _SwitchUserExec($opts);
 
-      $( = $user[3];
-      $) = join( ' ', $user[3], @sec_groups );
-      $< = $user[2];
-      $> = $user[2];
-
-      $ENV{LOGNAME} = $user[0];
-      $ENV{USER}    = $user[0];
-      $ENV{HOME}    = $user[7];
-      $ENV{SHELL}   = $user[8];
-
-      dup2( 1, 2 );
-
-      chdir( $opts->{cd} )
-        if ( $opts->{cd} );
-
-      exec( @{ $opts->{args} } ) or die "exec failed $!";
+      return;    #unreachable
    }
 }
 
-sub _EvalExecAs
+sub EvalExecAs
 {
-   my $user = shift;
    my $opts = shift;
 
+   $opts->{user} // die "user not specified";
+   $opts->{args} // die "args not specified";
+
    my $child_pid = open( my $read_fh, "-|" ) // die "fork failed $!";
-   if ($child_pid)
+   if ($child_pid)    # parent
    {
-      local $/;
+      local $/ = undef;
       my $r = <$read_fh>;
+      close($read_fh);
 
       waitpid( $child_pid, 0 );
 
@@ -229,12 +257,11 @@ sub _EvalExecAs
    }
    else
    {
-      my @user = getpwnam($user);
-      $( = $user[3];
-      $) = $user[3];
-      $< = $user[2];
-      $> = $user[2];
-      exec(@$opts) or die "exec failed $!";
+      close($read_fh);
+
+      _SwitchUserExec($opts);
+
+      return;    #unreachable
    }
 }
 
@@ -260,10 +287,12 @@ sub _InstallKeys
 
    copy( "/var/run/secrets/$args->{name}", $args->{dest} ) || die "Could not copy $args->{name} to $args->{dest}\n";
 
-   my ( $login, $pass, $uid, $gid ) = getpwnam( $args->{user} || "zimbra" );
+   my ( undef, undef, $uid, $gid ) = getpwnam( $args->{user} || "zimbra" );
 
    chown( $uid, $gid, $args->{dest} );
    chmod( $args->{mode}, $args->{dest} );
+
+   return;
 }
 
 sub _LocalConfig
@@ -357,6 +386,8 @@ sub _DumpParams
       ],
       ["params"]
    )->Dump();
+
+   return;
 }
 
 sub _GlobalConfig
@@ -391,9 +422,10 @@ sub _ReadFile
    my $r;
 
    {
-      local $/;
-      open( my $FD, "<", $file ) or die "missing '$fname' (scope: $dir) - $!";
-      $r = <$FD>;
+      local $/ = undef;
+      open( my $fh, "<", $file ) or die "missing '$fname' (scope: $dir) - $!";
+      $r = <$fh>;
+      close($fh);
    }
 
    chomp($r) if ($chompit);

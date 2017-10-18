@@ -3,15 +3,21 @@
 # vim: set ai expandtab sw=3 ts=8 shiftround:
 
 use strict;
+use warnings;
+
+use Cwd;
+use File::Basename;
 
 BEGIN
 {
-   push( @INC, grep { -d $_ } map { use Cwd; use File::Basename; join( '/', dirname( Cwd::abs_path($0) ), $_ ); } ( "common/lib/perl5", "../common" ) );
+   push( @INC, grep { -d $_ } map { join( '/', dirname( Cwd::abs_path($0) ), $_ ); } ( "common/lib/perl5", "../common" ) );
 }
 
-use Zimbra::DockerLib;
+use Zimbra::DockerLib qw(EntryExec Secret Config EvalExecAs);
+use Net::Domain qw(hostname);
 
-$| = 1;
+STDOUT->autoflush(1);
+
 my $ENTRY_PID = $$;
 
 ## SECRETS AND CONFIGS #################################
@@ -31,9 +37,8 @@ my $LDAP_PORT        = 389;
 
 ## THIS HOST LOCAL VARS ################################
 
-chomp( my $THIS_HOST = `hostname -f` );
-chomp( my $ZUID      = `id -u zimbra` );
-chomp( my $ZGID      = `id -g zimbra` );
+my $THIS_HOST = hostname();
+my ( undef, undef, $ZUID, $ZGID ) = getpwnam("zimbra");
 
 my $CA_TRUSTSTORE          = "/opt/zimbra/common/lib/jvm/java/jre/lib/security/cacerts";
 my $CA_TRUSTSTORE_PASSWORD = "changeit";
@@ -62,7 +67,7 @@ EntryExec(
                ldap_postfix_password         => $LDAP_POSTFIX_PASSWORD,
                ldap_amavis_password          => $LDAP_AMAVIS_PASSWORD,
                av_notify_user                => $AV_NOTIFY_EMAIL,
-               av_notify_domain              => @{ [ map { s/.*@//; $_; } $AV_NOTIFY_EMAIL ] },
+               av_notify_domain              => @{ [ extract_domain($AV_NOTIFY_EMAIL) ] },
                zmtrainsa_cleanup_host        => "true",
                ldap_port                     => $LDAP_PORT,
                ldap_host                     => $LDAP_HOST,
@@ -70,10 +75,10 @@ EntryExec(
          };
       },
 
-      sub { { install_keys => { name => "ca.key",  dest => "/opt/zimbra/conf/ca/ca.key", mode => 0600, }, }; },
-      sub { { install_keys => { name => "ca.pem",  dest => "/opt/zimbra/conf/ca/ca.pem", mode => 0644, }, }; },
-      sub { { install_keys => { name => "mta.key", dest => "/opt/zimbra/conf/smtpd.key", mode => 0600, }, }; },
-      sub { { install_keys => { name => "mta.crt", dest => "/opt/zimbra/conf/smtpd.crt", mode => 0644, }, }; },
+      sub { { install_keys => { name => "ca.key",  dest => "/opt/zimbra/conf/ca/ca.key", mode => oct(600), }, }; },
+      sub { { install_keys => { name => "ca.pem",  dest => "/opt/zimbra/conf/ca/ca.pem", mode => oct(644), }, }; },
+      sub { { install_keys => { name => "mta.key", dest => "/opt/zimbra/conf/smtpd.key", mode => oct(600), }, }; },
+      sub { { install_keys => { name => "mta.crt", dest => "/opt/zimbra/conf/smtpd.crt", mode => oct(644), }, }; },
 
       sub { { desc => "Hashing certs...", exec => { args => [ "c_rehash", "/opt/zimbra/conf/ca" ], }, }; },
 
@@ -115,9 +120,11 @@ EntryExec(
                   zimbraSpellCheckURL    => "http://$THIS_HOST:7780/aspell.php",
                   zimbraServiceInstalled => [ "amavis", "antispam", "antivirus", "archiving", "mta", "opendkim", "stats", ],
                   zimbraServiceEnabled   => [ "amavis", "antispam", "antivirus", "archiving", "mta", "opendkim", "stats", ],
-                  zimbraMtaMyNetworks    => join( '', map { chomp; s/\n/ /g; $_; } _EvalExecAs( "zimbra", [ "/opt/zimbra/libexec/zmserverips", "-n" ] )->{result} ),
-                  zimbraSSLCertificate   => Secret("mta.crt"),
-                  zimbraSSLPrivateKey    => Secret("mta.key"),
+                  zimbraMtaMyNetworks    => join_lines(
+                     EvalExecAs( { user => "zimbra", args => [ "/opt/zimbra/libexec/zmserverips", "-n" ] } )->{result}
+                  ),
+                  zimbraSSLCertificate => Secret("mta.crt"),
+                  zimbraSSLPrivateKey  => Secret("mta.key"),
                },
             },
          };
@@ -139,6 +146,24 @@ EntryExec(
       #######################################################################
    ],
 );
+
+sub extract_domain
+{
+   my $email = shift;
+   $email =~ s/.*@//;
+   return $email;
+}
+
+sub join_lines
+{
+   my $multiple_lines = shift;
+   my $split_by       = shift // '\n';
+   my $join_by        = shift // ' ';
+
+   chomp $multiple_lines;
+
+   return join( $join_by, split( $split_by, $multiple_lines ) );
+}
 
 END
 {

@@ -4,12 +4,10 @@ use strict;
 use warnings;
 
 use base 'Exporter';
-our $VERSION = '1.00';
-our @EXPORT  = qw(Dispatch);
+our $VERSION   = '1.00';
+our @EXPORT_OK = qw(Dispatch);
 
-sub Dispatch(%);
-
-sub Dispatch(%)
+sub Dispatch
 {
    my %args = @_;
 
@@ -26,17 +24,15 @@ sub Dispatch(%)
 
    while (@$actions)
    {
-      my $action_name = shift(@$actions) if ( !ref( $actions->[0] ) );
+      my $action_name = !ref( $actions->[0] ) ? shift(@$actions) : undef;
       my $action_ref = shift(@$actions);
 
       die "unsupported action: dispatch_type => $dispatch_type, action_name => @{[$action_name || '']}, invoke_level => $invoke_level, invoke_seq => $invoke_seq, action_ref = @{[ref($action_ref)]}"
         if ( !grep { ref($action_ref) eq $_ } ( "CODE", "ARRAY" ) );
 
-      my $pid = fork()
+      my $pid;
+      $pid = fork() // die "could not fork: $!"
         if ( $dispatch_type eq "par" );
-
-      die "could not fork: $!"
-        if ( $dispatch_type eq "par" && !defined $pid );
 
       # seq case - $pid is undef - fork failure is already handled
       # par case - $pid is defined, $pid is 0 - child
@@ -53,7 +49,7 @@ sub Dispatch(%)
             my $func_ref = $action_ref;
             my $func_name = $action_name || "func-$invoke_level-$invoke_seq";
 
-            &$invoke_wrapper(
+            $invoke_wrapper->(
                {
                   func_ref      => $func_ref,
                   func_name     => $func_name,
@@ -79,6 +75,8 @@ sub Dispatch(%)
    }
 
    map { waitpid( $_, 0 ); } @children;
+
+   return;
 }
 
 =pod

@@ -3,15 +3,21 @@
 # vim: set ai expandtab sw=3 ts=8 shiftround:
 
 use strict;
+use warnings;
+
+use Cwd;
+use File::Basename;
 
 BEGIN
 {
-   push( @INC, grep { -d $_ } map { use Cwd; use File::Basename; join( '/', dirname( Cwd::abs_path($0) ), $_ ); } ( "common/lib/perl5", "../common" ) );
+   push( @INC, grep { -d $_ } map { join( '/', dirname( Cwd::abs_path($0) ), $_ ); } ( "common/lib/perl5", "../common" ) );
 }
 
-use Zimbra::DockerLib;
+use Zimbra::DockerLib qw(EntryExec Secret Config EvalExecAs);
+use Net::Domain qw(hostname);
 
-$| = 1;
+STDOUT->autoflush(1);
+
 my $ENTRY_PID = $$;
 
 ## SECRETS AND CONFIGS #################################
@@ -41,9 +47,8 @@ my $SMTP_HOST        = 'zmc-mta';
 
 ## THIS HOST LOCAL VARS ################################
 
-chomp( my $THIS_HOST = `hostname -f` );
-chomp( my $ZUID      = `id -u zimbra` );
-chomp( my $ZGID      = `id -g zimbra` );
+my $THIS_HOST = hostname();
+my ( undef, undef, $ZUID, $ZGID ) = getpwnam("zimbra");
 
 my $ADMIN_PORT = 7071;
 my $HTTPS_PORT = 8443;
@@ -111,10 +116,10 @@ EntryExec(
          };
       },
 
-      sub { { install_keys => { name => "ca.key",      dest => "/opt/zimbra/conf/ca/ca.key", mode => 0600, }, }; },
-      sub { { install_keys => { name => "ca.pem",      dest => "/opt/zimbra/conf/ca/ca.pem", mode => 0644, }, }; },
-      sub { { install_keys => { name => "mailbox.key", dest => "/opt/zimbra/conf/jetty.key", mode => 0600, }, }; },
-      sub { { install_keys => { name => "mailbox.crt", dest => "/opt/zimbra/conf/jetty.crt", mode => 0644, }, }; },
+      sub { { install_keys => { name => "ca.key",      dest => "/opt/zimbra/conf/ca/ca.key", mode => oct(600), }, }; },
+      sub { { install_keys => { name => "ca.pem",      dest => "/opt/zimbra/conf/ca/ca.pem", mode => oct(644), }, }; },
+      sub { { install_keys => { name => "mailbox.key", dest => "/opt/zimbra/conf/jetty.key", mode => oct(600), }, }; },
+      sub { { install_keys => { name => "mailbox.crt", dest => "/opt/zimbra/conf/jetty.crt", mode => oct(644), }, }; },
 
       sub { { desc => "Hashing certs...", exec => { args => [ "c_rehash", "/opt/zimbra/conf/ca" ], }, }; },
 
@@ -227,7 +232,7 @@ EntryExec(
                   zimbraSSLPrivateKey             => Secret("mailbox.key"),
                },
             },
-         },
+         };
       },
 
       sub {
@@ -275,7 +280,9 @@ EntryExec(
          {
             cos_config => {
                default => {
-                  zimbraMailHostPool => join( '', map { chomp; s/^.*: //; $_ } _EvalExecAs( "zimbra", [ "/opt/zimbra/bin/zmprov", "-r", "-m", "-l", "gs", $THIS_HOST, "zimbraId" ] )->{result} ),
+                  zimbraMailHostPool => strip_zmprov_header(
+                     EvalExecAs( { user => "zimbra", args => [ "/opt/zimbra/bin/zmprov", "-r", "-m", "-l", "gs", $THIS_HOST, "zimbraId" ] } )->{result}
+                  ),
                },
             },
          };
@@ -369,6 +376,14 @@ EntryExec(
       },
    ],
 );
+
+sub strip_zmprov_header
+{
+   my $x = shift;
+   $x =~ s/^[^:]*:\s*//s;
+   $x =~ s/\s*\n*$//s;
+   return $x;
+}
 
 END
 {
