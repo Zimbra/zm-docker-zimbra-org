@@ -124,6 +124,7 @@ EntryExec(
                zimbraComponentAvailable          => "",
                zimbraCertAuthorityCertSelfSigned => Secret("ca.pem"),
                zimbraCertAuthorityKeySelfSigned  => Secret("ca.key"),
+               zimbraMtaLmtpHostLookup           => "native",
             },
          };
       },
