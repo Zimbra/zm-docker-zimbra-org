@@ -1,0 +1,451 @@
+Fri Oct  6 09:09:24 2017 Operations logged to /tmp/zmsetup.20171006-090924.log
+Fri Oct  6 09:09:24 2017 Installing LDAP configuration database...
+Fri Oct  6 09:09:24 2017 done.
+Fri Oct  6 09:09:24 2017 *** Running as zimbra user: /opt/zimbra/libexec/zmldapschema 2>/dev/null
+Looking for LDAP installation...succeeded
+Installing core schema...
+Installing cosine schema...
+Installing inetOrgPerson schema...
+Installing zimbra schema...
+Installing amavis schema...
+Installing dyngroup schema...
+Installing OpenDKIM schema...
+Fri Oct  6 09:09:24 2017 Getting installed packages
+Fri Oct  6 09:09:25 2017 checking isEnabled zimbra-core
+Fri Oct  6 09:09:25 2017 zimbra-core not in enabled cache
+Fri Oct  6 09:09:25 2017 enabled packages 
+Fri Oct  6 09:09:25 2017 Newinstall enabling all installed packages
+Fri Oct  6 09:09:25 2017 Enabling zimbra-core
+Fri Oct  6 09:09:25 2017 Enabling zimbra-ldap
+Fri Oct  6 09:09:25 2017 Determining installed web applications
+Fri Oct  6 09:09:25 2017 Setting defaults...
+Fri Oct  6 09:09:25 2017 Setting local config zimbra_java_home to /opt/zimbra/common/lib/jvm/java
+Fri Oct  6 09:09:25 2017 *** Running as zimbra user: /opt/zimbra/bin/zmlocalconfig -f -e zimbra_java_home='/opt/zimbra/common/lib/jvm/java' 2> /dev/null
+Fri Oct  6 09:09:27 2017 checking isEnabled zimbra-dnscache
+Fri Oct  6 09:09:27 2017 zimbra-dnscache not in enabled cache
+Fri Oct  6 09:09:27 2017 enabled packages zimbra-core zimbra-ldap
+Fri Oct  6 09:09:27 2017 Newinstall enabling all installed packages
+Fri Oct  6 09:09:27 2017 Enabling zimbra-core
+Fri Oct  6 09:09:27 2017 Enabling zimbra-ldap
+Fri Oct  6 09:09:27 2017 checking isEnabled zimbra-store
+Fri Oct  6 09:09:27 2017 zimbra-store not in enabled cache
+Fri Oct  6 09:09:27 2017 enabled packages zimbra-dnscache zimbra-core zimbra-ldap
+Fri Oct  6 09:09:27 2017 Newinstall enabling all installed packages
+Fri Oct  6 09:09:27 2017 Enabling zimbra-core
+Fri Oct  6 09:09:27 2017 Enabling zimbra-ldap
+Fri Oct  6 09:09:28 2017 checking isEnabled zimbra-imapd
+Fri Oct  6 09:09:28 2017 zimbra-imapd not in enabled cache
+Fri Oct  6 09:09:28 2017 enabled packages zimbra-store zimbra-dnscache zimbra-ldap zimbra-core
+Fri Oct  6 09:09:28 2017 Newinstall enabling all installed packages
+Fri Oct  6 09:09:28 2017 Enabling zimbra-core
+Fri Oct  6 09:09:28 2017 Enabling zimbra-ldap
+Fri Oct  6 09:09:28 2017 checking isEnabled zimbra-ldap
+Fri Oct  6 09:09:28 2017 zimbra-ldap is enabled
+Fri Oct  6 09:09:28 2017 checking isEnabled zimbra-store
+Fri Oct  6 09:09:28 2017 zimbra-store is not enabled
+Fri Oct  6 09:09:28 2017 Local timezone detected as UTC
+Fri Oct  6 09:09:28 2017 Default Olson timezone name UTC
+Fri Oct  6 09:09:28 2017 checking isEnabled zimbra-store
+Fri Oct  6 09:09:28 2017 zimbra-store is not enabled
+Fri Oct  6 09:09:28 2017 checking isEnabled zimbra-mta
+Fri Oct  6 09:09:28 2017 zimbra-mta not in enabled cache
+Fri Oct  6 09:09:28 2017 enabled packages zimbra-dnscache zimbra-imapd zimbra-store zimbra-core zimbra-ldap
+Fri Oct  6 09:09:28 2017 Newinstall enabling all installed packages
+Fri Oct  6 09:09:28 2017 Enabling zimbra-core
+Fri Oct  6 09:09:28 2017 Enabling zimbra-ldap
+Fri Oct  6 09:09:29 2017 done.
+Fri Oct  6 09:09:29 2017 checking isEnabled zimbra-ldap
+Fri Oct  6 09:09:29 2017 zimbra-ldap is enabled
+Fri Oct  6 09:09:29 2017 checking isEnabled zimbra-store
+Fri Oct  6 09:09:29 2017 zimbra-store is not enabled
+Fri Oct  6 09:09:29 2017 checking isEnabled zimbra-mta
+Fri Oct  6 09:09:29 2017 zimbra-mta is not enabled
+Fri Oct  6 09:09:29 2017 checking isEnabled zimbra-core
+Fri Oct  6 09:09:29 2017 zimbra-core is enabled
+Fri Oct  6 09:09:29 2017 checking isEnabled zimbra-spell
+Fri Oct  6 09:09:29 2017 zimbra-spell not in enabled cache
+Fri Oct  6 09:09:29 2017 enabled packages zimbra-mta zimbra-store zimbra-imapd zimbra-dnscache zimbra-ldap zimbra-core
+Fri Oct  6 09:09:29 2017 Newinstall enabling all installed packages
+Fri Oct  6 09:09:29 2017 Enabling zimbra-core
+Fri Oct  6 09:09:29 2017 Enabling zimbra-ldap
+Fri Oct  6 09:09:29 2017 Checking for port conflicts
+Fri Oct  6 09:09:29 2017 checking isEnabled zimbra-ldap
+Fri Oct  6 09:09:29 2017 zimbra-ldap is enabled
+Fri Oct  6 09:09:29 2017 checking isEnabled zimbra-store
+Fri Oct  6 09:09:29 2017 zimbra-store is not enabled
+Fri Oct  6 09:09:29 2017 checking isEnabled zimbra-logger
+Fri Oct  6 09:09:29 2017 zimbra-logger not in enabled cache
+Fri Oct  6 09:09:29 2017 enabled packages zimbra-mta zimbra-store zimbra-dnscache zimbra-spell zimbra-imapd zimbra-ldap zimbra-core
+Fri Oct  6 09:09:29 2017 Newinstall enabling all installed packages
+Fri Oct  6 09:09:29 2017 Enabling zimbra-core
+Fri Oct  6 09:09:29 2017 Enabling zimbra-ldap
+Fri Oct  6 09:09:29 2017 checking isEnabled zimbra-mta
+Fri Oct  6 09:09:29 2017 zimbra-mta is not enabled
+Fri Oct  6 09:09:29 2017 Saving config in /opt/zimbra/config.8...
+Fri Oct  6 09:09:29 2017 done.
+Fri Oct  6 09:09:29 2017 Operations logged to /tmp/zmsetup.20171006-090924.log
+Fri Oct  6 09:09:29 2017 checking isEnabled zimbra-store
+Fri Oct  6 09:09:29 2017 zimbra-store is not enabled
+Fri Oct  6 09:09:29 2017 Setting local config values...
+Fri Oct  6 09:09:29 2017 Setting local config zimbra_server_hostname to zmc-ldap
+Fri Oct  6 09:09:29 2017 *** Running as zimbra user: /opt/zimbra/bin/zmlocalconfig -f -e zimbra_server_hostname='zmc-ldap' 2> /dev/null
+Fri Oct  6 09:09:29 2017 Setting local config zimbra_require_interprocess_security to 1
+Fri Oct  6 09:09:29 2017 *** Running as zimbra user: /opt/zimbra/bin/zmlocalconfig -f -e zimbra_require_interprocess_security='1' 2> /dev/null
+Fri Oct  6 09:09:30 2017 Setting local config ldap_master_url to ldap://zmc-ldap:389
+Fri Oct  6 09:09:30 2017 *** Running as zimbra user: /opt/zimbra/bin/zmlocalconfig -f -e ldap_master_url='ldap://zmc-ldap:389' 2> /dev/null
+Fri Oct  6 09:09:30 2017 Setting local config ldap_url to ldap://zmc-ldap:389
+Fri Oct  6 09:09:30 2017 *** Running as zimbra user: /opt/zimbra/bin/zmlocalconfig -f -e ldap_url='ldap://zmc-ldap:389' 2> /dev/null
+Fri Oct  6 09:09:31 2017 Setting local config ldap_starttls_supported to 1
+Fri Oct  6 09:09:31 2017 *** Running as zimbra user: /opt/zimbra/bin/zmlocalconfig -f -e ldap_starttls_supported='1' 2> /dev/null
+Fri Oct  6 09:09:31 2017 checking isEnabled zimbra-store
+Fri Oct  6 09:09:31 2017 zimbra-store is not enabled
+Fri Oct  6 09:09:31 2017 Setting local config zimbra_zmprov_default_to_ldap to true
+Fri Oct  6 09:09:31 2017 *** Running as zimbra user: /opt/zimbra/bin/zmlocalconfig -f -e zimbra_zmprov_default_to_ldap='true' 2> /dev/null
+Fri Oct  6 09:09:31 2017 Setting local config ldap_port to 389
+Fri Oct  6 09:09:31 2017 *** Running as zimbra user: /opt/zimbra/bin/zmlocalconfig -f -e ldap_port='389' 2> /dev/null
+Fri Oct  6 09:09:32 2017 Setting local config ldap_host to zmc-ldap
+Fri Oct  6 09:09:32 2017 *** Running as zimbra user: /opt/zimbra/bin/zmlocalconfig -f -e ldap_host='zmc-ldap' 2> /dev/null
+Fri Oct  6 09:09:32 2017 Setting local config zimbra_uid to 999
+Fri Oct  6 09:09:32 2017 *** Running as zimbra user: /opt/zimbra/bin/zmlocalconfig -f -e zimbra_uid='999' 2> /dev/null
+Fri Oct  6 09:09:32 2017 Setting local config zimbra_gid to 999
+Fri Oct  6 09:09:32 2017 *** Running as zimbra user: /opt/zimbra/bin/zmlocalconfig -f -e zimbra_gid='999' 2> /dev/null
+Fri Oct  6 09:09:33 2017 Setting local config zimbra_user to zimbra
+Fri Oct  6 09:09:33 2017 *** Running as zimbra user: /opt/zimbra/bin/zmlocalconfig -f -e zimbra_user='zimbra' 2> /dev/null
+Fri Oct  6 09:09:33 2017 Setting local config av_notify_user to admin@zmc
+Fri Oct  6 09:09:33 2017 *** Running as zimbra user: /opt/zimbra/bin/zmlocalconfig -f -e av_notify_user='admin@zmc' 2> /dev/null
+Fri Oct  6 09:09:33 2017 Setting local config av_notify_domain to zmc
+Fri Oct  6 09:09:33 2017 *** Running as zimbra user: /opt/zimbra/bin/zmlocalconfig -f -e av_notify_domain='zmc' 2> /dev/null
+Fri Oct  6 09:09:34 2017 Setting local config ssl_allow_untrusted_certs to true
+Fri Oct  6 09:09:34 2017 *** Running as zimbra user: /opt/zimbra/bin/zmlocalconfig -f -e ssl_allow_untrusted_certs='true' 2> /dev/null
+Fri Oct  6 09:09:34 2017 Setting local config ssl_allow_mismatched_certs to true
+Fri Oct  6 09:09:34 2017 *** Running as zimbra user: /opt/zimbra/bin/zmlocalconfig -f -e ssl_allow_mismatched_certs='true' 2> /dev/null
+Fri Oct  6 09:09:35 2017 Setting local config ssl_default_digest to sha256
+Fri Oct  6 09:09:35 2017 *** Running as zimbra user: /opt/zimbra/bin/zmlocalconfig -f -e ssl_default_digest='sha256' 2> /dev/null
+Fri Oct  6 09:09:35 2017 Setting local config mailboxd_java_heap_size to 512
+Fri Oct  6 09:09:35 2017 *** Running as zimbra user: /opt/zimbra/bin/zmlocalconfig -f -e mailboxd_java_heap_size='512' 2> /dev/null
+Fri Oct  6 09:09:35 2017 Setting local config mailboxd_directory to /opt/zimbra/mailboxd
+Fri Oct  6 09:09:35 2017 *** Running as zimbra user: /opt/zimbra/bin/zmlocalconfig -f -e mailboxd_directory='/opt/zimbra/mailboxd' 2> /dev/null
+Fri Oct  6 09:09:36 2017 Setting local config mailboxd_keystore to /opt/zimbra/conf/keystore
+Fri Oct  6 09:09:36 2017 *** Running as zimbra user: /opt/zimbra/bin/zmlocalconfig -f -e mailboxd_keystore='/opt/zimbra/conf/keystore' 2> /dev/null
+Fri Oct  6 09:09:36 2017 Setting local config mailboxd_server to 
+Fri Oct  6 09:09:36 2017 *** Running as zimbra user: /opt/zimbra/bin/zmlocalconfig -f -e mailboxd_server='' 2> /dev/null
+Fri Oct  6 09:09:36 2017 Setting local config mailboxd_truststore to /opt/zimbra/common/lib/jvm/java/jre/lib/security/cacerts
+Fri Oct  6 09:09:36 2017 *** Running as zimbra user: /opt/zimbra/bin/zmlocalconfig -f -e mailboxd_truststore='/opt/zimbra/common/lib/jvm/java/jre/lib/security/cacerts' 2> /dev/null
+Fri Oct  6 09:09:37 2017 Setting local config mailboxd_truststore_password to changeit
+Fri Oct  6 09:09:37 2017 *** Running as zimbra user: /opt/zimbra/bin/zmlocalconfig -f -e mailboxd_truststore_password='changeit' 2> /dev/null
+Fri Oct  6 09:09:37 2017 Setting local config mailboxd_keystore_password to zimbra
+Fri Oct  6 09:09:37 2017 *** Running as zimbra user: /opt/zimbra/bin/zmlocalconfig -f -e mailboxd_keystore_password='zimbra' 2> /dev/null
+Fri Oct  6 09:09:37 2017 Setting local config zimbra_ldap_userdn to uid=zimbra,cn=admins,cn=zimbra
+Fri Oct  6 09:09:37 2017 *** Running as zimbra user: /opt/zimbra/bin/zmlocalconfig -f -e zimbra_ldap_userdn='uid=zimbra,cn=admins,cn=zimbra' 2> /dev/null
+Fri Oct  6 09:09:38 2017 done.
+Fri Oct  6 09:09:38 2017 checking isEnabled zimbra-core
+Fri Oct  6 09:09:38 2017 zimbra-core is enabled
+Fri Oct  6 09:09:38 2017 Initializing core config...
+Fri Oct  6 09:09:38 2017 Setting up CA...
+Fri Oct  6 09:09:38 2017 *** Running as zimbra user: /opt/zimbra/bin/zmcertmgr createca -new
+** Creating directory '/opt/zimbra/conf/ca'
+** Creating directory '/opt/zimbra/ssl/zimbra'
+** Creating directory '/opt/zimbra/ssl/zimbra/ca'
+** Creating directory '/opt/zimbra/ssl/zimbra/commercial'
+** Creating directory '/opt/zimbra/ssl/zimbra/server'
+** Creating directory '/opt/zimbra/ssl/zimbra/ca/newcerts'
+** Touching file '/opt/zimbra/ssl/.rnd'
+** Touching file '/opt/zimbra/ssl/zimbra/ca/index.txt'
+** Creating /opt/zimbra/ssl/zimbra/ca/zmssl.cnf
+** Retrieving CA private key from LDAP... failed
+** Creating CA with new private key /opt/zimbra/ssl/zimbra/ca/ca.key
+Generating a 2048 bit RSA private key
+.+++
+....................+++
+writing new private key to '/opt/zimbra/ssl/zimbra/ca/ca.key'
+-----
+Fri Oct  6 09:09:41 2017 done.
+Fri Oct  6 09:09:41 2017 Deploying CA to /opt/zimbra/conf/ca ...
+Fri Oct  6 09:09:41 2017 *** Running as zimbra user: /opt/zimbra/bin/zmcertmgr deployca -localonly
+** Importing cert '/opt/zimbra/ssl/zimbra/ca/ca.pem' as 'my_ca' into cacerts '/opt/zimbra/common/lib/jvm/java/jre/lib/security/cacerts'
+** NOTE: restart mailboxd to use the imported certificate.
+** Copying CA to /opt/zimbra/conf/ca
+** Copying '/opt/zimbra/ssl/zimbra/ca/ca.key' to '/opt/zimbra/conf/ca/ca.key'
+** Copying '/opt/zimbra/ssl/zimbra/ca/ca.pem' to '/opt/zimbra/conf/ca/ca.pem'
+** Creating CA hash symlink 'e9dde4df.0' -> 'ca.pem'
+Fri Oct  6 09:09:43 2017 done.
+Fri Oct  6 09:09:43 2017 Creating zimbra-ldap SSL certificate...
+Fri Oct  6 09:09:43 2017 *** Running as zimbra user: /opt/zimbra/bin/zmcertmgr createcrt -new
+** Backup /opt/zimbra/ssl/zimbra to /opt/zimbra/ssl/zimbra.20171006090943
+** Creating /opt/zimbra/conf/zmssl.cnf
+** Generating a server CSR of type 'self' for download
+** Using CA cert in '/opt/zimbra/ssl/zimbra/ca/ca.pem'
+** Using CA private key in '/opt/zimbra/ssl/zimbra/ca/ca.key'
+** Retrieving Commercial CA cert from LDAP... failed
+** Creating server cert request /opt/zimbra/ssl/zimbra/server/server.csr with keysize=2048 digest=sha256
+** Saving config key 'zimbraSSLPrivateKey' via zmprov modifyServer zmc-ldap...failed (rc=1)
+** Signing cert request /opt/zimbra/ssl/zimbra/server/server.csr
+Fri Oct  6 09:09:46 2017 done.
+Fri Oct  6 09:09:46 2017 Installing LDAP SSL certificate...
+Fri Oct  6 09:09:46 2017 *** Running as zimbra user: /opt/zimbra/bin/zmcertmgr deploycrt self
+** Installing imapd certificate '/opt/zimbra/conf/imapd.crt' and key '/opt/zimbra/conf/imapd.key'
+** Copying '/opt/zimbra/ssl/zimbra/server/server.crt' to '/opt/zimbra/conf/imapd.crt'
+** Copying '/opt/zimbra/ssl/zimbra/server/server.key' to '/opt/zimbra/conf/imapd.key'
+** Creating file '/opt/zimbra/ssl/zimbra/jetty.pkcs12'
+** Creating keystore '/opt/zimbra/conf/imapd.keystore'
+** Installing ldap certificate '/opt/zimbra/conf/slapd.crt' and key '/opt/zimbra/conf/slapd.key'
+** Copying '/opt/zimbra/ssl/zimbra/server/server.crt' to '/opt/zimbra/conf/slapd.crt'
+** Copying '/opt/zimbra/ssl/zimbra/server/server.key' to '/opt/zimbra/conf/slapd.key'
+** Installing mta certificate '/opt/zimbra/conf/smtpd.crt' and key '/opt/zimbra/conf/smtpd.key'
+** Copying '/opt/zimbra/ssl/zimbra/server/server.crt' to '/opt/zimbra/conf/smtpd.crt'
+** Copying '/opt/zimbra/ssl/zimbra/server/server.key' to '/opt/zimbra/conf/smtpd.key'
+** Installing proxy certificate '/opt/zimbra/conf/nginx.crt' and key '/opt/zimbra/conf/nginx.key'
+** Copying '/opt/zimbra/ssl/zimbra/server/server.crt' to '/opt/zimbra/conf/nginx.crt'
+** Copying '/opt/zimbra/ssl/zimbra/server/server.key' to '/opt/zimbra/conf/nginx.key'
+** NOTE: restart services to use the new certificates.
+** Cleaning up 3 files from '/opt/zimbra/conf/ca'
+** Removing /opt/zimbra/conf/ca/ca.key
+** Removing /opt/zimbra/conf/ca/e9dde4df.0
+** Removing /opt/zimbra/conf/ca/ca.pem
+** Copying CA to /opt/zimbra/conf/ca
+** Copying '/opt/zimbra/ssl/zimbra/ca/ca.key' to '/opt/zimbra/conf/ca/ca.key'
+** Copying '/opt/zimbra/ssl/zimbra/ca/ca.pem' to '/opt/zimbra/conf/ca/ca.pem'
+** Creating CA hash symlink 'e9dde4df.0' -> 'ca.pem'
+Fri Oct  6 09:09:47 2017 done.
+Fri Oct  6 09:09:47 2017 checking isEnabled zimbra-ldap
+Fri Oct  6 09:09:47 2017 zimbra-ldap is enabled
+Fri Oct  6 09:09:47 2017 Initializing ldap...
+Fri Oct  6 09:09:47 2017 *** Running as zimbra user: /opt/zimbra/libexec/zmldapinit
+Fri Oct  6 09:09:57 2017 done.
+Fri Oct  6 09:09:57 2017 Setting replication password...
+Fri Oct  6 09:09:57 2017 *** Running as zimbra user: /opt/zimbra/bin/zmldappasswd
+Updating local config and LDAP
+Fri Oct  6 09:10:00 2017 done.
+Fri Oct  6 09:10:00 2017 Setting Postfix password...
+Fri Oct  6 09:10:00 2017 *** Running as zimbra user: /opt/zimbra/bin/zmldappasswd
+Updating local config and LDAP
+Fri Oct  6 09:10:02 2017 done.
+Fri Oct  6 09:10:02 2017 Setting amavis password...
+Fri Oct  6 09:10:02 2017 *** Running as zimbra user: /opt/zimbra/bin/zmldappasswd
+Updating local config and LDAP
+Fri Oct  6 09:10:04 2017 done.
+Fri Oct  6 09:10:04 2017 Setting nginx password...
+Fri Oct  6 09:10:04 2017 *** Running as zimbra user: /opt/zimbra/bin/zmldappasswd
+Updating local config and LDAP
+Fri Oct  6 09:10:07 2017 done.
+Fri Oct  6 09:10:07 2017 Setting BES searcher password...
+Fri Oct  6 09:10:07 2017 *** Running as zimbra user: /opt/zimbra/bin/zmldappasswd
+Updating local config and LDAP
+Fri Oct  6 09:10:09 2017 done.
+Fri Oct  6 09:10:09 2017 Creating server entry for zmc-ldap...
+Fri Oct  6 09:10:11 2017 ERROR: account.NO_SUCH_SERVER (no such server: zmc-ldap)
+Fri Oct  6 09:10:11 2017 *** Running as zimbra user: /opt/zimbra/bin/zmprov -r -m -l cs zmc-ldap
+88dcb6ac-0209-4fec-8999-6b143a33f956
+Fri Oct  6 09:10:13 2017 done.
+Fri Oct  6 09:10:13 2017 Setting Zimbra IP Mode...
+Fri Oct  6 09:10:13 2017 Updating cached config attribute for Server zmc-ldap: zimbraIPMode=ipv4
+Fri Oct  6 09:10:13 2017 *** Running as zimbra user: /opt/zimbra/bin/zmprov -r -m -l ms zmc-ldap  zimbraIPMode 'ipv4'
+Fri Oct  6 09:10:14 2017 done.
+Fri Oct  6 09:10:14 2017 *** Running as zimbra user: /opt/zimbra/libexec/zmiptool >/dev/null 2>/dev/null
+Fri Oct  6 09:10:18 2017 Saving CA in ldap...
+Fri Oct  6 09:10:18 2017 *** Running as zimbra user: /opt/zimbra/bin/zmcertmgr deployca
+** Saving config key 'zimbraCertAuthorityCertSelfSigned' via zmprov modifyConfig...ok
+** Saving config key 'zimbraCertAuthorityKeySelfSigned' via zmprov modifyConfig...ok
+** Importing cert '/opt/zimbra/ssl/zimbra/ca/ca.pem' as 'my_ca' into cacerts '/opt/zimbra/common/lib/jvm/java/jre/lib/security/cacerts'
+** NOTE: restart mailboxd to use the imported certificate.
+** Cleaning up 3 files from '/opt/zimbra/conf/ca'
+** Removing /opt/zimbra/conf/ca/ca.key
+** Removing /opt/zimbra/conf/ca/e9dde4df.0
+** Removing /opt/zimbra/conf/ca/ca.pem
+** Copying CA to /opt/zimbra/conf/ca
+** Copying '/opt/zimbra/ssl/zimbra/ca/ca.key' to '/opt/zimbra/conf/ca/ca.key'
+** Copying '/opt/zimbra/ssl/zimbra/ca/ca.pem' to '/opt/zimbra/conf/ca/ca.pem'
+** Creating CA hash symlink 'e9dde4df.0' -> 'ca.pem'
+Fri Oct  6 09:10:23 2017 done.
+Fri Oct  6 09:10:23 2017 Saving SSL Certificate in ldap...
+Fri Oct  6 09:10:23 2017 *** Running as zimbra user: /opt/zimbra/bin/zmcertmgr savecrt self
+** Saving config key 'zimbraSSLCertificate' via zmprov modifyServer zmc-ldap...ok
+** Saving config key 'zimbraSSLPrivateKey' via zmprov modifyServer zmc-ldap...ok
+Fri Oct  6 09:10:27 2017 done.
+Fri Oct  6 09:10:27 2017 entering function: gcf zimbraSSLDHParam=/opt/zimbra/conf/dhparam.pem.zcs
+Fri Oct  6 09:10:27 2017 Updating cached global config attribute zimbraSSLDHParam=/opt/zimbra/conf/dhparam.pem.zcs
+Fri Oct  6 09:10:27 2017 *** Running as zimbra user: /opt/zimbra/bin/zmprov -r -m -l mcf  zimbraSSLDHParam '/opt/zimbra/conf/dhparam.pem.zcs'
+Fri Oct  6 09:10:28 2017 checking isEnabled zimbra-store
+Fri Oct  6 09:10:28 2017 zimbra-store is not enabled
+Fri Oct  6 09:10:28 2017 checking isEnabled zimbra-dnscache
+Fri Oct  6 09:10:28 2017 zimbra-dnscache is not enabled
+Fri Oct  6 09:10:28 2017 checking isEnabled zimbra-ldap
+Fri Oct  6 09:10:28 2017 zimbra-ldap is enabled
+Fri Oct  6 09:10:28 2017 Setting TimeZone Preference...
+Fri Oct  6 09:10:28 2017 Updating cached config attribute for COS default: zimbraPrefTimeZoneId=UTC
+Fri Oct  6 09:10:28 2017 *** Running as zimbra user: /opt/zimbra/bin/zmprov -r -m -l mc default  zimbraPrefTimeZoneId 'UTC'
+Fri Oct  6 09:10:30 2017 done.
+Fri Oct  6 09:10:30 2017 entering function: gcf zimbraSkinLogoURL=http://www.zimbra.com
+Fri Oct  6 09:10:30 2017 Updating cached global config attribute zimbraSkinLogoURL=http://www.zimbra.com
+Fri Oct  6 09:10:30 2017 *** Running as zimbra user: /opt/zimbra/bin/zmprov -r -m -l mcf  zimbraSkinLogoURL 'http://www.zimbra.com'
+Fri Oct  6 09:10:32 2017 checking isEnabled zimbra-mta
+Fri Oct  6 09:10:32 2017 zimbra-mta is not enabled
+Fri Oct  6 09:10:32 2017 Setting services on zmc-ldap...
+Fri Oct  6 09:10:32 2017 Updating cached config attribute for Server zmc-ldap: zimbraServiceInstalled=ldap
+Fri Oct  6 09:10:32 2017 Updating cached config attribute for Server zmc-ldap: zimbraServiceInstalled=stats
+Fri Oct  6 09:10:32 2017 *** Running as zimbra user: /opt/zimbra/bin/zmprov -r -m -l ms zmc-ldap  zimbraServiceInstalled 'ldap' zimbraServiceInstalled 'stats'
+Fri Oct  6 09:10:33 2017 Updating cached config attribute for Server zmc-ldap: zimbraServiceEnabled=ldap
+Fri Oct  6 09:10:33 2017 Updating cached config attribute for Server zmc-ldap: zimbraServiceEnabled=stats
+Fri Oct  6 09:10:33 2017 *** Running as zimbra user: /opt/zimbra/bin/zmprov -r -m -l ms zmc-ldap  zimbraServiceEnabled 'ldap' zimbraServiceEnabled 'stats'
+Fri Oct  6 09:10:35 2017 done.
+Fri Oct  6 09:10:35 2017 *** Running as zimbra user: /opt/zimbra/libexec/zmiptool >/dev/null 2>/dev/null
+Fri Oct  6 09:10:39 2017 checking isEnabled zimbra-store
+Fri Oct  6 09:10:39 2017 zimbra-store is not enabled
+Fri Oct  6 09:10:39 2017 checking isEnabled zimbra-ldap
+Fri Oct  6 09:10:39 2017 zimbra-ldap is enabled
+Fri Oct  6 09:10:39 2017 Creating domain zmc...
+Fri Oct  6 09:10:40 2017 ERROR: account.NO_SUCH_DOMAIN (no such domain: zmc)
+Fri Oct  6 09:10:40 2017 *** Running as zimbra user: /opt/zimbra/bin/zmprov -r -m -l cd zmc
+59bc7af4-f6fd-473e-a75e-892a3aa6cf7c
+Fri Oct  6 09:10:42 2017 done.
+Fri Oct  6 09:10:42 2017 Setting default domain name...
+Fri Oct  6 09:10:42 2017 entering function: gcf zimbraDefaultDomainName=zmc
+Fri Oct  6 09:10:42 2017 Updating cached global config attribute zimbraDefaultDomainName=zmc
+Fri Oct  6 09:10:42 2017 *** Running as zimbra user: /opt/zimbra/bin/zmprov -r -m -l mcf  zimbraDefaultDomainName 'zmc'
+Fri Oct  6 09:10:44 2017 done.
+Fri Oct  6 09:10:44 2017 checking isEnabled zimbra-store
+Fri Oct  6 09:10:44 2017 zimbra-store is not enabled
+Fri Oct  6 09:10:44 2017 checking isEnabled zimbra-store
+Fri Oct  6 09:10:44 2017 zimbra-store is not enabled
+Fri Oct  6 09:10:44 2017 checking isEnabled zimbra-logger
+Fri Oct  6 09:10:44 2017 zimbra-logger is not enabled
+Fri Oct  6 09:10:44 2017 checking isEnabled zimbra-snmp
+Fri Oct  6 09:10:44 2017 zimbra-snmp not in enabled cache
+Fri Oct  6 09:10:44 2017 enabled packages zimbra-ldap zimbra-dnscache zimbra-imapd zimbra-logger zimbra-mta zimbra-store zimbra-core zimbra-spell
+Fri Oct  6 09:10:44 2017 Newinstall enabling all installed packages
+Fri Oct  6 09:10:44 2017 Enabling zimbra-core
+Fri Oct  6 09:10:44 2017 Enabling zimbra-ldap
+Fri Oct  6 09:10:44 2017 checking isEnabled zimbra-ldap
+Fri Oct  6 09:10:44 2017 zimbra-ldap is enabled
+Fri Oct  6 09:10:44 2017 Setting up syslog.conf...
+Fri Oct  6 09:10:44 2017 *** Running as root user: /opt/zimbra/libexec/zmsyslogsetup
+Unescaped left brace in regex is deprecated, passed through in regex; marked by <-- HERE in m/(^destination mail { <-- HERE  file\("/var/log/mail"\); };)/ at /opt/zimbra/libexec/zmsyslogsetup line 190.
+updateRsyslogd: Updating /etc/rsyslog.d/50-default.conf...done.
+Fri Oct  6 09:10:48 2017 done.
+Fri Oct  6 09:10:48 2017 checking isEnabled zimbra-ldap
+Fri Oct  6 09:10:48 2017 zimbra-ldap is enabled
+Fri Oct  6 09:10:48 2017 *** Running as zimbra user: /opt/zimbra/bin/zmprov -r -m -l mcf zimbraComponentAvailable ''
+Fri Oct  6 09:10:49 2017 *** Running as zimbra user: zmlocalconfig -u trial_expiration_date
+Error: key trial_expiration_date is not set
+Fri Oct  6 09:10:50 2017 Setting local config ssl_allow_untrusted_certs to false
+Fri Oct  6 09:10:50 2017 *** Running as zimbra user: /opt/zimbra/bin/zmlocalconfig -f -e ssl_allow_untrusted_certs='false' 2> /dev/null
+Fri Oct  6 09:10:50 2017 checking isEnabled zimbra-mta
+Fri Oct  6 09:10:50 2017 zimbra-mta is not enabled
+Fri Oct  6 09:10:50 2017 Updating cached config attribute for Server zmc-ldap: zimbraServerVersion=8.8.1_GA_1782
+Fri Oct  6 09:10:50 2017 *** Running as zimbra user: /opt/zimbra/bin/zmprov -r -m -l ms zmc-ldap  zimbraServerVersion '8.8.1_GA_1782'
+Fri Oct  6 09:10:52 2017 Updating cached config attribute for Server zmc-ldap: zimbraServerVersionMajor=8
+Fri Oct  6 09:10:52 2017 *** Running as zimbra user: /opt/zimbra/bin/zmprov -r -m -l ms zmc-ldap  zimbraServerVersionMajor '8'
+Fri Oct  6 09:10:54 2017 Updating cached config attribute for Server zmc-ldap: zimbraServerVersionMinor=8
+Fri Oct  6 09:10:54 2017 *** Running as zimbra user: /opt/zimbra/bin/zmprov -r -m -l ms zmc-ldap  zimbraServerVersionMinor '8'
+Fri Oct  6 09:10:56 2017 Updating cached config attribute for Server zmc-ldap: zimbraServerVersionMicro=1
+Fri Oct  6 09:10:56 2017 *** Running as zimbra user: /opt/zimbra/bin/zmprov -r -m -l ms zmc-ldap  zimbraServerVersionMicro '1'
+Fri Oct  6 09:10:57 2017 Updating cached config attribute for Server zmc-ldap: zimbraServerVersionType=GA
+Fri Oct  6 09:10:57 2017 *** Running as zimbra user: /opt/zimbra/bin/zmprov -r -m -l ms zmc-ldap  zimbraServerVersionType 'GA'
+Fri Oct  6 09:10:59 2017 Updating cached config attribute for Server zmc-ldap: zimbraServerVersionBuild=1782
+Fri Oct  6 09:10:59 2017 *** Running as zimbra user: /opt/zimbra/bin/zmprov -r -m -l ms zmc-ldap  zimbraServerVersionBuild '1782'
+Fri Oct  6 09:11:01 2017 checking isEnabled zimbra-imapd
+Fri Oct  6 09:11:01 2017 zimbra-imapd is not enabled
+Fri Oct  6 09:11:01 2017 checking isEnabled zimbra-store
+Fri Oct  6 09:11:01 2017 zimbra-store is not enabled
+Fri Oct  6 09:11:01 2017 Disabling zimbraNetworkModulesNGEnabled 
+Fri Oct  6 09:11:01 2017 Updating cached config attribute for Server zmc-ldap: zimbraNetworkModulesNGEnabled=FALSE
+Fri Oct  6 09:11:01 2017 *** Running as zimbra user: /opt/zimbra/bin/zmprov -r -m -l ms zmc-ldap  zimbraNetworkModulesNGEnabled 'FALSE'
+Fri Oct  6 09:11:03 2017 Disabling zimbraNetworkMobileNGEnabled 
+Fri Oct  6 09:11:03 2017 Updating cached config attribute for Server zmc-ldap: zimbraNetworkMobileNGEnabled=FALSE
+Fri Oct  6 09:11:03 2017 *** Running as zimbra user: /opt/zimbra/bin/zmprov -r -m -l ms zmc-ldap  zimbraNetworkMobileNGEnabled 'FALSE'
+Fri Oct  6 09:11:05 2017 Starting servers...
+Fri Oct  6 09:11:05 2017 *** Running as zimbra user: /opt/zimbra/bin/zmcontrol stop
+Host zmc-ldap
+	Stopping zmconfigd...Done.
+	Stopping zimlet webapp...Done.
+	Stopping zimbraAdmin webapp...Done.
+	Stopping zimbra webapp...Done.
+	Stopping service webapp...Done.
+	Stopping stats...Done.
+	Stopping spell...Done.
+	Stopping snmp...Done.
+	Stopping cbpolicyd...Done.
+	Stopping archiving...Done.
+	Stopping opendkim...Done.
+	Stopping amavis...Done.
+	Stopping antivirus...Done.
+	Stopping antispam...Done.
+	Stopping proxy...Done.
+	Stopping memcached...Done.
+	Stopping mailbox...Done.
+	Stopping logger...Done.
+	Stopping dnscache...Done.
+	Stopping ldap...Done.
+Fri Oct  6 09:11:14 2017 *** Running as zimbra user: /opt/zimbra/bin/zmcontrol start
+Host zmc-ldap
+	Starting ldap...Done.
+	Starting zmconfigd...Done.
+	Starting stats...Done.
+Fri Oct  6 09:11:32 2017 done.
+Fri Oct  6 09:11:32 2017 checking isEnabled zimbra-store
+Fri Oct  6 09:11:32 2017 zimbra-store is not enabled
+Fri Oct  6 09:11:32 2017 Skipping creation of default domain GAL sync account - not a service node.
+Fri Oct  6 09:11:32 2017 Setting up zimbra crontab...
+Fri Oct  6 09:11:32 2017 crontab: Taking a copy of zimbra user crontab file.
+Fri Oct  6 09:11:32 2017 crontab: Looking for ZIMBRASTART in existing crontab entry.
+Fri Oct  6 09:11:32 2017 crontab: ZIMBRASTART not found truncating zimbra crontab and starting fresh.
+Fri Oct  6 09:11:32 2017 crontab: Looking for ZIMBRAEND in existing crontab entry.
+Fri Oct  6 09:11:32 2017 crontab: ZIMBRAEND not found truncating zimbra crontab and starting fresh.
+Fri Oct  6 09:11:32 2017 crontab: Getting existing backup and custom entries from crontab file.
+Fri Oct  6 09:11:32 2017 crontab: Adding zimbra-core specific crontab entries
+Fri Oct  6 09:11:32 2017 checking isEnabled zimbra-ldap
+Fri Oct  6 09:11:32 2017 zimbra-ldap is enabled
+Fri Oct  6 09:11:32 2017 crontab: Adding zimbra-ldap specific crontab entries
+Fri Oct  6 09:11:32 2017 checking isEnabled zimbra-store
+Fri Oct  6 09:11:32 2017 zimbra-store is not enabled
+Fri Oct  6 09:11:32 2017 checking isEnabled zimbra-logger
+Fri Oct  6 09:11:32 2017 zimbra-logger is not enabled
+Fri Oct  6 09:11:32 2017 checking isEnabled zimbra-mta
+Fri Oct  6 09:11:32 2017 zimbra-mta is not enabled
+Fri Oct  6 09:11:32 2017 crontab: adding backup block
+Fri Oct  6 09:11:32 2017 crontab: Adding backup and custom entries to crontab.
+Fri Oct  6 09:11:32 2017 crontab: installing new crontab
+Fri Oct  6 09:11:32 2017 done.
+Fri Oct  6 09:11:32 2017 *** Running as zimbra user: /opt/zimbra/bin/zmsshkeygen
+Generating public/private rsa key pair.
+Your identification has been saved in /opt/zimbra/.ssh/zimbra_identity.
+Your public key has been saved in /opt/zimbra/.ssh/zimbra_identity.pub.
+The key fingerprint is:
+SHA256:cicl/SUboJQ8E5itsm2/LOsefRfrSngTY/oAqRoiALg zmc-ldap
+The key's randomart image is:
++---[RSA 2048]----+
+|       =oo.      |
+|.     o.*o .     |
+|o      .ooo o .  |
+|..  . .. o . =   |
+|E    ++ S = +    |
+|.   ..o= * o o   |
+|o . ....= = o    |
+|.. o  .o.* +     |
+|  .  o+oo.o..    |
++----[SHA256]-----+
+Fri Oct  6 09:11:35 2017 *** Running as zimbra user: /opt/zimbra/bin/zmupdateauthkeys
+Updating keys for zmc-ldap
+Fetching key for zmc-ldap
+Updating keys for zmc-ldap
+Updating /opt/zimbra/.ssh/authorized_keys
+Fri Oct  6 09:11:39 2017 checking isEnabled zimbra-ldap
+Fri Oct  6 09:11:39 2017 zimbra-ldap is enabled
+Fri Oct  6 09:11:39 2017 checking isEnabled zimbra-store
+Fri Oct  6 09:11:39 2017 zimbra-store is not enabled
+Fri Oct  6 09:11:39 2017 checking isEnabled zimbra-logger
+Fri Oct  6 09:11:39 2017 zimbra-logger is not enabled
+Fri Oct  6 09:11:39 2017 checking isEnabled zimbra-mta
+Fri Oct  6 09:11:39 2017 zimbra-mta is not enabled
+Fri Oct  6 09:11:39 2017 
+
+Fri Oct  6 09:11:39 2017 Moving /tmp/zmsetup.20171006-090924.log to /opt/zimbra/log
+Fri Oct  6 09:11:39 2017 
+
+Fri Oct  6 09:11:39 2017 Skipping update of unchanged value for zimbraServerVersion=8.8.1_GA_1782.
+Fri Oct  6 09:11:39 2017 Skipping update of unchanged value for zimbraServerVersionMajor=8.
+Fri Oct  6 09:11:39 2017 Skipping update of unchanged value for zimbraServerVersionMinor=8.
+Fri Oct  6 09:11:39 2017 Skipping update of unchanged value for zimbraServerVersionMicro=1.
+Fri Oct  6 09:11:39 2017 Skipping update of unchanged value for zimbraServerVersionType=GA.
+Fri Oct  6 09:11:39 2017 Skipping update of unchanged value for zimbraServerVersionBuild=1782.
+Fri Oct  6 09:11:39 2017 Moving /tmp/zmsetup.20171006-090924.log to /opt/zimbra/log
