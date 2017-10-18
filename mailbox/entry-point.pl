@@ -359,11 +359,10 @@ EntryExec(
          {
             cos_config => {
                default => {
-                  zimbraPrefTimeZoneId => "UTC",
-
-                  #zimbraFeatureTasksEnabled      => "TRUE",
-                  #zimbraFeatureBriefcasesEnabled => "TRUE",
-                  zimbraZimletAvailableZimlets => [ "!com_zimbra_attachcontacts", "!com_zimbra_date", "!com_zimbra_email", "!com_zimbra_attachmail", "!com_zimbra_url" ],
+                  zimbraPrefTimeZoneId           => "UTC",
+                  zimbraFeatureTasksEnabled      => "TRUE",
+                  zimbraFeatureBriefcasesEnabled => "TRUE",
+                  zimbraZimletAvailableZimlets   => [ "!com_zimbra_attachcontacts", "!com_zimbra_date", "!com_zimbra_email", "!com_zimbra_attachmail", "!com_zimbra_url" ],
                },
             },
          };

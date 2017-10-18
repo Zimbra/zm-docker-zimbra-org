@@ -95,9 +95,9 @@ my %MAPPING = (
       desc => "Setting cos config...",
       impl => sub {
          my $entry  = shift;
-         my $server = ( keys %$entry )[0];
+         my $cos_name = ( keys %$entry )[0];
 
-         _ServerConfig( $server, $entry->{$server} );
+         _CosConfig( $cos_name, $entry->{$cos_name} );
       },
    },
    publish_service => {
