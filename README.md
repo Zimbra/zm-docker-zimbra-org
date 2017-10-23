@@ -48,6 +48,6 @@ If desired, monitor the state of of the `zm-docker_zmc-proxy` service. When it h
 
 
 
-## Undeploying the Stadck
+## Undeploying the Stack
 
 	make down
