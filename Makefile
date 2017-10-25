@@ -2,7 +2,10 @@ all: build-all
 
 ################################################################
 
-OPENSSL_CONF = _openssl.cnf     # override via 'make OPENSSL_CONF=...' to use custom ssl configuration
+# CUSTOMIZATION VARIABLES - custom values can be can be specified for the following:
+# e.g make OPENSSL_CNF=... PACKAGE_KEY=...
+
+OPENSSL_CNF = _conf/openssl.cnf
 
 STACK_NAME = $(shell basename "$$PWD")
 ZM_TAG_NAME = latest-build
@@ -112,11 +115,11 @@ KEYS += .keystore/proxy.crt
 	echo    "1000" > .keystore/demoCA/serial
 	touch $@
 
-.keystore/%.key: .keystore/.init
-	OPENSSL_CONF=${OPENSSL_CONF} openssl genrsa -out $@ 2048
+.keystore/%.key: ${OPENSSL_CNF} .keystore/.init
+	OPENSSL_CONF=${OPENSSL_CNF} openssl genrsa -out $@ 2048
 
-.keystore/ca.pem: .keystore/ca.key
-	OPENSSL_CONF=${OPENSSL_CONF} openssl req -batch -nodes \
+.keystore/ca.pem: ${OPENSSL_CNF} .keystore/ca.key
+	OPENSSL_CONF=${OPENSSL_CNF} openssl req -batch -nodes \
 	    -new \
 	    -sha256 \
 	    -subj '/O=CA/OU=Zimbra Collaboration Server/CN=zmc-ldap' \
@@ -124,17 +127,9 @@ KEYS += .keystore/proxy.crt
 	    -key .keystore/ca.key \
 	    -x509 \
 	    -out $@
-	OPENSSL_CONF=${OPENSSL_CONF} openssl req -batch -nodes \
-	    -new -sha256 \
-	    -subj '/O=CA/OU=Zimbra Collaboration Server/CN=zmc-ldap' \
-	    -days 1825 \
-	    -out .keystore/ca1.pem \
-	    -newkey rsa:2048 \
-	    -keyout .keystore/ca1.key \
-	    -extensions v3_ca -x509
 
-.keystore/%.csr: .keystore/%.key
-	OPENSSL_CONF=${OPENSSL_CONF} openssl req -batch -nodes \
+.keystore/%.csr: ${OPENSSL_CNF} .keystore/%.key
+	OPENSSL_CONF=${OPENSSL_CNF} openssl req -batch -nodes \
 	    -new \
 	    -sha256 \
 	    -subj "/OU=Zimbra Collaboration Server/CN=zmc-$*" \
@@ -142,8 +137,8 @@ KEYS += .keystore/proxy.crt
 	    -key .keystore/$*.key \
 	    -out $@
 
-.keystore/%.crt: .keystore/%.csr .keystore/ca.pem .keystore/ca.key
-	OPENSSL_CONF=${OPENSSL_CONF} openssl ca -batch -notext \
+.keystore/%.crt: ${OPENSSL_CNF} .keystore/%.csr .keystore/ca.pem .keystore/ca.key
+	OPENSSL_CONF=${OPENSSL_CNF} openssl ca -batch -notext \
 	    -policy policy_anything \
 	    -days 1825 \
 	    -md sha256 \
