@@ -1,5 +1,8 @@
 FROM ubuntu:16.04
 
+ARG PACKAGE_CNF
+ARG PACKAGE_KEY
+
 ENV DEBIAN_FRONTEND=noninteractive
 
 ################# INSTALLING BASICS #################
@@ -24,11 +27,10 @@ RUN useradd -d /opt/zimra -s /bin/bash -r zimbra
 RUN echo "resolvconf resolvconf/linkify-resolvconf boolean false" | debconf-set-selections
 
 # Access to package repository
-RUN echo "deb [trusted=yes] https://files.zimbra.com/dev-releases/hold/UBUNTU16_64-Zimbra-886-20171023521800-FOSS-261/archives/zimbra-foss    ./ # Zimbra Package Archive (zimbra-foss)"     > /etc/apt/sources.list.d/zimbra-packages.list
-RUN echo "deb [trusted=yes] https://files.zimbra.com/dev-releases/hold/UBUNTU16_64-Zimbra-886-20171023521800-FOSS-261/archives/zimbra-zextras ./ # Zimbra Package Archive (zimbra-zextras)" >> /etc/apt/sources.list.d/zimbra-packages.list
-RUN echo "deb [arch=amd64]  https://repo.zimbra.com/apt/87 xenial zimbra" > /etc/apt/sources.list.d/zimbra.list
+COPY $PACKAGE_CNF /etc/apt/sources.list.d/zimbra.list
+COPY $PACKAGE_KEY /tmp/key.txt
 
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 9BE6ED79
+RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys `cat /tmp/key.txt | head` && rm -f /tmp/key.txt
 RUN apt-get update
 RUN apt-get install -y rsyslog
 RUN apt-get install -y zimbra-core

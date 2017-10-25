@@ -6,6 +6,8 @@ all: build-all
 # e.g make OPENSSL_CNF=... PACKAGE_KEY=...
 
 OPENSSL_CNF = _conf/openssl.cnf
+PACKAGE_CNF = _conf/pkg-list
+PACKAGE_KEY = _conf/pkg-key
 
 STACK_NAME = $(shell basename "$$PWD")
 ZM_TAG_NAME = latest-build
@@ -15,8 +17,19 @@ ZM_TAG_NAME = latest-build
 build-all: build-base docker-compose.yml
 	ZM_TAG_NAME=${ZM_TAG_NAME} docker-compose build
 
-build-base: _base/*
-	cd _base && docker build . -t zimbra/zmc-base:${ZM_TAG_NAME}
+_conf/pkg-list: _conf/pkg-list.in
+	cp $< $@
+
+_conf/pkg-key: _conf/pkg-key.in
+	cp $< $@
+
+build-base: _base/* ${PACKAGE_CNF} ${PACKAGE_KEY}
+	docker build \
+	    --build-arg "PACKAGE_CNF=${PACKAGE_CNF}" \
+	    --build-arg "PACKAGE_KEY=${PACKAGE_KEY}" \
+	    -f _base/Dockerfile \
+	    -t zimbra/zmc-base:${ZM_TAG_NAME} \
+	    .
 
 ################################################################
 
