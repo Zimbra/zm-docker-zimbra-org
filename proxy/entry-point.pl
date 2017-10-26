@@ -147,6 +147,7 @@ EntryExec(
                   zimbraReverseProxySSLToUpstreamEnabled => "TRUE",
                   zimbraSSLCertificate                   => Secret("proxy.crt"),
                   zimbraSSLPrivateKey                    => Secret("proxy.key"),
+                  zimbraReverseProxyStrictServerNameEnabled => "FALSE",
                },
             },
          };
