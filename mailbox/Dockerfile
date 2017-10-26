@@ -1,4 +1,5 @@
-FROM zimbra/zmc-base
+ARG ZM_TAG_NAME
+FROM zimbra/zmc-base:${ZM_TAG_NAME}
 
 WORKDIR /tmp
 RUN apt-get install -y zimbra-store
