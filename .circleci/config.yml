@@ -1,0 +1,46 @@
+version: 2
+
+############################################################################
+
+
+############################################################################
+
+jobs:
+   docker_u16:
+      working_directory: ~/zm-docker
+      shell: /bin/bash -eo pipefail
+      docker:
+         - image: zimbra/zm-base-os:devcore-docker
+      steps:
+         - checkout
+         - setup_remote_docker
+         - restore_cache:
+            keys:
+               - v1-{{.Environment.CIRCLE_JOB}}-{{.Branch}}
+            paths:
+               - /caches
+         - run:
+            name: Creating images
+            command: |
+               make CACHES_DIR=/caches
+         - save_cache:
+            key: v1-{{.Environment.CIRCLE_JOB}}-{{.Branch}}
+            paths:
+               - /caches
+         - deploy:
+            name: Pushing images (WIP)
+            command: |
+               if [ "$CIRCLE_BRANCH" == "develop" ] || [ "$CIRCLE_BRANCH" == "master" ]
+               then
+                  echo "Docker User: $DOCKER_USER"
+                  echo TODO - docker login -u "$DOCKER_USER" -p "$DOCKER_PASS"
+                  echo TODO - make CACHES_DIR=/caches push
+               fi
+
+############################################################################
+
+workflows:
+   version: 2
+   build_and_deploy:
+      jobs:
+         - docker_u16

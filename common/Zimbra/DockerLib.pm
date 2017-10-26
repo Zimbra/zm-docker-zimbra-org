@@ -265,18 +265,27 @@ sub EvalExecAs
    }
 }
 
+our $ZIM_VER;
+
 sub _VersionInfo
 {
-   my $dir = "/zimbra/release";
-   my @v = split( /[.]/, _ReadFile( $dir, ".BUILD_RELEASE_NO", 1 ) );
+   if ( !$ZIM_VER )
+   {
+      # FIXME - device a faster more direct way, and/or remove depenceny on version information during setup
+      chomp( my $out = EvalExecAs( { user => "zimbra", args => [ "/opt/zimbra/bin/zmcontrol", "-v" ], } )->{result} );
+      my @x = split( / /, $out );
+      my @v = split( /[.]/, $x[1] );
 
-   return {
-      major => $v[0],
-      minor => $v[1],
-      micro => $v[2],
-      type  => _ReadFile( $dir, ".BUILD_RELEASE_CANDIDATE", 1 ),
-      build => _ReadFile( $dir, ".BUILD_NUM", 1 ),
-   };
+      $ZIM_VER = {
+         major => $v[0],
+         minor => $v[1],
+         micro => $v[2],
+         type  => $v[3],
+         build => $v[4],
+      };
+   }
+
+   return $ZIM_VER;
 }
 
 sub _InstallKeys
