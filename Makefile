@@ -4,13 +4,16 @@ all: build-all
 
 OPENSSL_CONF = _openssl.cnf     # override via 'make OPENSSL_CONF=...' to use custom ssl configuration
 
+STACK_NAME = $(shell basename "$$PWD")
+ZM_TAG_NAME = latest-build
+
 ################################################################
 
 build-all: build-base docker-compose.yml
-	docker-compose build
+	ZM_TAG_NAME=${ZM_TAG_NAME} docker-compose build
 
 build-base: _base/*
-	cd _base && docker build . -t zimbra/zmc-base
+	cd _base && docker build . -t zimbra/zmc-base:${ZM_TAG_NAME}
 
 ################################################################
 
@@ -155,15 +158,15 @@ init-keys: $(KEYS)
 
 ################################################################
 
-up: init-configs init-passwords init-keys
+up: init-configs init-passwords init-keys docker-compose.yml
 	@docker swarm init 2>/dev/null; echo
-	docker stack deploy -c ./docker-compose.yml '$(shell basename "$$PWD")'
+	ZM_TAG_NAME=${ZM_TAG_NAME} docker stack deploy -c docker-compose.yml '${STACK_NAME}'
 
 down:
-	@docker stack rm $(shell basename "$$PWD")
+	@docker stack rm '${STACK_NAME}'
 
 logs:
-	@for i in $$(docker ps --format "table {{.Names}}" | grep '$(shell basename "$$PWD")_'); \
+	@for i in $$(docker ps --format "table {{.Names}}" | grep '${STACK_NAME}_'); \
 	 do \
 	    echo ----------------------------------; \
 	    docker service logs --tail 5 $$i; \

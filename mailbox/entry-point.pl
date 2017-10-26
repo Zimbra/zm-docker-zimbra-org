@@ -368,6 +368,7 @@ EntryExec(
                   zimbraPrefTimeZoneId           => "UTC",
                   zimbraFeatureTasksEnabled      => "TRUE",
                   zimbraFeatureBriefcasesEnabled => "TRUE",
+                  zimbraFeatureNotebookEnabled   => "TRUE",
                   zimbraZimletAvailableZimlets   => [ "!com_zimbra_attachcontacts", "!com_zimbra_date", "!com_zimbra_email", "!com_zimbra_attachmail", "!com_zimbra_url" ],
                },
             },

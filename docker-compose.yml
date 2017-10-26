@@ -2,11 +2,13 @@ version: '3.3'
 
 services:
   zmc-ldap:
-    image: 'zimbra/zmc-ldap'
+    image: "zimbra/zmc-ldap:${ZM_TAG_NAME}"
     hostname: 'zmc-ldap'
     build:
       context: '.'
       dockerfile: 'ldap/Dockerfile'
+      args:
+         ZM_TAG_NAME: "${ZM_TAG_NAME}"
     volumes:
       - .:/code
     configs:
@@ -24,11 +26,13 @@ services:
       - ldap.nginx_password
 
   zmc-mta:
-    image: 'zimbra/zmc-mta'
+    image: 'zimbra/zmc-mta:${ZM_TAG_NAME}'
     hostname: 'zmc-mta'
     build:
       context: '.'
       dockerfile: 'mta/Dockerfile'
+      args:
+         ZM_TAG_NAME: "${ZM_TAG_NAME}"
     volumes:
       - .:/code
     configs:
@@ -44,11 +48,13 @@ services:
       - ldap.amavis_password
 
   zmc-mailbox:
-    image: 'zimbra/zmc-mailbox'
+    image: 'zimbra/zmc-mailbox:${ZM_TAG_NAME}'
     hostname: 'zmc-mailbox'
     build:
       context: '.'
       dockerfile: 'mailbox/Dockerfile'
+      args:
+         ZM_TAG_NAME: "${ZM_TAG_NAME}"
     volumes:
       - .:/code
       - blobvolume:/opt/zimbra/store
@@ -74,22 +80,26 @@ services:
       - virus_quarantine_account_password
 
   zmc-mysql:
-    image: 'zimbra/zmc-mysql'
+    image: 'zimbra/zmc-mysql:${ZM_TAG_NAME}'
     hostname: 'zmc-mysql'
     build:
       context: '.'
       dockerfile: 'mysql/Dockerfile'
+      args:
+         ZM_TAG_NAME: "${ZM_TAG_NAME}"
     volumes:
       - .:/code
     secrets:
       - mysql.password
 
   zmc-proxy:
-    image: 'zimbra/zmc-proxy'
+    image: 'zimbra/zmc-proxy:${ZM_TAG_NAME}'
     hostname: 'zmc-proxy'
     build:
       context: '.'
       dockerfile: 'proxy/Dockerfile'
+      args:
+         ZM_TAG_NAME: "${ZM_TAG_NAME}"
     volumes:
       - .:/code
     secrets:
