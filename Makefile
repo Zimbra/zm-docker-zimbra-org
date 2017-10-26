@@ -55,19 +55,19 @@ CONFIGS += .config/av_notify_email
 	@echo Created default $@ : $$(cat $@)
 
 .config/spam_account_name: .config/.init
-	@echo spam.$$(tr -cd '0-9a-z_' < /dev/urandom | head -c 8) > $@
+	@echo spam.$$(LC_ALL=C tr -cd '0-9a-z_' < /dev/urandom | head -c 8) > $@
 	@echo Created default $@ : $$(cat $@)
 
 .config/ham_account_name: .config/.init
-	@echo ham.$$(tr -cd '0-9a-z_' < /dev/urandom | head -c 8) > $@
+	@echo ham.$$(LC_ALL=C tr -cd '0-9a-z_' < /dev/urandom | head -c 8) > $@
 	@echo Created default $@ : $$(cat $@)
 
 .config/virus_quarantine_account_name: .config/.init
-	@echo virus-quarantine.$$(tr -cd '0-9a-z_' < /dev/urandom | head -c 8) > $@
+	@echo virus-quarantine.$$(LC_ALL=C tr -cd '0-9a-z_' < /dev/urandom | head -c 8) > $@
 	@echo Created default $@ : $$(cat $@)
 
 .config/gal_sync_account_name: .config/.init
-	@echo gal-sync.$$(tr -cd '0-9a-z_' < /dev/urandom | head -c 8) > $@
+	@echo gal-sync.$$(LC_ALL=C tr -cd '0-9a-z_' < /dev/urandom | head -c 8) > $@
 	@echo Created default $@ : $$(cat $@)
 
 .config/av_notify_email: .config/domain_name
@@ -101,7 +101,7 @@ PASSWORDS += .secrets/virus_quarantine_account_password
 	@echo Created default $@ : $$(cat $@)
 
 .secrets/%password: .secrets/.init
-	@tr -cd '0-9a-z_' < /dev/urandom | head -c 15 > $@;
+	@LC_ALL=C tr -cd '0-9a-z_' < /dev/urandom | head -c 15 > $@;
 	@echo Created default $@
 
 init-passwords: $(PASSWORDS)
