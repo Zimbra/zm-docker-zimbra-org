@@ -97,7 +97,7 @@ PASSWORDS += .secrets/virus_quarantine_account_password
 	touch "$@"
 
 .secrets/admin_account_password: .secrets/.init
-	@echo admin123 > $@
+	@echo test123 > $@
 	@echo Created default $@ : $$(cat $@)
 
 .secrets/%password: .secrets/.init
