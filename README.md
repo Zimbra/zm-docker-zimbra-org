@@ -7,7 +7,15 @@ You should have Docker (and Docker Compose) installed and know how to create a s
 ## Setup
 
 - Clone this repository.
-- Edit these files in the `.secrets` diretory and enter passwords that you want to be used for the corresponding services:
+- You may build the images locally: `make all`.  If you do not, they will be pulled down from Docker Hub.
+
+### Optional - Passwords
+
+Deploying the `zm-docker` stack (via the `make up` command) will generate some default values for passwords for you.  If you like, you may change them to be whatever you like.  Just do the following:
+
+	make clean && make init-passwords
+
+Then edit these files in the `.secrets` directory and enter passwords that you want to be used for the corresponding services:
   - `admin_account_password`
   - `ham_account_password`
   - `ldap.amavis_password`
@@ -19,7 +27,14 @@ You should have Docker (and Docker Compose) installed and know how to create a s
   - `mysql.password`
   - `spam_account_password`
   - `virus_quarantine_account_password`
-- If desired, edit these files in the `.config` directory and enter your preferred values. This is optional, as they already contain sensible defaults.
+
+1. The default value of `admin_account_password` is `test123`.  This is what the Genesis tests expect it to be.
+2. Note that `make clean` will remove the `.config`, `.secrets`, and `.keystore` directories, so exercise caution with that command.
+
+### Optional - Other Config
+
+If desired, edit these files in the `.config` directory and enter your preferred values.
+
   - `admin_account_name`
   - `av_notify_email`
   - `domain_name`
@@ -27,7 +42,7 @@ You should have Docker (and Docker Compose) installed and know how to create a s
   - `ham_account_name`
   - `spam_account_name`
   - `virus_quarantine_account_name`
-- Build the images: `make all`
+
 
 ## Deploying the Stack
 
