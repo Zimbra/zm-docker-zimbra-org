@@ -41,24 +41,10 @@ RUN groupadd -r zimbra && \
     # Trick build into skipping resolvconf as docker overrides for DNS
     echo "resolvconf resolvconf/linkify-resolvconf boolean false" | debconf-set-selections
 
-RUN mkdir -p /zimbra/release && \
-    curl 'https://files.zimbra.com/dev-releases/hold/UBUNTU16_64-shri314-886-20171005050732-FOSS-417/zcs-8.8.6_beta_417.UBUNTU16_64.20171005050732.tgz' \
-    -H 'Accept-Encoding: gzip, deflate, br' \
-    -H 'Accept-Language: en-US,en;q=0.8' \
-    -H 'Upgrade-Insecure-Requests: 1' \
-    -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36' \
-    -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8' \
-    -H 'Referer: https://www.zimbra.com/downloads/zimbra-collaboration-open-source/' \
-    -H 'Connection: keep-alive' \
-    --compressed -o /tmp/release-zimbra-8.tgz && \
-    tar xzvf /tmp/release-zimbra-8.tgz -C /zimbra/release --strip-components=1 && \
-    rm /tmp/release-zimbra-8.tgz && \
-    sed -i.bak 's/checkRequired/# checkRequired/' /zimbra/release/install.sh
-
-RUN echo "deb [trusted=yes] https://files.zimbra.com/dev-releases/hold/UBUNTU16_64-shri314-886-20171005050732-FOSS-417/archives/zimbra-foss    ./ # Zimbra Package Archive (zimbra-foss)"     > /etc/apt/sources.list.d/zimbra-packages.list
-RUN echo "deb [trusted=yes] https://files.zimbra.com/dev-releases/hold/UBUNTU16_64-shri314-886-20171005050732-FOSS-417/archives/zimbra-zextras ./ # Zimbra Package Archive (zimbra-zextras)" >> /etc/apt/sources.list.d/zimbra-packages.list
+RUN echo "deb [trusted=yes] https://files.zimbra.com/dev-releases/hold/UBUNTU16_64-Zimbra-886-20171023521800-FOSS-261/archives/zimbra-foss    ./ # Zimbra Package Archive (zimbra-foss)"     > /etc/apt/sources.list.d/zimbra-packages.list
+RUN echo "deb [trusted=yes] https://files.zimbra.com/dev-releases/hold/UBUNTU16_64-Zimbra-886-20171023521800-FOSS-261/archives/zimbra-zextras ./ # Zimbra Package Archive (zimbra-zextras)" >> /etc/apt/sources.list.d/zimbra-packages.list
 RUN echo "deb [arch=amd64]  https://repo.zimbra.com/apt/87 xenial zimbra" > /etc/apt/sources.list.d/zimbra.list
-RUN echo "deb [trusted=yes] file:///zimbra/release/packages ./"           > /etc/apt/sources.list.d/local.list
+
 RUN apt-get install -y apt-transport-https
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 9BE6ED79
 RUN apt-get update -qq
