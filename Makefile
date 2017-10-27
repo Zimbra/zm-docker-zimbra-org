@@ -1,21 +1,30 @@
 all: build-all
 
+SHELL = bash
+
 ################################################################
-
 # CUSTOMIZATION VARIABLES - custom values can be can be specified for the following:
-# e.g make OPENSSL_CNF=... PACKAGE_KEY=...
+#
+# E.g.:
+#    make OPENSSL_CNF=... ZM_REPO_NS=...
+#     or
+#         OPENSSL_CNF=... ZM_REPO_NS=... make
+#
 
-OPENSSL_CNF = _conf/openssl.cnf
-PACKAGE_CNF = _conf/pkg-list
-PACKAGE_KEY = _conf/pkg-key
+OPENSSL_CNF ?= _conf/openssl.cnf
+PACKAGE_CNF ?= _conf/pkg-list
+PACKAGE_KEY ?= _conf/pkg-key
 
-STACK_NAME = $(shell basename "$$PWD")
-ZM_TAG_NAME = latest-build
+ZM_REPO_NS    ?= zimbra
+ZM_TAG_NAME   ?= latest-build
+ZM_STACK_NAME ?= zm-docker
 
 ################################################################
 
 build-all: build-base docker-compose.yml
-	ZM_TAG_NAME=${ZM_TAG_NAME} docker-compose build
+	ZM_REPO_NS=${ZM_REPO_NS} \
+	    ZM_TAG_NAME=${ZM_TAG_NAME} \
+	    docker-compose build
 
 _conf/pkg-list: _conf/pkg-list.in
 	cp $< $@
@@ -28,7 +37,7 @@ build-base: _base/* ${PACKAGE_CNF} ${PACKAGE_KEY}
 	    --build-arg "PACKAGE_CNF=${PACKAGE_CNF}" \
 	    --build-arg "PACKAGE_KEY=${PACKAGE_KEY}" \
 	    -f _base/Dockerfile \
-	    -t zimbra/zmc-base:${ZM_TAG_NAME} \
+	    -t ${ZM_REPO_NS}/zmc-base:${ZM_TAG_NAME} \
 	    .
 
 ################################################################
@@ -167,18 +176,26 @@ init-keys: $(KEYS)
 ################################################################
 
 up: init-configs init-passwords init-keys docker-compose.yml
-	@docker swarm init 2>/dev/null; echo
-	ZM_TAG_NAME=${ZM_TAG_NAME} docker stack deploy -c docker-compose.yml '${STACK_NAME}'
+	@docker swarm init 2>/dev/null; true
+	ZM_REPO_NS=${ZM_REPO_NS} \
+	    ZM_TAG_NAME=${ZM_TAG_NAME} \
+	    docker stack deploy -c docker-compose.yml '${ZM_STACK_NAME}'
 
 down:
-	@docker stack rm '${STACK_NAME}'
+	@docker stack rm '${ZM_STACK_NAME}'
 
 logs:
-	@for i in $$(docker ps --format "table {{.Names}}" | grep '${STACK_NAME}_'); \
+	@for i in $$(docker ps --format "table {{.Names}}" | grep '${ZM_STACK_NAME}_'); \
 	 do \
 	    echo ----------------------------------; \
 	    docker service logs --tail 5 $$i; \
 	 done
+
+clean-images: docker-compose.yml
+	@for img in $$(sed -n -e '/image:/ { s,.*/,,; s,:.*,,; p; }' docker-compose.yml) zmc-base; \
+	 do \
+	    docker rmi ${ZM_REPO_NS}/$$img:${ZM_TAG_NAME}; \
+	 done; true;
 
 clean: down
 	rm -rf .config .secrets .keystore
