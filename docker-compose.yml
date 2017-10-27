@@ -58,6 +58,9 @@ services:
       args:
          ZM_REPO_NS: '${ZM_REPO_NS}'
          ZM_TAG_NAME: '${ZM_TAG_NAME}'
+    deploy:
+      mode: replicated
+      replicas: 1
     volumes:
       - .:/code
       - blobvolume:/opt/zimbra/store
