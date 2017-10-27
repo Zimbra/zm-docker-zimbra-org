@@ -1,4 +1,6 @@
-FROM zimbra/zmc-base
+ARG ZM_REPO_NS
+ARG ZM_TAG_NAME
+FROM ${ZM_REPO_NS}/zmc-base:${ZM_TAG_NAME}
 
 WORKDIR /tmp
 RUN apt-get install -y zimbra-mariadb

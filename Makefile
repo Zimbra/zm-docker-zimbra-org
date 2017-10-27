@@ -1,16 +1,44 @@
 all: build-all
 
-################################################################
+SHELL = bash
 
-OPENSSL_CONF = _openssl.cnf     # override via 'make OPENSSL_CONF=...' to use custom ssl configuration
+################################################################
+# CUSTOMIZATION VARIABLES - custom values can be can be specified for the following:
+#
+# E.g.:
+#    make OPENSSL_CNF=... ZM_REPO_NS=...
+#     or
+#         OPENSSL_CNF=... ZM_REPO_NS=... make
+#
+
+OPENSSL_CNF ?= _conf/openssl.cnf
+PACKAGE_CNF ?= _conf/pkg-list
+PACKAGE_KEY ?= _conf/pkg-key
+
+ZM_REPO_NS    ?= zimbra
+ZM_TAG_NAME   ?= latest-build
+ZM_STACK_NAME ?= zm-docker
 
 ################################################################
 
 build-all: build-base docker-compose.yml
-	docker-compose build
+	ZM_REPO_NS=${ZM_REPO_NS} \
+	    ZM_TAG_NAME=${ZM_TAG_NAME} \
+	    docker-compose build
 
-build-base: _base/*
-	cd _base && docker build . -t zimbra/zmc-base
+_conf/pkg-list: _conf/pkg-list.in
+	cp $< $@
+
+_conf/pkg-key: _conf/pkg-key.in
+	cp $< $@
+
+build-base: _base/* ${PACKAGE_CNF} ${PACKAGE_KEY}
+	docker build \
+	    --build-arg "PACKAGE_CNF=${PACKAGE_CNF}" \
+	    --build-arg "PACKAGE_KEY=${PACKAGE_KEY}" \
+	    -f _base/Dockerfile \
+	    -t ${ZM_REPO_NS}/zmc-base:${ZM_TAG_NAME} \
+	    .
 
 ################################################################
 
@@ -36,19 +64,19 @@ CONFIGS += .config/av_notify_email
 	@echo Created default $@ : $$(cat $@)
 
 .config/spam_account_name: .config/.init
-	@echo spam.$$(tr -cd '0-9a-z_' < /dev/urandom | head -c 8) > $@
+	@echo spam.$$(LC_ALL=C tr -cd '0-9a-z_' < /dev/urandom | head -c 8) > $@
 	@echo Created default $@ : $$(cat $@)
 
 .config/ham_account_name: .config/.init
-	@echo ham.$$(tr -cd '0-9a-z_' < /dev/urandom | head -c 8) > $@
+	@echo ham.$$(LC_ALL=C tr -cd '0-9a-z_' < /dev/urandom | head -c 8) > $@
 	@echo Created default $@ : $$(cat $@)
 
 .config/virus_quarantine_account_name: .config/.init
-	@echo virus-quarantine.$$(tr -cd '0-9a-z_' < /dev/urandom | head -c 8) > $@
+	@echo virus-quarantine.$$(LC_ALL=C tr -cd '0-9a-z_' < /dev/urandom | head -c 8) > $@
 	@echo Created default $@ : $$(cat $@)
 
 .config/gal_sync_account_name: .config/.init
-	@echo gal-sync.$$(tr -cd '0-9a-z_' < /dev/urandom | head -c 8) > $@
+	@echo gal-sync.$$(LC_ALL=C tr -cd '0-9a-z_' < /dev/urandom | head -c 8) > $@
 	@echo Created default $@ : $$(cat $@)
 
 .config/av_notify_email: .config/domain_name
@@ -78,11 +106,11 @@ PASSWORDS += .secrets/virus_quarantine_account_password
 	touch "$@"
 
 .secrets/admin_account_password: .secrets/.init
-	@echo admin123 > $@
+	@echo test123 > $@
 	@echo Created default $@ : $$(cat $@)
 
 .secrets/%password: .secrets/.init
-	@tr -cd '0-9a-z_' < /dev/urandom | head -c 15 > $@;
+	@LC_ALL=C tr -cd '0-9a-z_' < /dev/urandom | head -c 15 > $@;
 	@echo Created default $@
 
 init-passwords: $(PASSWORDS)
@@ -109,11 +137,11 @@ KEYS += .keystore/proxy.crt
 	echo    "1000" > .keystore/demoCA/serial
 	touch $@
 
-.keystore/%.key: .keystore/.init
-	OPENSSL_CONF=${OPENSSL_CONF} openssl genrsa -out $@ 2048
+.keystore/%.key: ${OPENSSL_CNF} .keystore/.init
+	OPENSSL_CONF=${OPENSSL_CNF} openssl genrsa -out $@ 2048
 
-.keystore/ca.pem: .keystore/ca.key
-	OPENSSL_CONF=${OPENSSL_CONF} openssl req -batch -nodes \
+.keystore/ca.pem: ${OPENSSL_CNF} .keystore/ca.key
+	OPENSSL_CONF=${OPENSSL_CNF} openssl req -batch -nodes \
 	    -new \
 	    -sha256 \
 	    -subj '/O=CA/OU=Zimbra Collaboration Server/CN=zmc-ldap' \
@@ -121,17 +149,9 @@ KEYS += .keystore/proxy.crt
 	    -key .keystore/ca.key \
 	    -x509 \
 	    -out $@
-	OPENSSL_CONF=${OPENSSL_CONF} openssl req -batch -nodes \
-	    -new -sha256 \
-	    -subj '/O=CA/OU=Zimbra Collaboration Server/CN=zmc-ldap' \
-	    -days 1825 \
-	    -out .keystore/ca1.pem \
-	    -newkey rsa:2048 \
-	    -keyout .keystore/ca1.key \
-	    -extensions v3_ca -x509
 
-.keystore/%.csr: .keystore/%.key
-	OPENSSL_CONF=${OPENSSL_CONF} openssl req -batch -nodes \
+.keystore/%.csr: ${OPENSSL_CNF} .keystore/%.key
+	OPENSSL_CONF=${OPENSSL_CNF} openssl req -batch -nodes \
 	    -new \
 	    -sha256 \
 	    -subj "/OU=Zimbra Collaboration Server/CN=zmc-$*" \
@@ -139,8 +159,8 @@ KEYS += .keystore/proxy.crt
 	    -key .keystore/$*.key \
 	    -out $@
 
-.keystore/%.crt: .keystore/%.csr .keystore/ca.pem .keystore/ca.key
-	OPENSSL_CONF=${OPENSSL_CONF} openssl ca -batch -notext \
+.keystore/%.crt: ${OPENSSL_CNF} .keystore/%.csr .keystore/ca.pem .keystore/ca.key
+	OPENSSL_CONF=${OPENSSL_CNF} openssl ca -batch -notext \
 	    -policy policy_anything \
 	    -days 1825 \
 	    -md sha256 \
@@ -155,19 +175,27 @@ init-keys: $(KEYS)
 
 ################################################################
 
-up: init-configs init-passwords init-keys
-	@docker swarm init 2>/dev/null; echo
-	docker stack deploy -c ./docker-compose.yml '$(shell basename "$$PWD")'
+up: init-configs init-passwords init-keys docker-compose.yml
+	@docker swarm init 2>/dev/null; true
+	ZM_REPO_NS=${ZM_REPO_NS} \
+	    ZM_TAG_NAME=${ZM_TAG_NAME} \
+	    docker stack deploy -c docker-compose.yml '${ZM_STACK_NAME}'
 
 down:
-	@docker stack rm $(shell basename "$$PWD")
+	@docker stack rm '${ZM_STACK_NAME}'
 
 logs:
-	@for i in $$(docker ps --format "table {{.Names}}" | grep '$(shell basename "$$PWD")_'); \
+	@for i in $$(docker ps --format "table {{.Names}}" | grep '${ZM_STACK_NAME}_'); \
 	 do \
 	    echo ----------------------------------; \
 	    docker service logs --tail 5 $$i; \
 	 done
+
+clean-images: docker-compose.yml
+	@for img in $$(sed -n -e '/image:/ { s,.*/,,; s,:.*,,; p; }' docker-compose.yml) zmc-base; \
+	 do \
+	    docker rmi ${ZM_REPO_NS}/$$img:${ZM_TAG_NAME}; \
+	 done; true;
 
 clean: down
 	rm -rf .config .secrets .keystore

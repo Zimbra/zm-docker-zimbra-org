@@ -58,10 +58,6 @@ my $PROXY_POP3_PORT  = 110;
 my $CA_TRUSTSTORE          = "/opt/zimbra/common/lib/jvm/java/jre/lib/security/cacerts";
 my $CA_TRUSTSTORE_PASSWORD = "changeit";
 
-my $nginxTemplatesDir = "/opt/zimbra/conf/nginx/templates";
-my $nginxTemplateFile = "$nginxTemplatesDir/nginx.conf.web.https.default.template";
-my $nginxTemplateFileInp = "${nginxTemplateFile}.in";
-
 ## CONFIGURATION ENTRY POINT ###########################
 
 EntryExec(
@@ -127,30 +123,31 @@ EntryExec(
          {
             server_config => {
                $THIS_HOST => {
-                  zimbraIPMode                           => "ipv4",
-                  zimbraServiceInstalled                 => [ "stats", "proxy", "memcached" ],
-                  zimbraServiceEnabled                   => [ "stats", "proxy", "memcached" ],
-                  zimbraAdminPort                        => $ADMIN_PORT,
-                  zimbraAdminProxyPort                   => $PROXY_ADMIN_PORT,
-                  zimbraImapBindPort                     => $IMAP_PORT,
-                  zimbraImapProxyBindPort                => $PROXY_IMAP_PORT,
-                  zimbraImapSSLBindPort                  => $IMAPS_PORT,
-                  zimbraImapSSLProxyBindPort             => $PROXY_IMAPS_PORT,
-                  zimbraMailPort                         => $HTTP_PORT,
-                  zimbraMailProxyPort                    => $PROXY_HTTP_PORT,
-                  zimbraMailSSLPort                      => $HTTPS_PORT,
-                  zimbraMailSSLProxyPort                 => $PROXY_HTTPS_PORT,
-                  zimbraPop3BindPort                     => $POP3_PORT,
-                  zimbraPop3ProxyBindPort                => $PROXY_POP3_PORT,
-                  zimbraPop3SSLBindPort                  => $POP3S_PORT,
-                  zimbraPop3SSLProxyBindPort             => $PROXY_POP3S_PORT,
-                  zimbraReverseProxyMailMode             => "https",
-                  zimbraReverseProxyHttpEnabled          => "TRUE",
-                  zimbraReverseProxyMailEnabled          => "TRUE",
-                  zimbraReverseProxyAdminEnabled         => "TRUE",
-                  zimbraReverseProxySSLToUpstreamEnabled => "TRUE",
-                  zimbraSSLCertificate                   => Secret("proxy.crt"),
-                  zimbraSSLPrivateKey                    => Secret("proxy.key"),
+                  zimbraIPMode                              => "ipv4",
+                  zimbraServiceInstalled                    => [ "stats", "proxy", "memcached" ],
+                  zimbraServiceEnabled                      => [ "stats", "proxy", "memcached" ],
+                  zimbraAdminPort                           => $ADMIN_PORT,
+                  zimbraAdminProxyPort                      => $PROXY_ADMIN_PORT,
+                  zimbraImapBindPort                        => $IMAP_PORT,
+                  zimbraImapProxyBindPort                   => $PROXY_IMAP_PORT,
+                  zimbraImapSSLBindPort                     => $IMAPS_PORT,
+                  zimbraImapSSLProxyBindPort                => $PROXY_IMAPS_PORT,
+                  zimbraMailPort                            => $HTTP_PORT,
+                  zimbraMailProxyPort                       => $PROXY_HTTP_PORT,
+                  zimbraMailSSLPort                         => $HTTPS_PORT,
+                  zimbraMailSSLProxyPort                    => $PROXY_HTTPS_PORT,
+                  zimbraPop3BindPort                        => $POP3_PORT,
+                  zimbraPop3ProxyBindPort                   => $PROXY_POP3_PORT,
+                  zimbraPop3SSLBindPort                     => $POP3S_PORT,
+                  zimbraPop3SSLProxyBindPort                => $PROXY_POP3S_PORT,
+                  zimbraReverseProxyMailMode                => "https",
+                  zimbraReverseProxyHttpEnabled             => "TRUE",
+                  zimbraReverseProxyMailEnabled             => "TRUE",
+                  zimbraReverseProxyAdminEnabled            => "TRUE",
+                  zimbraReverseProxySSLToUpstreamEnabled    => "TRUE",
+                  zimbraSSLCertificate                      => Secret("proxy.crt"),
+                  zimbraSSLPrivateKey                       => Secret("proxy.key"),
+                  zimbraReverseProxyStrictServerNameEnabled => "FALSE",
                },
             },
          };
@@ -158,24 +155,6 @@ EntryExec(
 
       # FIXME - requires LDAP
       #sub { { desc => "Updating IP Settings", exec => { args => ["/opt/zimbra/libexec/zmiptool"], }, }; },
-
-     sub { {
-       desc => "Patching $nginxTemplateFile",
-       exec => [
-         {
-           user => "root",
-           args => [ "mv $nginxTemplateFile $nginxTemplateFileInp"],
-         },
-         {
-           user => "root",
-           args => [ "cat $nginxTemplateFileInp | awk 'BEGIN {d=1;} /^server/ {if (d==1) {d=2;} else if (d==2) {d=3;}} {if (d!=2) {print \$0;}}' > $nginxTemplateFile"],
-         },
-         {
-           user => "zimbra",
-           args => [ "/opt/zimbra/libexec/zmproxyconfgen"],
-         },
-           ]
-       } },
 
       # FIXME - requires LDAP
       sub { { desc => "Bringing up all services", exec => { args => [ "/opt/zimbra/bin/zmcontrol", "start" ], }, }; },
