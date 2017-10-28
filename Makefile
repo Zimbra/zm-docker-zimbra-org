@@ -19,6 +19,7 @@ DOCKER_REPO_NS    ?= zimbra
 DOCKER_BUILD_TAG  ?= latest-build
 DOCKER_CACHE_TAG  ?= ${DOCKER_BUILD_TAG}
 DOCKER_PUSH_TAG   ?=
+DOCKER_PULL_TAG   ?=
 DOCKER_STACK_NAME ?= zm-docker
 
 ################################################################
@@ -31,6 +32,8 @@ build-all: $(patsubst %,build-%,$(IMAGE_NAMES))
 	docker images
 
 push-all: $(patsubst %,push-%,$(IMAGE_NAMES))
+
+pull-all: $(patsubst %,pull-%,$(IMAGE_NAMES))
 
 ################################################################
 
@@ -73,6 +76,13 @@ push-zmc-%: push-prereq
 	docker push '${DOCKER_REPO_NS}/zmc-$*:${DOCKER_PUSH_TAG}'
 	@echo "-----------------------------------------------------------------"
 
+pull-zmc-%: pull-prereq
+	@echo "-----------------------------------------------------------------"
+	@echo Pulling ${DOCKER_REPO_NS}/zmc-$*:${DOCKER_PULL_TAG}
+	@echo
+	docker pull '${DOCKER_REPO_NS}/zmc-$*:${DOCKER_PULL_TAG}'
+	@echo "-----------------------------------------------------------------"
+
 ################################################################
 
 push-prereq:
@@ -87,6 +97,15 @@ push-prereq:
 	 then \
 	       echo "-------------------------------------------------" \
 	    && echo " Error: 'DOCKER_PUSH_TAG=latest-build' is forbidden     " \
+	    && echo "-------------------------------------------------" \
+	    && false; \
+	 fi
+
+pull-prereq:
+	@if [ '${DOCKER_PULL_TAG}' = '' ]; \
+	 then \
+	       echo "-------------------------------------------------" \
+	    && echo " Error: 'DOCKER_PULL_TAG=...' is required for pull      " \
 	    && echo "-------------------------------------------------" \
 	    && false; \
 	 fi
