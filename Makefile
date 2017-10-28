@@ -262,12 +262,15 @@ down:
 	@docker stack rm '${DOCKER_STACK_NAME}'
 	@rm -f .up.lock
 
+TAIL_SZ ?= 5
+
 logs:
-	@for i in $$(docker ps --format "table {{.Names}}" | grep '${DOCKER_STACK_NAME}_'); \
+	@for i in $$(docker stack services ${DOCKER_STACK_NAME} --format "table {{.ID}}" | sed -e 1d); \
 	 do \
 	    echo ----------------------------------; \
-	    docker service logs --tail 5 $$i; \
+	    docker service logs --tail ${TAIL_SZ} $$i; \
 	 done
+	@echo ----------------------------------;
 
 clean: down
 	rm -rf .config .secrets .keystore
