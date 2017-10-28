@@ -4,3 +4,4 @@
 .secrets
 .up.lock
 _cache
+_out

@@ -24,8 +24,9 @@ DOCKER_STACK_NAME ?= zm-docker
 
 ################################################################
 
-IMAGE_NAMES   = $(shell sed -n -e '/image:.*\/\<zmc-*/ { s,.*/,,; s,:.*,,; p; }' docker-compose.yml) zmc-base
-LOCAL_SRC_DIR = $(shell test -z "$$DOCKER_HOST" && echo .)/
+IMAGE_NAMES      = $(shell sed -n -e '/image:.*\/\<zmc-*/ { s,.*/,,; s,:.*,,; p; }' docker-compose.yml) zmc-base
+LOCAL_SRC_DIR    = $(shell test -z "$$DOCKER_HOST" && echo .)/
+DOCKER_NODE_ADDR = $(shell docker node inspect --format '{{ .Status.Addr }}' self)
 
 build-all: $(patsubst %,build-%,$(IMAGE_NAMES))
 	@mkdir -p _cache
@@ -275,5 +276,55 @@ logs:
 clean: down
 	rm -rf .config .secrets .keystore
 
+################################################################
+
+TEST_SLEEP_TIME = 5
+TEST_MAX_RETRIES = 80
+
+test-zmc-%: up
+	@echo "-----------------------------------------------------------------"
+	@echo Testing zmc-$*
+	@echo
+	@echo Test.... - FIXME - this is a stub
+	@echo "-----------------------------------------------------------------"
+
+get-curl:
+	docker pull nhoag/curl
+
+test: $(patsubst %,test-%,$(IMAGE_NAMES)) up get-curl
+	@echo "-----------------------------------------------------------------"
+	@echo Testing overall
+	@echo
+	@echo FIXME - RUDIMENTARY TEST
+	@echo "-----------------------------------------------------------------"
+	failure=1; \
+	n=0; \
+	while (( n++ < ${TEST_MAX_RETRIES} )); \
+	do \
+	    clear 2>/dev/null; \
+	    echo "================================================================="; \
+	    echo "CURRENT TAIL LOGS: ($$n tries of ${TEST_MAX_RETRIES})"; \
+	    echo "================================================================="; \
+	    echo; \
+	    $(MAKE) -s logs TAIL_SZ=5; \
+	    echo; \
+	    if [ "$$(docker run -it nhoag/curl curl --max-time 5 -k --silent --output /dev/null --write-out "%{http_code}" https://${DOCKER_NODE_ADDR}:8443/)" == "200" ]; \
+	    then \
+	       echo "================================================================="; \
+	       echo "TEST SUCCESSFUL (in $$n tries)"; \
+	       echo "================================================================="; \
+	       failure=0; \
+	       break; \
+	    fi; \
+	    echo "================================================================="; \
+	    echo "TEST WAITING FOR RESULT ($$n tries of ${TEST_MAX_RETRIES})."; \
+	    echo "================================================================="; \
+	    echo "Retrying after ${TEST_SLEEP_TIME} sec..."; \
+	    sleep ${TEST_SLEEP_TIME}; \
+	done; \
+	echo "Dumping logs to container-logs.txt..."; \
+	mkdir -p _out; \
+	$(MAKE) -s logs TAIL_SZ=all | sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' > _out/container-logs.txt 2>&1; \
+	exit $$failure
 
 ################################################################
