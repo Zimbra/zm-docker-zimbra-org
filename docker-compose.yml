@@ -12,7 +12,7 @@ services:
          DOCKER_REPO_NS: '${DOCKER_REPO_NS}'
          DOCKER_BUILD_TAG: '${DOCKER_BUILD_TAG}'
     volumes:
-      - .:/code
+      - ${LOCAL_SRC_DIR}:/code
     configs:
       - domain_name
     secrets:
@@ -38,7 +38,7 @@ services:
          DOCKER_REPO_NS: '${DOCKER_REPO_NS}'
          DOCKER_BUILD_TAG: '${DOCKER_BUILD_TAG}'
     volumes:
-      - .:/code
+      - ${LOCAL_SRC_DIR}:/code
     configs:
       - av_notify_email
     secrets:
@@ -65,7 +65,7 @@ services:
       mode: replicated
       replicas: 1
     volumes:
-      - .:/code
+      - ${LOCAL_SRC_DIR}:/code
       - blobvolume:/opt/zimbra/store
       - tmpvolume:/opt/zimbra/data/tmp
     configs:
@@ -99,7 +99,7 @@ services:
          DOCKER_REPO_NS: '${DOCKER_REPO_NS}'
          DOCKER_BUILD_TAG: '${DOCKER_BUILD_TAG}'
     volumes:
-      - .:/code
+      - ${LOCAL_SRC_DIR}:/code
     secrets:
       - mysql.password
 
@@ -114,7 +114,7 @@ services:
          DOCKER_REPO_NS: '${DOCKER_REPO_NS}'
          DOCKER_BUILD_TAG: '${DOCKER_BUILD_TAG}'
     volumes:
-      - .:/code
+      - ${LOCAL_SRC_DIR}:/code
     secrets:
       - ca.key
       - ca.pem

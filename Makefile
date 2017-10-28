@@ -24,7 +24,8 @@ DOCKER_STACK_NAME ?= zm-docker
 
 ################################################################
 
-IMAGE_NAMES = $(shell sed -n -e '/image:.*\/\<zmc-*/ { s,.*/,,; s,:.*,,; p; }' docker-compose.yml) zmc-base
+IMAGE_NAMES   = $(shell sed -n -e '/image:.*\/\<zmc-*/ { s,.*/,,; s,:.*,,; p; }' docker-compose.yml) zmc-base
+LOCAL_SRC_DIR = $(shell test -z "$$DOCKER_HOST" && echo .)/
 
 build-all: $(patsubst %,build-%,$(IMAGE_NAMES))
 	@mkdir -p _cache
@@ -65,6 +66,7 @@ build-zmc-%: build-zmc-base docker-compose.yml
 	DOCKER_REPO_NS=${DOCKER_REPO_NS} \
 	    DOCKER_BUILD_TAG=${DOCKER_BUILD_TAG} \
 	    DOCKER_CACHE_TAG=${DOCKER_CACHE_TAG} \
+	    LOCAL_SRC_DIR=${LOCAL_SRC_DIR} \
 	    docker-compose build 'zmc-$*'
 	@echo "-----------------------------------------------------------------"
 
@@ -252,6 +254,7 @@ up: .up.lock
 	DOCKER_REPO_NS=${DOCKER_REPO_NS} \
 	    DOCKER_BUILD_TAG=${DOCKER_BUILD_TAG} \
 	    DOCKER_CACHE_TAG=${DOCKER_CACHE_TAG} \
+	    LOCAL_SRC_DIR=${LOCAL_SRC_DIR} \
 	    docker stack deploy -c docker-compose.yml '${DOCKER_STACK_NAME}'
 	@touch .up.lock
 
