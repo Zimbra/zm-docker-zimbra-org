@@ -245,15 +245,19 @@ init-keys: $(KEYS)
 
 ################################################################
 
-up: init-configs init-passwords init-keys docker-compose.yml
+up: .up.lock
+
+.up.lock: init-configs init-passwords init-keys docker-compose.yml
 	@docker swarm init 2>/dev/null; true
 	DOCKER_REPO_NS=${DOCKER_REPO_NS} \
 	    DOCKER_BUILD_TAG=${DOCKER_BUILD_TAG} \
 	    DOCKER_CACHE_TAG=${DOCKER_CACHE_TAG} \
 	    docker stack deploy -c docker-compose.yml '${DOCKER_STACK_NAME}'
+	@touch .up.lock
 
 down:
 	@docker stack rm '${DOCKER_STACK_NAME}'
+	@rm -f .up.lock
 
 logs:
 	@for i in $$(docker ps --format "table {{.Names}}" | grep '${DOCKER_STACK_NAME}_'); \
@@ -262,11 +266,8 @@ logs:
 	    docker service logs --tail 5 $$i; \
 	 done
 
-clean-images: docker-compose.yml
-	@for img in $$(sed -n -e '/image:/ { s,.*/,,; s,:.*,,; p; }' docker-compose.yml) zmc-base; \
-	 do \
-	    docker rmi ${DOCKER_REPO_NS}/$$img:${DOCKER_BUILD_TAG}; \
-	 done; true;
-
 clean: down
 	rm -rf .config .secrets .keystore
+
+
+################################################################

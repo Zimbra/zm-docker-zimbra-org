@@ -1,5 +1,6 @@
 .env
 .git
+.up.lock
 Makefile
 README.md
 _misc

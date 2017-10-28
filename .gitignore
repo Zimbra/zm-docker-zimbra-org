@@ -2,4 +2,5 @@
 .env
 .keystore
 .secrets
+.up.lock
 _cache
