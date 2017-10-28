@@ -2,14 +2,14 @@ version: '3.3'
 
 services:
   zmc-ldap:
-    image: '${ZM_REPO_NS}/zmc-ldap:${ZM_TAG_NAME}'
+    image: '${DOCKER_REPO_NS}/zmc-ldap:${DOCKER_BUILD_TAG}'
     hostname: 'zmc-ldap'
     build:
       context: '.'
       dockerfile: 'ldap/Dockerfile'
       args:
-         ZM_REPO_NS: '${ZM_REPO_NS}'
-         ZM_TAG_NAME: '${ZM_TAG_NAME}'
+         DOCKER_REPO_NS: '${DOCKER_REPO_NS}'
+         DOCKER_BUILD_TAG: '${DOCKER_BUILD_TAG}'
     volumes:
       - .:/code
     configs:
@@ -27,14 +27,14 @@ services:
       - ldap.nginx_password
 
   zmc-mta:
-    image: '${ZM_REPO_NS}/zmc-mta:${ZM_TAG_NAME}'
+    image: '${DOCKER_REPO_NS}/zmc-mta:${DOCKER_BUILD_TAG}'
     hostname: 'zmc-mta'
     build:
       context: '.'
       dockerfile: 'mta/Dockerfile'
       args:
-         ZM_REPO_NS: '${ZM_REPO_NS}'
-         ZM_TAG_NAME: '${ZM_TAG_NAME}'
+         DOCKER_REPO_NS: '${DOCKER_REPO_NS}'
+         DOCKER_BUILD_TAG: '${DOCKER_BUILD_TAG}'
     volumes:
       - .:/code
     configs:
@@ -50,14 +50,14 @@ services:
       - ldap.amavis_password
 
   zmc-mailbox:
-    image: '${ZM_REPO_NS}/zmc-mailbox:${ZM_TAG_NAME}'
+    image: '${DOCKER_REPO_NS}/zmc-mailbox:${DOCKER_BUILD_TAG}'
     hostname: 'zmc-mailbox'
     build:
       context: '.'
       dockerfile: 'mailbox/Dockerfile'
       args:
-         ZM_REPO_NS: '${ZM_REPO_NS}'
-         ZM_TAG_NAME: '${ZM_TAG_NAME}'
+         DOCKER_REPO_NS: '${DOCKER_REPO_NS}'
+         DOCKER_BUILD_TAG: '${DOCKER_BUILD_TAG}'
     deploy:
       mode: replicated
       replicas: 1
@@ -86,28 +86,28 @@ services:
       - virus_quarantine_account_password
 
   zmc-mysql:
-    image: '${ZM_REPO_NS}/zmc-mysql:${ZM_TAG_NAME}'
+    image: '${DOCKER_REPO_NS}/zmc-mysql:${DOCKER_BUILD_TAG}'
     hostname: 'zmc-mysql'
     build:
       context: '.'
       dockerfile: 'mysql/Dockerfile'
       args:
-         ZM_REPO_NS: '${ZM_REPO_NS}'
-         ZM_TAG_NAME: '${ZM_TAG_NAME}'
+         DOCKER_REPO_NS: '${DOCKER_REPO_NS}'
+         DOCKER_BUILD_TAG: '${DOCKER_BUILD_TAG}'
     volumes:
       - .:/code
     secrets:
       - mysql.password
 
   zmc-proxy:
-    image: '${ZM_REPO_NS}/zmc-proxy:${ZM_TAG_NAME}'
+    image: '${DOCKER_REPO_NS}/zmc-proxy:${DOCKER_BUILD_TAG}'
     hostname: 'zmc-proxy'
     build:
       context: '.'
       dockerfile: 'proxy/Dockerfile'
       args:
-         ZM_REPO_NS: '${ZM_REPO_NS}'
-         ZM_TAG_NAME: '${ZM_TAG_NAME}'
+         DOCKER_REPO_NS: '${DOCKER_REPO_NS}'
+         DOCKER_BUILD_TAG: '${DOCKER_BUILD_TAG}'
     volumes:
       - .:/code
     secrets:

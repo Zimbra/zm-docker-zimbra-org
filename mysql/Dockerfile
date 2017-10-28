@@ -1,6 +1,6 @@
-ARG ZM_REPO_NS
-ARG ZM_TAG_NAME
-FROM ${ZM_REPO_NS}/zmc-base:${ZM_TAG_NAME}
+ARG DOCKER_REPO_NS
+ARG DOCKER_BUILD_TAG
+FROM ${DOCKER_REPO_NS}/zmc-base:${DOCKER_BUILD_TAG}
 
 WORKDIR /tmp
 RUN apt-get install -y zimbra-mariadb
