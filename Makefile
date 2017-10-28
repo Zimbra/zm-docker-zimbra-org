@@ -21,10 +21,12 @@ DOCKER_STACK_NAME ?= zm-docker
 
 ################################################################
 
-build-all: build-base docker-compose.yml
-	DOCKER_REPO_NS=${DOCKER_REPO_NS} \
-	    DOCKER_BUILD_TAG=${DOCKER_BUILD_TAG} \
-	    docker-compose build
+IMAGE_NAMES = $(shell sed -n -e '/image:.*\/\<zmc-*/ { s,.*/,,; s,:.*,,; p; }' docker-compose.yml) zmc-base
+
+build-all: $(patsubst %,build-%,$(IMAGE_NAMES))
+	docker images
+
+################################################################
 
 _conf/pkg-list: _conf/pkg-list.in
 	cp $< $@
@@ -32,13 +34,28 @@ _conf/pkg-list: _conf/pkg-list.in
 _conf/pkg-key: _conf/pkg-key.in
 	cp $< $@
 
-build-base: _base/* ${PACKAGE_CNF} ${PACKAGE_KEY}
+################################################################
+
+build-zmc-base: _base/* ${PACKAGE_CNF} ${PACKAGE_KEY}
+	@echo "-----------------------------------------------------------------"
+	@echo Building zmc-base
+	@echo
 	docker build \
 	    --build-arg "PACKAGE_CNF=${PACKAGE_CNF}" \
 	    --build-arg "PACKAGE_KEY=${PACKAGE_KEY}" \
 	    -f _base/Dockerfile \
 	    -t ${DOCKER_REPO_NS}/zmc-base:${DOCKER_BUILD_TAG} \
 	    .
+	@echo "-----------------------------------------------------------------"
+
+build-zmc-%: build-zmc-base docker-compose.yml
+	@echo "-----------------------------------------------------------------"
+	@echo Building zmc-$*
+	@echo
+	DOCKER_REPO_NS=${DOCKER_REPO_NS} \
+	    DOCKER_BUILD_TAG=${DOCKER_BUILD_TAG} \
+	    docker-compose build 'zmc-$*'
+	@echo "-----------------------------------------------------------------"
 
 ################################################################
 

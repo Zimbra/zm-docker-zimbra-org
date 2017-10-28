@@ -1,4 +1,4 @@
 .config
-.secrets
-.keystore
 .env
+.keystore
+.secrets
