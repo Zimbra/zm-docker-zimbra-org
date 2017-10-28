@@ -1,0 +1,148 @@
+version: 2
+
+############################################################################
+
+references:
+   std_filters: &std_filters
+      filters:
+         branches:
+            only:
+               - master
+               - develop
+
+############################################################################
+
+jobs:
+   build_test_stage:
+      shell: /bin/bash -euo pipefail
+      docker:
+         - image: zimbra/zm-base-os:devcore-docker
+      steps:
+         - checkout
+         - restore_cache:
+            keys:
+               - v1-{{.Branch}}
+            paths:
+               - _cache
+         - run:
+            name: Checking configuration parameters
+            command: |
+               [ ! -z "$DOCKER_USER" ] || exit 1
+               [ ! -z "$DOCKER_PASS" ] || exit 1
+               [ ! -z "$DOCKER_REPO_NS" ] || exit 1
+
+               echo "Docker Repo Namespace: $DOCKER_REPO_NS"
+               echo "Docker User: $DOCKER_USER"
+
+               _BUILD_TAG="staged-$(TZ=UTC date +%Y%m%d%H%M)-wf-$CIRCLE_WORKFLOW_ID"
+               _FINAL_TAG="$(echo "$CIRCLE_BRANCH" | sed -e 's/[^._ A-Za-z0-9-]/_/g')-$CIRCLE_BUILD_NUM"
+               _OUILD_TAG="$(cat _cache/id.txt 2>/dev/null)"
+
+               echo "_ENV_OUILD_TAG=$_OUILD_TAG" | tee -a .env
+               echo "_ENV_BUILD_TAG=$_BUILD_TAG" | tee -a .env
+               echo "_ENV_FINAL_TAG=$_FINAL_TAG" | tee -a .env
+         - setup_remote_docker:
+            version: 17.09.0-ce
+         - run: echo 'source $PWD/.env' >> $BASH_ENV
+         - run:
+            name: Pulling old images as cache
+            command: |
+               for tag in $_ENV_OUILD_TAG $_ENV_FINAL_TAG latest
+               do
+                  echo Trying $tag as cache...
+                  if make DOCKER_REPO_NS=$DOCKER_REPO_NS \
+                          DOCKER_PULL_TAG=$tag \
+                          pull-all
+                  then
+                     echo Using $tag as cache...
+                     echo "_ENV_CACHE_TAG=$tag"   >> .env
+                     break
+                  fi
+               done
+         - run:
+            name: Building new images
+            command: |
+               make DOCKER_REPO_NS=$DOCKER_REPO_NS \
+                    DOCKER_BUILD_TAG=$_ENV_BUILD_TAG \
+                    DOCKER_CACHE_TAG=${_ENV_CACHE_TAG-$_ENV_BUILD_TAG} \
+                    build-all
+         - save_cache:
+            key: v1-{{.Branch}}-{{epoch}}
+            paths:
+               - _cache
+         - persist_to_workspace:
+            root: .
+            paths: .
+         - deploy:
+            name: Pushing staged images to repository #useful to stage these even before test (so you can pull and test it later)
+            command: |
+               echo "Docker User: $DOCKER_USER"
+               docker login -u "$DOCKER_USER" -p "$DOCKER_PASS"
+
+               make DOCKER_REPO_NS=$DOCKER_REPO_NS \
+                    DOCKER_BUILD_TAG=$_ENV_BUILD_TAG \
+                    DOCKER_PUSH_TAG=$_ENV_BUILD_TAG \
+                    push-all
+         - run:
+            name: Running tests
+            command: |
+               make DOCKER_REPO_NS=$DOCKER_REPO_NS \
+                    DOCKER_BUILD_TAG=$_ENV_BUILD_TAG \
+                    test
+         - store_artifacts:
+            path: _out
+
+
+   deploy_final:
+      shell: /bin/bash -eo pipefail
+      docker:
+         - image: zimbra/zm-base-os:devcore-docker
+      steps:
+         - setup_remote_docker:
+            version: 17.09.0-ce
+         - attach_workspace:
+            at: .
+         - run: echo 'source $PWD/.env' >> $BASH_ENV
+         - run:
+            name: Pulling staged images
+            command: |
+               make DOCKER_REPO_NS=$DOCKER_REPO_NS \
+                    DOCKER_PULL_TAG=$_ENV_BUILD_TAG \
+                    pull-all
+         - deploy:
+            name: Pushing final images to repository
+            command: |
+               echo "Docker User: $DOCKER_USER"
+               docker login -u "$DOCKER_USER" -p "$DOCKER_PASS"
+
+               make DOCKER_REPO_NS=$DOCKER_REPO_NS \
+                    DOCKER_BUILD_TAG=$_ENV_BUILD_TAG \
+                    DOCKER_PUSH_TAG=$_ENV_FINAL_TAG \
+                    push-all
+
+               if [ "$CIRCLE_BRANCH" == "master" ]
+               then
+                  make DOCKER_REPO_NS=$DOCKER_REPO_NS \
+                       DOCKER_BUILD_TAG=$_ENV_BUILD_TAG \
+                       DOCKER_PUSH_TAG=latest \
+                       push-all
+               fi
+
+############################################################################
+
+workflows:
+   version: 2
+   main:
+      jobs:
+         - build_test_stage
+
+         - deploy_hold:
+            type: approval
+            requires:
+               - build_test_stage
+            <<: *std_filters
+
+         - deploy_final:
+            requires:
+               - deploy_hold
+            <<: *std_filters
