@@ -17,6 +17,7 @@ PACKAGE_KEY ?= _conf/pkg-key
 
 DOCKER_REPO_NS    ?= zimbra
 DOCKER_BUILD_TAG  ?= latest-build
+DOCKER_CACHE_TAG  ?= ${DOCKER_BUILD_TAG}
 DOCKER_STACK_NAME ?= zm-docker
 
 ################################################################
@@ -24,6 +25,8 @@ DOCKER_STACK_NAME ?= zm-docker
 IMAGE_NAMES = $(shell sed -n -e '/image:.*\/\<zmc-*/ { s,.*/,,; s,:.*,,; p; }' docker-compose.yml) zmc-base
 
 build-all: $(patsubst %,build-%,$(IMAGE_NAMES))
+	@mkdir -p _cache
+	@echo ${DOCKER_BUILD_TAG} > _cache/id.txt
 	docker images
 
 ################################################################
@@ -43,8 +46,9 @@ build-zmc-base: _base/* ${PACKAGE_CNF} ${PACKAGE_KEY}
 	docker build \
 	    --build-arg "PACKAGE_CNF=${PACKAGE_CNF}" \
 	    --build-arg "PACKAGE_KEY=${PACKAGE_KEY}" \
-	    -f _base/Dockerfile \
-	    -t ${DOCKER_REPO_NS}/zmc-base:${DOCKER_BUILD_TAG} \
+	    --cache-from '${DOCKER_REPO_NS}/zmc-base:${DOCKER_CACHE_TAG}' \
+	    --tag        '${DOCKER_REPO_NS}/zmc-base:${DOCKER_BUILD_TAG}' \
+	    --file       _base/Dockerfile \
 	    .
 	@echo "-----------------------------------------------------------------"
 
@@ -54,6 +58,7 @@ build-zmc-%: build-zmc-base docker-compose.yml
 	@echo
 	DOCKER_REPO_NS=${DOCKER_REPO_NS} \
 	    DOCKER_BUILD_TAG=${DOCKER_BUILD_TAG} \
+	    DOCKER_CACHE_TAG=${DOCKER_CACHE_TAG} \
 	    docker-compose build 'zmc-$*'
 	@echo "-----------------------------------------------------------------"
 
@@ -196,6 +201,7 @@ up: init-configs init-passwords init-keys docker-compose.yml
 	@docker swarm init 2>/dev/null; true
 	DOCKER_REPO_NS=${DOCKER_REPO_NS} \
 	    DOCKER_BUILD_TAG=${DOCKER_BUILD_TAG} \
+	    DOCKER_CACHE_TAG=${DOCKER_CACHE_TAG} \
 	    docker stack deploy -c docker-compose.yml '${DOCKER_STACK_NAME}'
 
 down:

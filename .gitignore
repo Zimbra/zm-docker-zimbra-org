@@ -2,3 +2,4 @@
 .env
 .keystore
 .secrets
+_cache
