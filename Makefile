@@ -18,6 +18,7 @@ PACKAGE_KEY ?= _conf/pkg-key
 DOCKER_REPO_NS    ?= zimbra
 DOCKER_BUILD_TAG  ?= latest-build
 DOCKER_CACHE_TAG  ?= ${DOCKER_BUILD_TAG}
+DOCKER_PUSH_TAG   ?=
 DOCKER_STACK_NAME ?= zm-docker
 
 ################################################################
@@ -28,6 +29,8 @@ build-all: $(patsubst %,build-%,$(IMAGE_NAMES))
 	@mkdir -p _cache
 	@echo ${DOCKER_BUILD_TAG} > _cache/id.txt
 	docker images
+
+push-all: $(patsubst %,push-%,$(IMAGE_NAMES))
 
 ################################################################
 
@@ -61,6 +64,32 @@ build-zmc-%: build-zmc-base docker-compose.yml
 	    DOCKER_CACHE_TAG=${DOCKER_CACHE_TAG} \
 	    docker-compose build 'zmc-$*'
 	@echo "-----------------------------------------------------------------"
+
+push-zmc-%: push-prereq
+	@echo "-----------------------------------------------------------------"
+	@echo Pushing ${DOCKER_REPO_NS}/zmc-$*:${DOCKER_PUSH_TAG}
+	@echo
+	@docker tag '${DOCKER_REPO_NS}/zmc-$*:${DOCKER_BUILD_TAG}' '${DOCKER_REPO_NS}/zmc-$*:${DOCKER_PUSH_TAG}'
+	docker push '${DOCKER_REPO_NS}/zmc-$*:${DOCKER_PUSH_TAG}'
+	@echo "-----------------------------------------------------------------"
+
+################################################################
+
+push-prereq:
+	@if [ '${DOCKER_PUSH_TAG}' = '' ]; \
+	 then \
+	       echo "-------------------------------------------------" \
+	    && echo " Error: 'DOCKER_PUSH_TAG=...' is required for push      " \
+	    && echo "-------------------------------------------------" \
+	    && false; \
+	 fi
+	@if [ '${DOCKER_PUSH_TAG}' = 'latest-build' ]; \
+	 then \
+	       echo "-------------------------------------------------" \
+	    && echo " Error: 'DOCKER_PUSH_TAG=latest-build' is forbidden     " \
+	    && echo "-------------------------------------------------" \
+	    && false; \
+	 fi
 
 ################################################################
 
