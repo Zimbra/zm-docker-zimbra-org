@@ -322,9 +322,9 @@ test: $(patsubst %,test-%,$(IMAGE_NAMES)) up get-curl
 	    echo "Retrying after ${TEST_SLEEP_TIME} sec..."; \
 	    sleep ${TEST_SLEEP_TIME}; \
 	done; \
-	echo "Dumping logs to container-logs.txt..."; \
+	echo "Dumping logs to _out/container-logs.txt..."; \
 	mkdir -p _out; \
-	$(MAKE) -s logs TAIL_SZ=all | sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' > _out/container-logs.txt 2>&1; \
+	$(MAKE) -s logs TAIL_SZ=all | perl -MTerm::ANSIColor=colorstrip -ne 'print colorstrip($$_)' > _out/container-logs.txt 2>&1; \
 	exit $$failure
 
 ################################################################
