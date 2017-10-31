@@ -24,7 +24,7 @@ DOCKER_STACK_NAME ?= zm-docker
 
 ################################################################
 
-IMAGE_NAMES      = $(shell sed -n -e '/image:.*\/\<zmc-*/ { s,.*/,,; s,:.*,,; p; }' docker-compose.yml) zmc-base
+IMAGE_NAMES      = $(shell sed -n -e '/image:.*\/zmc-*/ { s,.*/,,; s,:.*,,; p; }' docker-compose.yml) zmc-base
 LOCAL_SRC_DIR    = $(shell test -z "$$DOCKER_HOST" && echo .)/
 DOCKER_NODE_ADDR = $(shell docker node inspect --format '{{ .Status.Addr }}' self)
 
