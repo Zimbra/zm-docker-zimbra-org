@@ -6,25 +6,38 @@ SHELL = bash
 # CUSTOMIZATION VARIABLES - custom values can be can be specified for the following:
 #
 # E.g.:
-#    make OPENSSL_CNF=... ZM_REPO_NS=...
+#    make OPENSSL_CNF=... DOCKER_REPO_NS=...
 #     or
-#         OPENSSL_CNF=... ZM_REPO_NS=... make
+#         OPENSSL_CNF=... DOCKER_REPO_NS=... make
 #
 
 OPENSSL_CNF ?= _conf/openssl.cnf
 PACKAGE_CNF ?= _conf/pkg-list
 PACKAGE_KEY ?= _conf/pkg-key
 
-ZM_REPO_NS    ?= zimbra
-ZM_TAG_NAME   ?= latest-build
-ZM_STACK_NAME ?= zm-docker
+DOCKER_REPO_NS    ?= zimbra
+DOCKER_BUILD_TAG  ?= latest-build
+DOCKER_CACHE_TAG  ?= ${DOCKER_BUILD_TAG}
+DOCKER_PUSH_TAG   ?=
+DOCKER_PULL_TAG   ?=
+DOCKER_STACK_NAME ?= zm-docker
 
 ################################################################
 
-build-all: build-base docker-compose.yml
-	ZM_REPO_NS=${ZM_REPO_NS} \
-	    ZM_TAG_NAME=${ZM_TAG_NAME} \
-	    docker-compose build
+IMAGE_NAMES      = $(shell sed -n -e '/image:.*\/zmc-*/ { s,.*/,,; s,:.*,,; p; }' docker-compose.yml) zmc-base
+LOCAL_SRC_DIR    = $(shell test -z "$$DOCKER_HOST" && echo .)/
+DOCKER_NODE_ADDR = $(shell docker node inspect --format '{{ .Status.Addr }}' self)
+
+build-all: $(patsubst %,build-%,$(IMAGE_NAMES))
+	@mkdir -p _cache
+	@echo ${DOCKER_BUILD_TAG} > _cache/id.txt
+	docker images
+
+push-all: $(patsubst %,push-%,$(IMAGE_NAMES))
+
+pull-all: $(patsubst %,pull-%,$(IMAGE_NAMES))
+
+################################################################
 
 _conf/pkg-list: _conf/pkg-list.in
 	cp $< $@
@@ -32,13 +45,73 @@ _conf/pkg-list: _conf/pkg-list.in
 _conf/pkg-key: _conf/pkg-key.in
 	cp $< $@
 
-build-base: _base/* ${PACKAGE_CNF} ${PACKAGE_KEY}
+################################################################
+
+build-zmc-base: _base/* ${PACKAGE_CNF} ${PACKAGE_KEY}
+	@echo "-----------------------------------------------------------------"
+	@echo Building zmc-base
+	@echo
 	docker build \
 	    --build-arg "PACKAGE_CNF=${PACKAGE_CNF}" \
 	    --build-arg "PACKAGE_KEY=${PACKAGE_KEY}" \
-	    -f _base/Dockerfile \
-	    -t ${ZM_REPO_NS}/zmc-base:${ZM_TAG_NAME} \
+	    --cache-from '${DOCKER_REPO_NS}/zmc-base:${DOCKER_CACHE_TAG}' \
+	    --tag        '${DOCKER_REPO_NS}/zmc-base:${DOCKER_BUILD_TAG}' \
+	    --file       _base/Dockerfile \
 	    .
+	@echo "-----------------------------------------------------------------"
+
+build-zmc-%: build-zmc-base docker-compose.yml
+	@echo "-----------------------------------------------------------------"
+	@echo Building zmc-$*
+	@echo
+	DOCKER_REPO_NS=${DOCKER_REPO_NS} \
+	    DOCKER_BUILD_TAG=${DOCKER_BUILD_TAG} \
+	    DOCKER_CACHE_TAG=${DOCKER_CACHE_TAG} \
+	    LOCAL_SRC_DIR=${LOCAL_SRC_DIR} \
+	    docker-compose build 'zmc-$*'
+	@echo "-----------------------------------------------------------------"
+
+push-zmc-%: push-prereq
+	@echo "-----------------------------------------------------------------"
+	@echo Pushing ${DOCKER_REPO_NS}/zmc-$*:${DOCKER_PUSH_TAG}
+	@echo
+	@docker tag '${DOCKER_REPO_NS}/zmc-$*:${DOCKER_BUILD_TAG}' '${DOCKER_REPO_NS}/zmc-$*:${DOCKER_PUSH_TAG}'
+	docker push '${DOCKER_REPO_NS}/zmc-$*:${DOCKER_PUSH_TAG}'
+	@echo "-----------------------------------------------------------------"
+
+pull-zmc-%: pull-prereq
+	@echo "-----------------------------------------------------------------"
+	@echo Pulling ${DOCKER_REPO_NS}/zmc-$*:${DOCKER_PULL_TAG}
+	@echo
+	docker pull '${DOCKER_REPO_NS}/zmc-$*:${DOCKER_PULL_TAG}'
+	@echo "-----------------------------------------------------------------"
+
+################################################################
+
+push-prereq:
+	@if [ '${DOCKER_PUSH_TAG}' = '' ]; \
+	 then \
+	       echo "-------------------------------------------------" \
+	    && echo " Error: 'DOCKER_PUSH_TAG=...' is required for push      " \
+	    && echo "-------------------------------------------------" \
+	    && false; \
+	 fi
+	@if [ '${DOCKER_PUSH_TAG}' = 'latest-build' ]; \
+	 then \
+	       echo "-------------------------------------------------" \
+	    && echo " Error: 'DOCKER_PUSH_TAG=latest-build' is forbidden     " \
+	    && echo "-------------------------------------------------" \
+	    && false; \
+	 fi
+
+pull-prereq:
+	@if [ '${DOCKER_PULL_TAG}' = '' ]; \
+	 then \
+	       echo "-------------------------------------------------" \
+	    && echo " Error: 'DOCKER_PULL_TAG=...' is required for pull      " \
+	    && echo "-------------------------------------------------" \
+	    && false; \
+	 fi
 
 ################################################################
 
@@ -175,27 +248,83 @@ init-keys: $(KEYS)
 
 ################################################################
 
-up: init-configs init-passwords init-keys docker-compose.yml
+up: .up.lock
+
+.up.lock: init-configs init-passwords init-keys docker-compose.yml
 	@docker swarm init 2>/dev/null; true
-	ZM_REPO_NS=${ZM_REPO_NS} \
-	    ZM_TAG_NAME=${ZM_TAG_NAME} \
-	    docker stack deploy -c docker-compose.yml '${ZM_STACK_NAME}'
+	DOCKER_REPO_NS=${DOCKER_REPO_NS} \
+	    DOCKER_BUILD_TAG=${DOCKER_BUILD_TAG} \
+	    DOCKER_CACHE_TAG=${DOCKER_CACHE_TAG} \
+	    LOCAL_SRC_DIR=${LOCAL_SRC_DIR} \
+	    docker stack deploy -c docker-compose.yml '${DOCKER_STACK_NAME}'
+	@touch .up.lock
 
 down:
-	@docker stack rm '${ZM_STACK_NAME}'
+	@docker stack rm '${DOCKER_STACK_NAME}'
+	@rm -f .up.lock
+
+TAIL_SZ ?= 5
 
 logs:
-	@for i in $$(docker ps --format "table {{.Names}}" | grep '${ZM_STACK_NAME}_'); \
+	@for i in $$(docker stack services ${DOCKER_STACK_NAME} --format "table {{.ID}}" | sed -e 1d); \
 	 do \
 	    echo ----------------------------------; \
-	    docker service logs --tail 5 $$i; \
+	    docker service logs --tail ${TAIL_SZ} $$i; \
 	 done
-
-clean-images: docker-compose.yml
-	@for img in $$(sed -n -e '/image:/ { s,.*/,,; s,:.*,,; p; }' docker-compose.yml) zmc-base; \
-	 do \
-	    docker rmi ${ZM_REPO_NS}/$$img:${ZM_TAG_NAME}; \
-	 done; true;
+	@echo ----------------------------------;
 
 clean: down
 	rm -rf .config .secrets .keystore
+
+################################################################
+
+TEST_SLEEP_TIME = 5
+TEST_MAX_RETRIES = 80
+
+test-zmc-%: up
+	@echo "-----------------------------------------------------------------"
+	@echo Testing zmc-$*
+	@echo
+	@echo Test.... - FIXME - this is a stub
+	@echo "-----------------------------------------------------------------"
+
+get-curl:
+	docker pull nhoag/curl
+
+test: $(patsubst %,test-%,$(IMAGE_NAMES)) up get-curl
+	@echo "-----------------------------------------------------------------"
+	@echo Testing overall
+	@echo
+	@echo FIXME - RUDIMENTARY TEST
+	@echo "-----------------------------------------------------------------"
+	failure=1; \
+	n=0; \
+	while (( n++ < ${TEST_MAX_RETRIES} )); \
+	do \
+	    clear 2>/dev/null; \
+	    echo "================================================================="; \
+	    echo "CURRENT TAIL LOGS: ($$n tries of ${TEST_MAX_RETRIES})"; \
+	    echo "================================================================="; \
+	    echo; \
+	    $(MAKE) -s logs TAIL_SZ=5; \
+	    echo; \
+	    if [ "$$(docker run -it nhoag/curl curl --max-time 5 -k --silent --output /dev/null --write-out "%{http_code}" https://${DOCKER_NODE_ADDR}:8443/)" == "200" ]; \
+	    then \
+	       echo "================================================================="; \
+	       echo "TEST SUCCESSFUL (in $$n tries)"; \
+	       echo "================================================================="; \
+	       failure=0; \
+	       break; \
+	    fi; \
+	    echo "================================================================="; \
+	    echo "TEST WAITING FOR RESULT ($$n tries of ${TEST_MAX_RETRIES})."; \
+	    echo "================================================================="; \
+	    echo "Retrying after ${TEST_SLEEP_TIME} sec..."; \
+	    sleep ${TEST_SLEEP_TIME}; \
+	done; \
+	echo "Dumping logs to _out/container-logs.txt..."; \
+	mkdir -p _out; \
+	$(MAKE) -s logs TAIL_SZ=all | perl -MTerm::ANSIColor=colorstrip -ne 'print colorstrip($$_)' > _out/container-logs.txt 2>&1; \
+	exit $$failure
+
+################################################################

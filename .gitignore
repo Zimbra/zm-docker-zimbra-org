@@ -1,4 +1,7 @@
 .config
-.secrets
-.keystore
 .env
+.keystore
+.secrets
+.up.lock
+_cache
+_out
