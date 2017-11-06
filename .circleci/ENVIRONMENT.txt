@@ -1,0 +1,5 @@
+ENV VARIABLES: (used by build_test_stage, deploy_final)
+   DOCKER_USER    = user at hub.docker.com
+   DOCKER_PASS    = password for above user
+   DOCKER_REPO_NS = repository namespace to use
+
