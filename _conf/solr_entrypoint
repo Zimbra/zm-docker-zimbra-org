@@ -1,0 +1,18 @@
+#!/bin/bash
+# This script uses the following environment variables to control how SOLR is started and configured
+# SOLR_MODE cloud|standalone
+# SOLR_MEMORY <solr-memory-allocation-spec>
+
+SOLR_MODE=${SOLR_MODE:-cloud}
+SOLR_MEMORY=${SOLR_MEMORY:-2g}
+
+echo "Starting SOLR in $SOLR_MODE mode with $SOLR_MEMORY RAM"
+
+if [ "$SOLR_MODE" = "cloud" ]; then
+	/opt/solr/bin/solr start -c -m $SOLR_MEMORY
+	/opt/solr/bin/solr zk upconfig -n zimbra -d /opt/solr/server/solr/configsets/zimbra/ -z localhost:9983
+else
+	/opt/solr/bin/solr start -m $SOLR_MEMORY
+fi
+echo "SOLR STARTUP COMPLETE"
+sleep infinity
