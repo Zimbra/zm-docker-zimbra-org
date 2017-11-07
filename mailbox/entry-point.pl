@@ -44,6 +44,7 @@ my $LDAP_MASTER_PORT = 389;
 my $LDAP_PORT        = 389;
 my $MYSQL_HOST       = 'zmc-mysql';
 my $SMTP_HOST        = 'zmc-mta';
+my $SOLR_HOST        = 'zmc-solr';
 
 ## THIS HOST LOCAL VARS ################################
 
@@ -245,6 +246,8 @@ EntryExec(
                "+zimbraReverseProxyUpstreamLoginServers"   => $THIS_HOST,
                zimbraRemoteImapServerEnabled               => "TRUE",
                zimbraRemoteImapSSLServerEnabled            => "TRUE",
+               zimbraSolrReplicationFactor                 => "1",
+               zimbraIndexURL                              => "solr:http://$SOLR_HOST:8983/solr",
             },
          };
       },
