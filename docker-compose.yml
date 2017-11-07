@@ -129,6 +129,19 @@ services:
       - '8071:7071'
       - '8000:5000'
 
+  zmc-solr:
+    image: zimbra/zm-solr-docker:latest
+    environment:
+      - SOLR_MODE=standalone
+      - SOLR_MEMORY=1g
+    entrypoint: /solr-entrypoint
+    ports:
+      - "8983:8983"
+    configs:
+      - source: solr_entrypoint
+        target: /solr-entrypoint
+        mode: 0777
+
 secrets:
    ca.key:
      file: .keystore/ca.key
@@ -188,6 +201,8 @@ configs:
      file: .config/virus_quarantine_account_name
    gal_sync_account_name:
      file: .config/gal_sync_account_name
+   solr_entrypoint:
+     file: _conf/solr_entrypoint
 
 volumes:
   blobvolume: {}
