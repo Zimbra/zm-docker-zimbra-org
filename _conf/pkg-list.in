@@ -1,5 +1,5 @@
-deb [trusted=yes] https://files.zimbra.com/dev-releases/hold/UBUNTU16_64-Zimbra-885-20171106234809-FOSS-1001/archives/zimbra-foss ./ # Zimbra Package Archive (zimbra-foss)
-deb [trusted=yes] https://files.zimbra.com/dev-releases/hold/UBUNTU16_64-Zimbra-885-20171106234809-FOSS-1001/archives/zimbra-zextras ./ # Zimbra Package Archive (zimbra-zextras)
+deb [trusted=yes] https://files.zimbra.com/dev-releases/hold/UBUNTU16_64-Zimbra-885-20171108234453-FOSS-1003/archives/zimbra-foss ./ # Zimbra Package Archive (zimbra-foss)
+deb [trusted=yes] https://files.zimbra.com/dev-releases/hold/UBUNTU16_64-Zimbra-885-20171108234453-FOSS-1003/archives/zimbra-zextras ./ # Zimbra Package Archive (zimbra-zextras)
 
 # Zimbra Thirdparty Archive
 deb [arch=amd64]  https://repo.zimbra.com/apt/87 xenial zimbra
