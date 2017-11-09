@@ -129,6 +129,19 @@ services:
       - '8071:7071'
       - '8000:5000'
 
+  zmc-solr:
+    image: '${DOCKER_REPO_NS}/zmc-solr:${DOCKER_BUILD_TAG}'
+    hostname: 'zmc-solr'
+    build:
+      context: '.'
+      dockerfile: 'solr/Dockerfile'
+      cache_from: [ '${DOCKER_REPO_NS}/zmc-solr:${DOCKER_CACHE_TAG}' ]
+    environment:
+      - SOLR_MODE=standalone
+      - SOLR_MEMORY=1g
+    ports:
+      - "8983:8983"
+
 secrets:
    ca.key:
      file: .keystore/ca.key
