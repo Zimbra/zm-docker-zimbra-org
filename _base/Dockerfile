@@ -21,7 +21,7 @@ RUN apt-get install -y wget
 RUN apt-get install -y vim
 
 ################# INSTALLING ZIMBRA CORE #################
-RUN useradd -d /opt/zimra -s /bin/bash -r zimbra
+RUN useradd -d /opt/zimbra -s /bin/bash -r zimbra
 
 # Trick build into skipping resolvconf as docker overrides for DNS
 RUN echo "resolvconf resolvconf/linkify-resolvconf boolean false" | debconf-set-selections
