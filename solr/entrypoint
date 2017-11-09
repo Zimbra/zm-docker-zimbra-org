@@ -3,8 +3,8 @@
 # SOLR_MODE cloud|standalone
 # SOLR_MEMORY <solr-memory-allocation-spec>
 
-SOLR_MODE=${SOLR_MODE:-cloud}
-SOLR_MEMORY=${SOLR_MEMORY:-2g}
+[ -z "$SOLR_MODE" ] && echo "SOLR_MODE not defined" && exit 1
+[ -z "$SOLR_MEMORY" ] && echo "SOLR_MEMORY not defined" && exit 1
 
 echo "Starting SOLR in $SOLR_MODE mode with $SOLR_MEMORY RAM"
 
