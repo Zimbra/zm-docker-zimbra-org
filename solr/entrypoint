@@ -11,6 +11,7 @@ echo "Starting SOLR in $SOLR_MODE mode with $SOLR_MEMORY RAM"
 if [ "$SOLR_MODE" = "cloud" ]; then
 	/opt/solr/bin/solr start -c -m $SOLR_MEMORY
 	/opt/solr/bin/solr zk upconfig -n zimbra -d /opt/solr/server/solr/configsets/zimbra/ -z localhost:9983
+	/opt/solr/bin/solr zk upconfig -n zimbra -d /opt/solr/server/solr/configsets/events/ -z localhost:9983
 else
 	/opt/solr/bin/solr start -m $SOLR_MEMORY
 fi
