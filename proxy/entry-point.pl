@@ -156,6 +156,7 @@ EntryExec(
       # FIXME - requires LDAP
       #sub { { desc => "Updating IP Settings", exec => { args => ["/opt/zimbra/libexec/zmiptool"], }, }; },
 
+      sub { { desc => "Starting ssh-server", exec => { user => "root", args => [ "/usr/sbin/service", "ssh", "start" ], }, }; },
       sub { { wait_for_service_to_resolve => $MAILBOX_HOST, }; },
 
       # FIXME - requires LDAP
