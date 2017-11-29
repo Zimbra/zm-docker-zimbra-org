@@ -115,6 +115,7 @@ EntryExec(
                imapd_keystore_password          => $IMAPD_KEYSTORE_PASSWORD,
                imap_max_consecutive_error       => 0,
                pop3_max_consecutive_error       => 0,
+               allow_unauthed_ping              => "true",
             },
          };
       },
