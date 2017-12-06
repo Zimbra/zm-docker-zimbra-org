@@ -173,6 +173,28 @@ services:
     ports:
       - "8983:8983"
 
+  zmc-test:
+    image: '${DOCKER_REPO_NS}/zmc-test:${DOCKER_BUILD_TAG}'
+    hostname: 'zmc-test'
+    build:
+      context: '.'
+      dockerfile: 'test/Dockerfile'
+      cache_from: [ '${DOCKER_REPO_NS}/zmc-test:${DOCKER_CACHE_TAG}' ]
+    configs:
+      - domain_name
+    depends_on:
+      - zmc-proxy
+    entrypoint:
+      - /zimbra/init
+      - --shutdown
+      - "no"
+    environment:
+      ADMIN_PORT: "9071"
+      SOAPSERVICE_PORT: "8443"
+    secrets:
+      - admin_account_password
+
+
 secrets:
    ca.key:
      file: ./.keystore/ca.key
