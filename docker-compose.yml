@@ -84,6 +84,9 @@ services:
       - ham_account_name
       - virus_quarantine_account_name
       - gal_sync_account_name
+      - tzdata_area
+      - tzdata_zone
+      - time_zone_id
     secrets:
       - ca.key
       - ca.pem
@@ -211,6 +214,12 @@ configs:
      file: ./.config/virus_quarantine_account_name
    gal_sync_account_name:
      file: ./.config/gal_sync_account_name
+   tzdata_area:
+     file: ./.config/tzdata_area
+   tzdata_zone:
+     file: ./.config/tzdata_zone
+   time_zone_id:
+     file: ./.config/time_zone_id
 
 volumes:
   blobvolume: {}

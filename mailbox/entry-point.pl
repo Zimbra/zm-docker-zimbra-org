@@ -35,6 +35,9 @@ my $HAM_PASSWORD                  = Secret("ham_account_password");
 my $VIRUS_QUARANTINE_ACCOUNT_NAME = Config("virus_quarantine_account_name");
 my $VIRUS_QUARANTINE_PASSWORD     = Secret("virus_quarantine_account_password");
 my $GAL_SYNC_ACCOUNT_NAME         = Config("gal_sync_account_name");
+my $TZDATA_AREA                   = Config("tzdata_area");
+my $TZDATA_ZONE                   = Config("tzdata_zone");
+my $TIME_ZONE_ID                  = Config("time_zone_id");
 
 ## CONNECTIONS TO OTHER HOSTS ##########################
 
@@ -86,6 +89,7 @@ my $PKCS_PASSWORD              = "zimbra3";
 
 EntryExec(
    seq => [
+      sub { { update_tzdata_config => { area => $TZDATA_AREA, zone => $TZDATA_ZONE, }, }; },
       sub {
          {
             local_config => {
@@ -376,7 +380,7 @@ EntryExec(
          {
             cos_config => {
                default => {
-                  zimbraPrefTimeZoneId           => "UTC",
+                  zimbraPrefTimeZoneId           => "$TIME_ZONE_ID",
                   zimbraFeatureTasksEnabled      => "TRUE",
                   zimbraFeatureBriefcasesEnabled => "TRUE",
                   zimbraFeatureNotebookEnabled   => "TRUE",
