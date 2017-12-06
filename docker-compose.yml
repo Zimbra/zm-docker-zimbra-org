@@ -100,6 +100,9 @@ services:
       - ham_account_name
       - virus_quarantine_account_name
       - gal_sync_account_name
+      - tzdata_area
+      - tzdata_zone
+      - time_zone_id
     environment:
       - SOLR_MODE=${SOLR_MODE}
       - tzdata_area
