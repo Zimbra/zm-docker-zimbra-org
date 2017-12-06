@@ -102,6 +102,9 @@ services:
       - gal_sync_account_name
     environment:
       - SOLR_MODE=${SOLR_MODE}
+      - tzdata_area
+      - tzdata_zone
+      - time_zone_id
     secrets:
       - ca.key
       - ca.pem
@@ -231,6 +234,12 @@ configs:
      file: ./.config/gal_sync_account_name
    zimbra_ldap_userdn:
      file: ./.config/zimbra_ldap_userdn
+   tzdata_area:
+     file: ./.config/tzdata_area
+   tzdata_zone:
+     file: ./.config/tzdata_zone
+   time_zone_id:
+     file: ./.config/time_zone_id
 
 volumes:
   blobvolume: {}
