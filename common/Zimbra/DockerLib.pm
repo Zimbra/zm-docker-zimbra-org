@@ -119,6 +119,23 @@ my %MAPPING = (
          system("STAF local TRUST SET MACHINE '*' LEVEL 5");
       },
   },
+  update_tzdata_config => {
+    desc => "Updating tzdata config...",
+    impl => sub {
+      my $args        = shift;
+      _DumpParams($args);
+
+      my $tmpTzData   = '/tmp/tzdata.txt';
+      my $tzDataZone  = $args->{zone};
+      my $tzDataArea  = $args->{area};
+      system("rm -f /etc/timezone /etc/localtime");
+      open (my $fh, '>', $tmpTzData) or die "Could not open file '$tmpTzData' $!";
+      print $fh "tzdata tzdata/Areas select ${tzDataArea}\n";
+      print $fh "tzdata tzdata/Zones/${tzDataArea} select ${tzDataZone}\n";
+      close $fh;
+      system ("export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && debconf-set-selections /tmp/tzdata.txt && sudo dpkg-reconfigure -f noninteractive tzdata");
+    },
+  },
 );
 
 sub EntryExec
