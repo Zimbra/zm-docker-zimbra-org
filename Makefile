@@ -124,6 +124,9 @@ CONFIGS += .config/virus_quarantine_account_name
 CONFIGS += .config/gal_sync_account_name
 CONFIGS += .config/av_notify_email
 CONFIGS += .config/zimbra_ldap_userdn
+CONFIGS += .config/tzdata_area
+CONFIGS += .config/tzdata_zone
+CONFIGS += .config/time_zone_id
 
 .config/.init:
 	mkdir .config
@@ -159,6 +162,18 @@ CONFIGS += .config/zimbra_ldap_userdn
 
 .config/zimbra_ldap_userdn: .config/zimbra_ldap_userdn
 	@echo uid=zimbra,cn=admins,cn=zimbra > $@
+	@echo Created default $@ : $$(cat $@)
+
+.config/tzdata_area: .config/tzdata_area
+	@echo US > $@
+	@echo Created default $@ : $$(cat $@)
+
+.config/tzdata_zone: .config/tzdata_area
+	@echo Pacific > $@
+	@echo Created default $@ : $$(cat $@)
+
+.config/time_zone_id: .config/time_zone_id
+	@echo America/Los_Angeles > $@
 	@echo Created default $@ : $$(cat $@)
 
 init-configs: $(CONFIGS)
