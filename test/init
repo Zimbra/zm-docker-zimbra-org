@@ -1,0 +1,237 @@
+#!/bin/bash
+source /zimbra/init-common
+
+# This is the default path that the tests results will be uploaded to in S3.
+# The final component of the pathname will be auto-generated with a date/time stamp
+# Here is an example of what the entire upload URL (used by s3curl) might look like:
+#   https://s3.amazonaws.com/docker.zimbra.com/tests/zcs-foss-multi/20171008T200524+0000.tar.gz
+# So this is:
+#   https://s3.amazonaws.com/<s3-path>/<generated-archive-name>
+# Note: The upload function will replace the `+` in the name with `%2b` so that the end
+#       result is correct.
+# You can override the default path by specifying an environment variable
+# `S3_PATH`.  It should not contain any leading or trailing slashes.  The part before the first `/`
+# should be the name of the bucket.
+S3_PATH_DEFAULT="docker.zimbra.com/tests/zcs-foss-multi"
+ZIMBRA_DEFAULT_DOMAIN=$(cat /domain_name)
+ADMIN_PW=$(cat /var/run/secrets/admin_account_password)
+
+run_soap=no
+run_genesis=no
+upload_logs=no
+soap_prefix=/opt/qa/soapvalidator/data/soapvalidator
+# The complete soap test path will be "${soap_prefix}/${soap}"
+soap=SanityTest/
+genesis_case_prefix=data
+# The complete genesis testcase path will be "${genesis_case_prefix}/${genesis_case}"
+genesis_case=
+# The complete genesis plan path will by "${genesis_plan_prefix}/${genesis_plan}"
+genesis_plan_prefix=conf/genesis
+genesis_plan=HA/UATmultinodefoss.txt
+shutdown=yes
+s3curl_config_path=/root/.s3curl
+have_s3curl_config=no
+setup_complete_flag=/opt/qa/setup-complete
+
+function usage {
+    echo "$0 [ARGS]"
+    echo "where ARGS may be any of the following:"
+    echo "--run-soap yes|no         (default=no) run soap-harness tests"
+    echo "--run-genesis yes|no      (default=no) run genesis tests"
+    echo "--upload-logs yes|no      (default=no) archive and upload test log files"
+    echo "--soap <test>             If specified, run this test instead of the default (${soap})"
+    echo "                          The value specified will be prefixed by this:"
+    echo "                          ${soap_prefix}/"
+    echo "--genesis-case <testcase> If specified, run this testcase instead of the default plan."
+    echo "                          --genesis-case supercedes --genesis-plan"
+    echo "                          The value specified will be prefixed by this:"
+    echo "                          ${genesis_case_prefix}/"
+    echo "--genesis-plan <plan>     If specified, run this plan instead of the default plan (${genesis_plan})"
+    echo "                          The value specified will be prefixed by this:"
+    echo "                          ${genesis_plan_prefix}/"
+    echo "--shutdown yes|no         (default=yes) If yes, allow this script to end when it has finished working."
+    echo "                          Since this script is the normal entrypoint, if you want it to just sleep"
+    echo '                          instead of exiting, pass in a value of "no" for this and your test container'
+    echo "                          will stay running so you can log in and run more tests."
+    echo "-h|--help                 Print help message and exit"
+
+    exit 1
+}
+
+#
+# Parse args
+#
+
+while [ $# -ne 0 ]; do
+    case "$1" in
+      --run-soap)
+        shift
+        run_soap=$1
+        ;;
+      --run-genesis)
+        shift
+        run_genesis=$1
+        ;;
+      --upload-logs)
+        shift
+        upload_logs=$1
+        ;;
+      --soap)
+        shift
+        soap=$1
+        ;;
+      --genesis-case)
+        shift
+        genesis_case=$1
+        ;;
+      --genesis-plan)
+        shift
+        genesis_plan=$1
+        ;;
+      --shutdown)
+        shift
+        shutdown=$1
+        ;;
+      *)
+        usage
+        ;;
+    esac
+    shift
+done
+
+echo "Parsed arguments:"
+echo "--run-soap='${run_soap}'"
+echo "--run-genesis='${run_genesis}'"
+echo "--upload-logs='${upload_logs}'"
+echo "--soap='${soap}'"
+echo "--genesis-case='${genesis_case}'"
+echo "--genesis-plan='${genesis_plan}'"
+echo "--shutdown='${shutdown}'"
+
+function archive_and_upload_logs {
+    cd /opt/qa
+    archive="$(date +'%Y%m%dT%H%M%S%z').tar.gz"
+    tar cfz "${archive}" logs/
+    s3_name=$(echo "${archive}" | sed -e 's/+/%2b/')
+    s3_path_prefix="${S3_PATH_DEFAULT}"
+    if [ "${S3_PATH}x" != "x" ]; then
+        s3_path_prefix="${S3_PATH}"
+    fi
+    s3_path="s3.amazonaws.com/${s3_path_prefix}/${s3_name}"
+
+    echo "Attempting to uplaod ${archive} to ${s3_path}..."
+    /root/s3curl.pl --id=test --acl=public-read --put="${archive}" https://${s3_path}
+    rc=$?
+    if [ ${rc} -eq 0 ]; then
+        echo "Upload completed successfully."
+    else
+        echo "Upload did not complet successfully. Return code=${rc}."
+    fi
+}
+
+function setup {
+    #
+    # Install secret if it is availble
+    #
+
+    if [ -f /run/secrets/dot-s3curl ]; then
+        cp /run/secrets/dot-s3curl ${s3curl_config_path} && chmod 400 ${s3curl_config_path}
+    fi
+    proxy_ip=$(wait_for_service zmc-proxy)
+    mailbox_ip=$(wait_for_service zmc-mailbox)
+
+    echo "proxy service IP=${proxy_ip}, mailbox service IP=${mailbox_ip}"
+
+    proxy_fqdn="zmc-proxy.${ZIMBRA_DEFAULT_DOMAIN}"
+    mailbox_fqdn="zmc-mailbox.${ZIMBRA_DEFAULT_DOMAIN}"
+    add_host_entry ${proxy_fqdn} ${proxy_ip}
+    add_host_entry ${mailbox_fqdn} ${mailbox_ip}
+
+    # Update the config files for saoap-harness and genesis
+    echo "updating soap-harness config"
+    cat /opt/qa/soapvalidator/conf/global.properties.in | sed \
+      -e "s/ZIMBRA_HOST_NAME/${proxy_fqdn}/" \
+      -e "s/ZIMBRA_DEFAULT_DOMAIN/${ZIMBRA_DEFAULT_DOMAIN}/" \
+      -e "s/MAILBOX_SERVICE_NAME/${mailbox_fqdn}/" \
+      -e "s/ADMIN_PORT/${ADMIN_PORT}/" \
+      -e "s/SOAPSERVICE_PORT/${SOAPSERVICE_PORT}/" \
+      -e "s/ADMIN_PW/${ADMIN_PW}/" > /opt/qa/soapvalidator/conf/global.properties
+    cat /opt/qa/genesis/conf/genesis.conf.template | sed \
+      -e "s/ZIMBRA_HOST_NAME/${proxy_fqdn}/" \
+      -e "s/ZIMBRA_DEFAULT_DOMAIN/${ZIMBRA_DEFAULT_DOMAIN}/" \
+      -e "s/HOSTNAME/${HOSTNAME}/" > /opt/qa/genesis/conf/genesis.conf
+
+    # Fire up STAF
+    export PATH=/usr/local/staf/bin:$PATH
+    echo "starting STAF. output to /opt/qa/logs/staf.log."
+    # NOTE: will see this error if you are watching the logs:
+    #       STAFProcess::processMonitorThread: Error opening /dev/tty, errno: 6
+    # That is OK. See: http://staf.sourceforge.net/current2x/STAFFAQ.htm#d0e332
+    /usr/local/staf/startSTAFProc.sh >/opt/qa/logs/staf.log 2>&1 &
+    sleep ${SLEEP_SECS}
+    echo "adding STAF services"
+    STAF local service add service SOAP LIBRARY JSTAF EXECUTE /opt/qa/soapvalidator/bin/zimbrastaf.jar
+    STAF local service add service LOG LIBRARY STAFLog
+
+    # Wait for the mailbox service to finish configuration
+    # We do this by waiting for STAF to come up, as that is the last service
+    # that is brought up.
+    wait_for_staf "${mailbox_fqdn}"
+    touch ${setup_complete_flag}
+}
+
+if [ ! -f ${setup_complete_flag} ]; then
+    setup
+else
+    echo "Skipping setup as it has already been run"
+fi
+
+if [ -f ${s3curl_config_path} ]; then
+    have_s3curl_config=yes
+fi
+
+any_tests_run=no
+if [ "${run_soap}" = "yes" ]; then
+    soap_test_path="${soap_prefix}/${soap}"
+    echo "Running soap test ${soap_test_path}..."
+    STAF LOCAL soap EXECUTE ${ZIMBRA_HOST_NAME} ZIMBRAQAROOT /opt/qa/soapvalidator/ DIRECTORY "${soap_test_path}" LOG /opt/qa/logs/soap-harness  SUITE SANITY
+    any_tests_run=yes
+fi
+
+if [ "${run_genesis}" = "yes" ]; then
+    if [ "${genesis_case}x" = "x" ]; then
+        # No case, so running the plan
+        plan_path="${genesis_plan_prefix}/${genesis_plan}"
+        echo "Running genesis plan ${plan_path}..."
+        cd /opt/qa/genesis && \
+        source /etc/profile.d/rvm.sh && \
+        ruby runtest.rb --plan "${plan_path}" --log /opt/qa/logs/genesis
+    else
+        # testcase overrides plan
+        case_path="${genesis_case_prefix}/${genesis_case}"
+        echo "Running genesis case ${case_path}..."
+        cd /opt/qa/genesis && \
+        source /etc/profile.d/rvm.sh && \
+        ruby runtest.rb --testcase "${case_path}" --log /opt/qa/logs/genesis
+    fi
+    any_tests_run=yes
+fi
+
+if [ "${upload_logs}" = "yes" ]; then
+    if [ "${have_s3curl_config}" = "yes" ]; then
+        if [ "${any_tests_run}" = "yes" ]; then
+            archive_and_upload_logs
+        else
+            echo "You asked to upload test logs, but no tests were run."
+        fi
+    else
+        echo "Unable to upload log files.  Missing the secret with the s3curl configuration."
+    fi
+fi
+
+if [ "${shutdown}" = "yes" ]; then
+    echo "All tasks completed and shutdown is 'yes', so test container will now exit."
+else
+    echo "All tasks completed and shutdown is 'no', so test container will not exit."
+    /bin/sleep infinity
+fi
