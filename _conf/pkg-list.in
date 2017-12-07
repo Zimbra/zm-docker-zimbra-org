@@ -1,5 +1,7 @@
-deb [trusted=yes] https://files.zimbra.com/dev-releases/hold/UBUNTU16_64-Zimbra-885-20171108234453-FOSS-1003/archives/zimbra-foss ./ # Zimbra Package Archive (zimbra-foss)
+deb [trusted=yes] https://files.zimbra.com/dev-releases/hold/UBUNTU16_64-Zimbra-885-20171209223516-FOSS-1001/archives/zimbra-foss/u16 ./ # Zimbra Package Archive (zimbra-foss)
+# NOTE: zextras packaging is no longer being done as part of zm-build so we will continue to include the privious version of chat and drive.
 deb [trusted=yes] https://files.zimbra.com/dev-releases/hold/UBUNTU16_64-Zimbra-885-20171108234453-FOSS-1003/archives/zimbra-zextras ./ # Zimbra Package Archive (zimbra-zextras)
+
 
 # Zimbra Thirdparty Archive
 deb [arch=amd64]  https://repo.zimbra.com/apt/87 xenial zimbra
