@@ -1,6 +1,13 @@
 version: '3.3'
 
 services:
+  redis:
+    image: library/redis
+    hostname: redis
+    deploy:
+      mode: replicated
+      replicas: 1
+
   zmc-ldap:
     image: '${DOCKER_REPO_NS}/zmc-ldap:${DOCKER_BUILD_TAG}'
     hostname: 'zmc-ldap'
@@ -61,6 +68,8 @@ services:
       args:
          DOCKER_REPO_NS: '${DOCKER_REPO_NS}'
          DOCKER_BUILD_TAG: '${DOCKER_BUILD_TAG}'
+    depends_on:
+      - redis
     deploy:
       mode: replicated
       replicas: 1
