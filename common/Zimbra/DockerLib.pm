@@ -22,6 +22,7 @@ BEGIN
 
 my $BENCH_START = time();
 my $this_host   = hostname();
+my $SLEEP_SECS = 10;
 
 sub _ColorPrintln
 {
@@ -107,7 +108,34 @@ my %MAPPING = (
          my $entry = shift;
          _ExecAs( { user => "root", args => ["./healthcheck.py"], bg => 1 } );
       },
-   },
+  },
+  configure_staf => {
+      desc => "Configuring STAF...",
+      impl => sub {
+         my $entry = shift;
+         system("/usr/local/staf/startSTAFProc.sh >/opt/zimbra/log/staf.log 2>&1 &");
+         sleep $SLEEP_SECS;
+         system("STAF local service add service LOG LIBRARY STAFLog");
+         system("STAF local TRUST SET MACHINE '*' LEVEL 5");
+      },
+  },
+  update_tzdata_config => {
+    desc => "Updating tzdata config...",
+    impl => sub {
+      my $args        = shift;
+      _DumpParams($args);
+
+      my $tmpTzData   = '/tmp/tzdata.txt';
+      my $tzDataZone  = $args->{zone};
+      my $tzDataArea  = $args->{area};
+      system("rm -f /etc/timezone /etc/localtime");
+      open (my $fh, '>', $tmpTzData) or die "Could not open file '$tmpTzData' $!";
+      print $fh "tzdata tzdata/Areas select ${tzDataArea}\n";
+      print $fh "tzdata tzdata/Zones/${tzDataArea} select ${tzDataZone}\n";
+      close $fh;
+      system ("export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && debconf-set-selections /tmp/tzdata.txt && sudo dpkg-reconfigure -f noninteractive tzdata");
+    },
+  },
 );
 
 sub EntryExec
