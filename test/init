@@ -15,6 +15,8 @@ source /zimbra/init-common
 S3_PATH_DEFAULT="docker.zimbra.com/tests/zcs-foss-multi"
 ZIMBRA_DEFAULT_DOMAIN=$(cat /domain_name)
 ADMIN_PW=$(cat /var/run/secrets/admin_account_password)
+proxy_fqdn="zmc-proxy.${ZIMBRA_DEFAULT_DOMAIN}"
+mailbox_fqdn="zmc-mailbox.${ZIMBRA_DEFAULT_DOMAIN}"
 
 run_soap=no
 run_genesis=no
@@ -142,8 +144,6 @@ function setup {
 
     echo "proxy service IP=${proxy_ip}, mailbox service IP=${mailbox_ip}"
 
-    proxy_fqdn="zmc-proxy.${ZIMBRA_DEFAULT_DOMAIN}"
-    mailbox_fqdn="zmc-mailbox.${ZIMBRA_DEFAULT_DOMAIN}"
     add_host_entry ${proxy_fqdn} ${proxy_ip}
     add_host_entry ${mailbox_fqdn} ${mailbox_ip}
 
@@ -194,7 +194,7 @@ any_tests_run=no
 if [ "${run_soap}" = "yes" ]; then
     soap_test_path="${soap_prefix}/${soap}"
     echo "Running soap test ${soap_test_path}..."
-    STAF LOCAL soap EXECUTE ${ZIMBRA_HOST_NAME} ZIMBRAQAROOT /opt/qa/soapvalidator/ DIRECTORY "${soap_test_path}" LOG /opt/qa/logs/soap-harness  SUITE SANITY
+    STAF LOCAL soap EXECUTE ${proxy_fqdn} ZIMBRAQAROOT /opt/qa/soapvalidator/ DIRECTORY "${soap_test_path}" LOG /opt/qa/logs/soap-harness  SUITE SANITY
     any_tests_run=yes
 fi
 
