@@ -278,6 +278,20 @@ logs:
 	 done
 	@echo ----------------------------------;
 
+compile:
+	@docker build -t zm-docker-build ${PWD}/build
+# using a volume mounted from a MacOS host will fail when rsync tries to copy file attributes (chown)
+# using a docker volume instead
+	@docker volume create ZM-BUILDS
+	docker run --rm -it -v ZM-BUILDS:/home/build/zm/BUILDS -v ${PWD}/build/config:/home/build/config zm-docker-build
+	@rm -rf ./BUILDS
+	@mkdir -p ./BUILDS
+# mount the docker volume containing the build output so that we can CP it to the host
+# necessary because the docker volume can not be leveraged during docker-compose build in zm-docker
+	@docker run -d --name ZM-BUILD -v ZM-BUILDS:/BUILDS busybox
+	docker cp ZM-BUILD:/BUILDS/. ./BUILDS
+	@-docker container rm -f ZM-BUILD
+
 clean: down
 	rm -rf .config .secrets .keystore
 

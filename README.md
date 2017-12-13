@@ -67,3 +67,6 @@ If desired, monitor the state of of the `zm-docker_zmc-proxy` service. When it h
 ## Undeploying the Stack
 
 	make down
+
+## Build the project with latest changes and desired branch
+See the [./build/README.md](./build/README.md)

@@ -29,6 +29,8 @@ RUN echo "resolvconf resolvconf/linkify-resolvconf boolean false" | debconf-set-
 # Access to package repository
 COPY $PACKAGE_CNF /etc/apt/sources.list.d/zimbra.list
 COPY $PACKAGE_KEY /tmp/key.txt
+COPY ./BUILDS/latest /build
+RUN ls -AFlh /build/archives/zimbra-foss/u16
 
 RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys `cat /tmp/key.txt | head` && rm -f /tmp/key.txt
 RUN apt-get update

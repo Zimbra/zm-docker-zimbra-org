@@ -5,3 +5,7 @@
 .up.lock
 _cache
 _out
+BUILDS/
+build/config/DOT-ssh/**/*
+!build/config/DOT-ssh/config
+!build/config/DOT-ssh/README.md
