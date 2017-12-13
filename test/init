@@ -194,7 +194,7 @@ any_tests_run=no
 if [ "${run_soap}" = "yes" ]; then
     soap_test_path="${soap_prefix}/${soap}"
     echo "Running soap test ${soap_test_path}..."
-    STAF LOCAL soap EXECUTE ${proxy_fqdn} ZIMBRAQAROOT /opt/qa/soapvalidator/ DIRECTORY "${soap_test_path}" LOG /opt/qa/logs/soap-harness  SUITE SANITY
+    STAF LOCAL soap EXECUTE ${proxy_fqdn} ZIMBRAQAROOT /opt/qa/soapvalidator/ DIRECTORY "${soap_test_path}" LOG /opt/qa/logs/soap-harness  SUITE SMOKE
     any_tests_run=yes
 fi
 
