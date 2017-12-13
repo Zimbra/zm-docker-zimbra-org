@@ -1,0 +1,11 @@
+BUILD_RELEASE = F9TEAMS
+BUILD_RELEASE_NO = 8.9.0
+BUILD_RELEASE_CANDIDATE = beta
+BUILD_TYPE = FOSS
+BUILD_THIRDPARTY_SERVER = zdev-vm008.eng.zimbra.com
+GIT_DEFAULT_BRANCH = develop
+ANT_OPTIONS = -DskipTests=1
+INTERACTIVE = 0
+DISABLE_BUNDLE = 1
+%GIT_OVERRIDES = zm-mailbox.branch=feature/ha-distributed
+%GIT_OVERRIDES = zm-db-conf.branch=feature/solr
