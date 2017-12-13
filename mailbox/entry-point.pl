@@ -304,6 +304,26 @@ EntryExec(
 
       #######################################################################
 
+      sub {
+         {
+            desc => "Running zmsshkeygen",
+            exec => {
+               args => [ "/opt/zimbra/bin/zmsshkeygen" ]
+            },
+         };
+      },
+
+      sub {
+         {
+            desc => "Running zmupdateauthkeys",
+            exec => {
+               args => [ "/opt/zimbra/bin/zmupdateauthkeys" ]
+            },
+         };
+      },
+
+      #######################################################################
+
       sub { { publish_service => {}, }; },
 
       #######################################################################
