@@ -115,8 +115,8 @@ my %MAPPING = (
          my $entry = shift;
          system("/usr/local/staf/startSTAFProc.sh >/opt/zimbra/log/staf.log 2>&1 &");
          sleep $SLEEP_SECS;
-         system("STAF local service add service LOG LIBRARY STAFLog");
-         system("STAF local TRUST SET MACHINE '*' LEVEL 5");
+         system("/usr/local/staf/bin/STAF local service add service LOG LIBRARY STAFLog");
+         system("/usr/local/staf/bin/STAF local TRUST SET MACHINE '*' LEVEL 5");
       },
   },
   update_tzdata_config => {
