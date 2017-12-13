@@ -38,7 +38,8 @@ RUN echo "tzdata tzdata/Areas select Etc" > /tmp/tzdata.txt && \
 # 2. Symlink in /bin/env (some genesis tests expect it to be there)
 # ************************************************************************
 RUN sed -i.bak 's/^mesg/# mesg/' /root/.profile && \
-    ln -s /usr/bin/env /bin/env
+    ln -s /usr/bin/env /bin/env && \
+    echo 'PATH=/usr/local/staf/bin/:$PATH' >> /root/.bashrc
 
 # ************************************************************************
 # Install STAF to /usr/local/staf
