@@ -158,7 +158,7 @@ function setup {
       -e "s/ADMIN_PW/${ADMIN_PW}/" > /opt/qa/soapvalidator/conf/global.properties
     cat /opt/qa/genesis/conf/genesis.conf.template | sed \
       -e "s/ZIMBRA_HOST_NAME/${proxy_fqdn}/" \
-      -e "s/ZIMBRA_DEFAULT_DOMAIN/${ZIMBRA_DEFAULT_DOMAIN}/" \
+      -e "s/ZIMBRA_DEFAULT_DOMAIN/${proxy_fqdn}/" \
       -e "s/HOSTNAME/${HOSTNAME}/" > /opt/qa/genesis/conf/genesis.conf
 
     # Fire up STAF
