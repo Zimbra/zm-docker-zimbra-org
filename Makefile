@@ -123,6 +123,9 @@ CONFIGS += .config/ham_account_name
 CONFIGS += .config/virus_quarantine_account_name
 CONFIGS += .config/gal_sync_account_name
 CONFIGS += .config/av_notify_email
+CONFIGS += .config/tzdata_area
+CONFIGS += .config/tzdata_zone
+CONFIGS += .config/time_zone_id
 
 .config/.init:
 	mkdir .config
@@ -155,6 +158,19 @@ CONFIGS += .config/av_notify_email
 .config/av_notify_email: .config/domain_name
 	@echo admin@$$(cat $<) > $@
 	@echo Created default $@ : $$(cat $@)
+
+.config/tzdata_area: .config/tzdata_area
+	@echo US > $@
+	@echo Created default $@ : $$(cat $@)
+
+.config/tzdata_zone: .config/tzdata_area
+	@echo Pacific > $@
+	@echo Created default $@ : $$(cat $@)
+
+.config/time_zone_id: .config/time_zone_id
+	@echo America/Los_Angeles > $@
+	@echo Created default $@ : $$(cat $@)
+
 
 init-configs: $(CONFIGS)
 	@echo All Configs Created!
