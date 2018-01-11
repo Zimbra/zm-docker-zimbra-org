@@ -20,6 +20,9 @@ RUN apt-get install -y curl
 RUN apt-get install -y wget
 RUN apt-get install -y vim
 RUN apt-get install -y openssh-server
+RUN apt-get install -y man
+RUN apt-get install -y psmisc
+RUN apt-get install -y bzip2
 
 # ************************************************************************
 # Set tzdata info to UTC (Etc/UTC) for image.
