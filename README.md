@@ -42,6 +42,7 @@ If desired, edit these files in the `.config` directory and enter your preferred
   - `ham_account_name`
   - `spam_account_name`
   - `virus_quarantine_account_name`
+  - `zimbra_ldap_userdn`
 
 
 ## Deploying the Stack
