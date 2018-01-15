@@ -159,7 +159,7 @@ CONFIGS += .config/zimbra_ldap_userdn
 
 .config/zimbra_ldap_userdn: .config/zimbra_ldap_userdn
 	@echo uid=zimbra,cn=admins,cn=zimbra > $@
-	@echo reated default $@ : $$(cat $@)
+	@echo Created default $@ : $$(cat $@)
 
 init-configs: $(CONFIGS)
 	@echo All Configs Created!
