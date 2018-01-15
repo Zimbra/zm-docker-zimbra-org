@@ -123,6 +123,7 @@ CONFIGS += .config/ham_account_name
 CONFIGS += .config/virus_quarantine_account_name
 CONFIGS += .config/gal_sync_account_name
 CONFIGS += .config/av_notify_email
+CONFIGS += .config/zimbra_ldap_userdn
 
 .config/.init:
 	mkdir .config
@@ -155,6 +156,10 @@ CONFIGS += .config/av_notify_email
 .config/av_notify_email: .config/domain_name
 	@echo admin@$$(cat $<) > $@
 	@echo Created default $@ : $$(cat $@)
+
+.config/zimbra_ldap_userdn: .config/zimbra_ldap_userdn
+	@echo uid=zimbra,cn=admins,cn=zimbra > $@
+	@echo reated default $@ : $$(cat $@)
 
 init-configs: $(CONFIGS)
 	@echo All Configs Created!
