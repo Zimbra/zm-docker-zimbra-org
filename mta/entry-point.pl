@@ -23,10 +23,13 @@ my $ENTRY_PID = $$;
 ## SECRETS AND CONFIGS #################################
 
 my $AV_NOTIFY_EMAIL       = Config("av_notify_email");
+my $ZIMBRA_LDAP_USERDN    = Config("zimbra_ldap_userdn");
+
 my $LDAP_MASTER_PASSWORD  = Secret("ldap.master_password");
 my $LDAP_ROOT_PASSWORD    = Secret("ldap.root_password");
 my $LDAP_POSTFIX_PASSWORD = Secret("ldap.postfix_password");
 my $LDAP_AMAVIS_PASSWORD  = Secret("ldap.amavis_password");
+
 
 ## CONNECTIONS TO OTHER HOSTS ##########################
 
@@ -71,6 +74,7 @@ EntryExec(
                zmtrainsa_cleanup_host        => "true",
                ldap_port                     => $LDAP_PORT,
                ldap_host                     => $LDAP_HOST,
+               zimbra_ldap_userdn            => $ZIMBRA_LDAP_USERDN,
             },
          };
       },
