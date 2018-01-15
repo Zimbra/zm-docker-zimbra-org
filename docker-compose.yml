@@ -48,6 +48,7 @@ services:
       - ${LOCAL_SRC_DIR}:/code
     configs:
       - av_notify_email
+      - zimbra_ldap_userdn
     secrets:
       - ca.key
       - ca.pem
@@ -210,6 +211,8 @@ configs:
      file: ./.config/virus_quarantine_account_name
    gal_sync_account_name:
      file: ./.config/gal_sync_account_name
+   zimbra_ldap_userdn:
+     file: ./.config/zimbra_ldap_userdn
 
 volumes:
   blobvolume: {}
