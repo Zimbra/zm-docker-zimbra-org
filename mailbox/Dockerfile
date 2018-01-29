@@ -7,6 +7,8 @@ RUN apt-get install -y zimbra-store
 RUN apt-get install -y zimbra-imapd
 RUN apt-get install -y zimbra-chat
 RUN apt-get install -y zimbra-drive
+RUN apt-get install -y zimbra-spell
+RUN apt-get install -y zimbra-apache
 
 # special post install fixes
 RUN rm -f /opt/zimbra/common/sbin/mysqld                                                           # FIXME: mysql.server should not be required with zimbra-store

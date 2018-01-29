@@ -211,8 +211,8 @@ EntryExec(
                $THIS_HOST => {
                   zimbraIPMode                    => "ipv4",
                   zimbraSpellCheckURL             => "http://$THIS_HOST:7780/aspell.php",
-                  zimbraServiceInstalled          => [ "stats", "mailbox", "imapd" ],
-                  zimbraServiceEnabled            => [ "stats", "mailbox", "service", "imapd", "zimbra", "zimlet", "zimbraAdmin" ],
+                  zimbraServiceInstalled          => [ "stats", "mailbox", "imapd", "spell" ],
+                  zimbraServiceEnabled            => [ "stats", "mailbox", "service", "imapd", "zimbra", "zimlet", "zimbraAdmin", "spell" ],
                   zimbraConvertdURL               => "http://$THIS_HOST:7047/convert",
                   zimbraAdminPort                 => $ADMIN_PORT,
                   zimbraAdminProxyPort            => $PROXY_ADMIN_PORT,
