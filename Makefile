@@ -298,7 +298,8 @@ compile:
 # using a volume mounted from a MacOS host will fail when rsync tries to copy file attributes (chown)
 # using a docker volume instead
 	@docker volume create ZM-BUILDS
-	docker run --rm -it -v ZM-BUILDS:/home/build/zm/BUILDS -v ${PWD}/build/config:/home/build/config zm-docker-build
+	$(eval WPWD=$(shell bash -c "echo ${PWD} | sed -e 's/^\/mnt//'"))
+	docker run --rm -it -v ZM-BUILDS:/home/build/zm/BUILDS -v $(WPWD)/build/config:/home/build/config zm-docker-build
 	@rm -rf ./BUILDS
 	@mkdir -p ./BUILDS
 # mount the docker volume containing the build output so that we can CP it to the host
