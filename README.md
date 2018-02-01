@@ -7,15 +7,21 @@ You should have Docker (and Docker Compose) installed and know how to create a s
 ## Setup
 
 - Clone this repository.
-- You may build the images locally: `make all`.  If you do not, they will be pulled down from Docker Hub.
+- Checkout the `feature/ha` branch. 
+
+## Build the project with latest changes and desired branch
+
+Follow the instructions in [./build/README](./build/README.md) to
+
+    - Build the Zimbra packaging (which will be stored in a local Docker volume)
+    - Build the base `zm-docker` service image
+    - Build the `zm-docker` service images
 
 ### Optional - Passwords
 
-Deploying the `zm-docker` stack (via the `make up` command) will generate some default values for passwords for you.  If you like, you may change them to be whatever you like.  Just do the following:
+Deploying the `zm-docker` stack (via the `make build-all` command) will generate some default values for passwords for you.  If you like, you may change them to be whatever you like.
 
-	make clean && make init-passwords
-
-Then edit these files in the `.secrets` directory and enter passwords that you want to be used for the corresponding services:
+Edit these files in the `.secrets` directory and enter passwords that you want to be used for the corresponding services, before deploying the stack.
   - `admin_account_password`
   - `ham_account_password`
   - `ldap.amavis_password`
@@ -68,5 +74,3 @@ If desired, monitor the state of of the `zm-docker_zmc-proxy` service. When it h
 
 	make down
 
-## Build the project with latest changes and desired branch
-See the [./build/README.md](./build/README.md)
