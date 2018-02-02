@@ -190,6 +190,7 @@ services:
       - "no"
     environment:
       ADMIN_PORT: "9071"
+      HTTPS_PORT: "443"
       SOAPSERVICE_PORT: "8443"
     secrets:
       - admin_account_password
