@@ -238,6 +238,7 @@ EntryExec(
          };
       },
 
+      # FIXME - When we add support for SOLR cloud, update zimbraIndexURL and zimbraEventBackendURL
       sub {
          {
             global_config => {
@@ -248,6 +249,7 @@ EntryExec(
                zimbraRemoteImapSSLServerEnabled            => "TRUE",
                zimbraSolrReplicationFactor                 => "1",
                zimbraIndexURL                              => "solr:http://$SOLR_HOST:8983/solr",
+               zimbraEventBackendURL                       => "solr:http://$SOLR_HOST:8983/solr",
             },
          };
       },
