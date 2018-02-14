@@ -23,7 +23,8 @@ run_genesis=no
 upload_logs=no
 soap_prefix=/opt/qa/soapvalidator/data/soapvalidator
 # The complete soap test path will be "${soap_prefix}/${soap}"
-soap=SanityTest/
+# Per Dawood: By default run everything
+soap=""
 genesis_case_prefix=data
 # The complete genesis testcase path will be "${genesis_case_prefix}/${genesis_case}"
 genesis_case=
@@ -41,7 +42,8 @@ function usage {
     echo "--run-soap yes|no         (default=no) run soap-harness tests"
     echo "--run-genesis yes|no      (default=no) run genesis tests"
     echo "--upload-logs yes|no      (default=no) archive and upload test log files"
-    echo "--soap <test>             If specified, run this test instead of the default (${soap})"
+    echo "--soap <test>             If specified, run this test instead of the default, which is to run EVERYTHING."
+    echo "                          This is a change in the previous behavior, which was to run 'SanityTest/'"
     echo "                          The value specified will be prefixed by this:"
     echo "                          ${soap_prefix}/"
     echo "--genesis-case <testcase> If specified, run this testcase instead of the default plan."
