@@ -5,8 +5,6 @@ FROM ${DOCKER_REPO_NS}/zmc-base:${DOCKER_BUILD_TAG}
 WORKDIR /tmp
 RUN apt-get install -y zimbra-store
 RUN apt-get install -y zimbra-imapd
-RUN apt-get install -y zimbra-chat
-RUN apt-get install -y zimbra-drive
 
 # special post install fixes
 RUN rm -f /opt/zimbra/common/sbin/mysqld                                                           # FIXME: mysql.server should not be required with zimbra-store

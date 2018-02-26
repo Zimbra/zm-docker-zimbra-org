@@ -347,8 +347,6 @@ EntryExec(
             },
          };
       },
-      sub { { desc => "Zimlet", exec => { args => [ "/opt/zimbra/bin/zmzimletctl", "-l", "deploy", "zimlets/com_zextras_chat_open.zip", ], }, }; },
-      sub { { desc => "Zimlet", exec => { args => [ "/opt/zimbra/bin/zmzimletctl", "-l", "deploy", "zimlets/com_zextras_drive_open.zip", ], }, }; },
       sub { { desc => "Zimlet", exec => { args => [ "/opt/zimbra/bin/zmzimletctl", "-l", "deploy", "zimlets/com_zimbra_adminversioncheck.zip", ], }, }; },
       sub { { desc => "Zimlet", exec => { args => [ "/opt/zimbra/bin/zmzimletctl", "-l", "deploy", "zimlets/com_zimbra_attachcontacts.zip", ], }, }; },
       sub { { desc => "Zimlet", exec => { args => [ "/opt/zimbra/bin/zmzimletctl", "-l", "deploy", "zimlets/com_zimbra_attachmail.zip", ], }, }; },
