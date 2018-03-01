@@ -53,7 +53,9 @@ RUN sed -i.bak 's/^mesg/# mesg/' /root/.profile && \
 # ************************************************************************
 RUN apt-get install -y openjdk-8-jdk
 RUN apt-get install -y unzip
-RUN curl -L -o /tmp/staf-setup.bin 'http://downloads.sourceforge.net/project/staf/staf/V3.4.26/STAF3426-setup-linux-amd64-NoJVM.bin' && \
+# Caching the STAF binary in S3 due to intermittent reliability issues with sourceforge
+# Original URL: http://downloads.sourceforge.net/project/staf/staf/V3.4.26/STAF3426-setup-linux-amd64-NoJVM.bin
+RUN curl -k -L -o /tmp/staf-setup.bin 'https://docker.zimbra.com.s3.amazonaws.com/staf/STAF3426-setup-linux-amd64-NoJVM.bin' && \
     chmod +x /tmp/staf-setup.bin && \
     /tmp/staf-setup.bin -i silent \
        -DACCEPT_LICENSE=1 \
