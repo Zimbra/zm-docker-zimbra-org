@@ -36,7 +36,9 @@ WORKDIR /tmp
 # Add the STAF libraries to the END of the list of places where libraries are searched
 # Some of the libraries included with STAF are wonky and will bork normal commands
 # if they are loaded first.
-RUN curl -L -O http://downloads.sourceforge.net/project/staf/staf/V3.4.26/STAF3426-setup-linux-amd64-NoJVM.bin
+# Caching the STAF binary in S3 due to intermittent reliability issues with sourceforge
+# Original URL: http://downloads.sourceforge.net/project/staf/staf/V3.4.26/STAF3426-setup-linux-amd64-NoJVM.bin
+RUN curl -k -L -O https://docker.zimbra.com.s3.amazonaws.com/staf/STAF3426-setup-linux-amd64-NoJVM.bin
 RUN curl -k -L -o soapvalidator.tar.gz https://docker.zimbra.com.s3.amazonaws.com/assets/soapvalidator-20181302.tar.gz
 RUN curl -k -L -o genesis.tar https://docker.zimbra.com.s3.amazonaws.com/assets/genesis-20180201.tar
 RUN mkdir -p /opt/qa && \
