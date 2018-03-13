@@ -8,4 +8,4 @@ ANT_OPTIONS = -DskipTests=1
 INTERACTIVE = 0
 DISABLE_BUNDLE = 1
 %GIT_OVERRIDES = zm-mailbox.branch=feature/ha-combined
-%GIT_OVERRIDES = zm-db-conf.branch=feature/ha-redolog
+%GIT_OVERRIDES = zm-db-conf.branch=feature/ha
