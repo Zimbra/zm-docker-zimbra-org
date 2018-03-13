@@ -12,7 +12,7 @@ mkdir -p /home/build/zm/
 cp /home/build/config/config.build /home/build/zm/zm-build/config.build
 
 # build
-(cd /home/build/zm/zm-build && ./build.pl)
+(cd /home/build/zm/zm-build && git checkout -B feature/ha origin/feature/ha && ./build.pl)
 
 # update symbolic latest build symbolic link
 (cd /home/build/zm/BUILDS && rm -f latest && ln -s ./`ls  -lc | tail -n1 | awk  '{print $NF}'` latest)
