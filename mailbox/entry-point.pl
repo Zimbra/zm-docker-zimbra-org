@@ -20,6 +20,10 @@ STDOUT->autoflush(1);
 
 my $ENTRY_PID = $$;
 
+## ENVIRONMENT##########################################
+
+my $SOLR_MODE                     = $ENV{'SOLR_MODE'};
+
 ## SECRETS AND CONFIGS #################################
 
 my $DOMAIN_NAME                   = Config("domain_name");
@@ -248,8 +252,8 @@ EntryExec(
                zimbraRemoteImapServerEnabled               => "TRUE",
                zimbraRemoteImapSSLServerEnabled            => "TRUE",
                zimbraSolrReplicationFactor                 => "1",
-               zimbraIndexURL                              => "solr:http://$SOLR_HOST:8983/solr",
-               zimbraEventBackendURL                       => "solr:http://$SOLR_HOST:8983/solr",
+               zimbraIndexURL                              => $SOLR_MODE eq "cloud" ? "solrcloud:$SOLR_HOST:9983" : "solr:http://$SOLR_HOST:8983/solr",
+               zimbraEventBackendURL                       => $SOLR_MODE eq "cloud" ? "solrcloud:$SOLR_HOST:9983" : "solr:http://$SOLR_HOST:8983/solr",
             },
          };
       },

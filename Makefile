@@ -22,6 +22,9 @@ DOCKER_PUSH_TAG   ?=
 DOCKER_PULL_TAG   ?=
 DOCKER_STACK_NAME ?= zm-docker
 
+SOLR_MODE         ?= cloud
+SOLR_MEMORY       ?= 2g
+
 ################################################################
 
 IMAGE_NAMES      = $(shell sed -n -e '/image:.*\/zmc-*/ { s,.*/,,; s,:.*,,; p; }' docker-compose.yml) zmc-base
@@ -261,6 +264,8 @@ up: .up.lock
 	    DOCKER_BUILD_TAG=${DOCKER_BUILD_TAG} \
 	    DOCKER_CACHE_TAG=${DOCKER_CACHE_TAG} \
 	    LOCAL_SRC_DIR=${LOCAL_SRC_DIR} \
+	    SOLR_MODE=${SOLR_MODE} \
+	    SOLR_MEMORY=${SOLR_MEMORY} \
 	    docker stack deploy -c docker-compose.yml '${DOCKER_STACK_NAME}'
 	@touch .up.lock
 
