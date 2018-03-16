@@ -6,6 +6,9 @@
 [ -z "$SOLR_MODE" ] && echo "SOLR_MODE not defined" && exit 1
 [ -z "$SOLR_MEMORY" ] && echo "SOLR_MEMORY not defined" && exit 1
 
+echo "Initializing SOLR_HOME..."
+cp -r /opt/solr/init-solr-home/* /opt/solr/server/solr/
+
 echo "Starting SOLR in $SOLR_MODE mode with $SOLR_MEMORY RAM"
 
 if [ "$SOLR_MODE" = "cloud" ]; then
