@@ -26,9 +26,6 @@ services:
       args:
          DOCKER_REPO_NS: '${DOCKER_REPO_NS}'
          DOCKER_BUILD_TAG: '${DOCKER_BUILD_TAG}'
-    volumes:
-      - ${LOCAL_SRC_DIR}:/code
-      - build:/build
     configs:
       - domain_name
     secrets:
@@ -42,6 +39,8 @@ services:
       - ldap.postfix_password
       - ldap.amavis_password
       - ldap.nginx_password
+    volumes:
+      - ldapvolume:/opt/zimbra/data/ldap/mdb
 
   zmc-mta:
     image: '${DOCKER_REPO_NS}/zmc-mta:${DOCKER_BUILD_TAG}'
@@ -53,8 +52,6 @@ services:
       args:
          DOCKER_REPO_NS: '${DOCKER_REPO_NS}'
          DOCKER_BUILD_TAG: '${DOCKER_BUILD_TAG}'
-    volumes:
-      - ${LOCAL_SRC_DIR}:/code
     configs:
       - av_notify_email
       - zimbra_ldap_userdn
@@ -90,7 +87,6 @@ services:
       retries: 2
       start_period: 240s
     volumes:
-      - ${LOCAL_SRC_DIR}:/code
       - blobvolume:/opt/zimbra/store
       - tmpvolume:/opt/zimbra/data/tmp
     configs:
@@ -125,10 +121,10 @@ services:
       args:
          DOCKER_REPO_NS: '${DOCKER_REPO_NS}'
          DOCKER_BUILD_TAG: '${DOCKER_BUILD_TAG}'
-    volumes:
-      - ${LOCAL_SRC_DIR}:/code
     secrets:
       - mysql.password
+    volumes:
+      - dbvolume:/opt/zimbra/db/data
 
   zmc-proxy:
     image: '${DOCKER_REPO_NS}/zmc-proxy:${DOCKER_BUILD_TAG}'
@@ -140,8 +136,6 @@ services:
       args:
          DOCKER_REPO_NS: '${DOCKER_REPO_NS}'
          DOCKER_BUILD_TAG: '${DOCKER_BUILD_TAG}'
-    volumes:
-      - ${LOCAL_SRC_DIR}:/code
     secrets:
       - ca.key
       - ca.pem
@@ -167,6 +161,8 @@ services:
       - SOLR_MEMORY=${SOLR_MEMORY}
     ports:
       - "8983:8983"
+    volumes:
+      - idxvolume:/opt/solr/server/solr
 
 secrets:
    ca.key:
@@ -231,6 +227,31 @@ configs:
      file: ./.config/zimbra_ldap_userdn
 
 volumes:
-  blobvolume: {}
-  tmpvolume: {}
-  build: {}
+  blobvolume:
+    driver: "cloudstor:aws"
+    driver_opts:
+      backing: shared
+      perfmode: maxio
+  tmpvolume:
+    driver: "cloudstor:aws"
+    driver_opts:
+      backing: shared
+      perfmode: maxio
+  dbvolume:
+    driver: "cloudstor:aws"
+    driver_opts:
+      backing: relocatable
+      ebstype: gp2
+      size: 100
+  idxvolume:
+    driver: "cloudstor:aws"
+    driver_opts:
+      backing: relocatable
+      ebstype: gp2
+      size: 200
+  ldapvolume:
+    driver: "cloudstor:aws"
+    driver_opts:
+      backing: relocatable
+      ebstype: gp2
+      size: 100
