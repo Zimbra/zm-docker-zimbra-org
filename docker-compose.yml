@@ -14,6 +14,9 @@ services:
       - /sys:/writable-sys
     deploy:
       mode: replicated
+      placement:
+        constraints:
+          - node.role == manager
       replicas: 1
 
   zmc-ldap:
@@ -28,6 +31,12 @@ services:
          DOCKER_BUILD_TAG: '${DOCKER_BUILD_TAG}'
     configs:
       - domain_name
+    deploy:
+      mode: replicated
+      placement:
+        constraints:
+          - node.role == manager
+      replicas: 1
     secrets:
       - ca.key
       - ca.pem
@@ -55,6 +64,14 @@ services:
     configs:
       - av_notify_email
       - zimbra_ldap_userdn
+    deploy:
+      mode: replicated
+      placement:
+        constraints:
+          - node.role == manager
+      replicas: 1
+    ports:
+      - '587:587'
     secrets:
       - ca.key
       - ca.pem
@@ -79,6 +96,9 @@ services:
       - zmc-redis
     deploy:
       mode: replicated
+      placement:
+        constraints:
+          - node.role == manager
       replicas: 2
     healthcheck:
       test: ["CMD-SHELL", "su - zimbra -c 'zmsoap -z PingRequest' | grep -e PingResponse"]
@@ -121,6 +141,12 @@ services:
       args:
          DOCKER_REPO_NS: '${DOCKER_REPO_NS}'
          DOCKER_BUILD_TAG: '${DOCKER_BUILD_TAG}'
+    deploy:
+      mode: replicated
+      placement:
+        constraints:
+          - node.role == worker
+      replicas: 1
     secrets:
       - mysql.password
     volumes:
@@ -136,6 +162,12 @@ services:
       args:
          DOCKER_REPO_NS: '${DOCKER_REPO_NS}'
          DOCKER_BUILD_TAG: '${DOCKER_BUILD_TAG}'
+    deploy:
+      mode: replicated
+      placement:
+        constraints:
+          - node.role == manager
+      replicas: 1
     secrets:
       - ca.key
       - ca.pem
@@ -145,9 +177,7 @@ services:
       - ldap.root_password
       - ldap.nginx_password
     ports:
-      - '8080:80'
-      - '8443:443'
-      - '9071:9071'
+      - '443:443'
 
   zmc-solr:
     image: '${DOCKER_REPO_NS}/zmc-solr:${DOCKER_BUILD_TAG}'
@@ -156,6 +186,12 @@ services:
       context: '.'
       dockerfile: 'solr/Dockerfile'
       cache_from: [ '${DOCKER_REPO_NS}/zmc-solr:${DOCKER_CACHE_TAG}' ]
+    deploy:
+      mode: replicated
+      placement:
+        constraints:
+          - node.role == worker
+      replicas: 1
     environment:
       - SOLR_MODE=${SOLR_MODE}
       - SOLR_MEMORY=${SOLR_MEMORY}
