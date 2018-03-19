@@ -40,7 +40,7 @@ services:
       - ldap.amavis_password
       - ldap.nginx_password
     volumes:
-      - ldapvolume:/opt/zimbra/data/ldap/mdb
+      - ldapvolume:/opt/zimbra/data/ldap/mdb/db
 
   zmc-mta:
     image: '${DOCKER_REPO_NS}/zmc-mta:${DOCKER_BUILD_TAG}'
