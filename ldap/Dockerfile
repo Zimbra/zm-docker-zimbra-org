@@ -10,6 +10,8 @@ RUN [ "rsync", "-a", "--delete", "/opt/zimbra/common/etc/openldap/zimbra/config/
 RUN [ "chown", "-R", "zimbra:zimbra", "/opt/zimbra/data/ldap/config" ]
 RUN [ "find", "/opt/zimbra/data/ldap/config", "-name", "*.ldif", "-exec", "chmod", "600", "{}", ";" ]
 RUN [ "su", "zimbra", "-c", "/opt/zimbra/libexec/zmldapschema"]
+RUN [ "mkdir", "-p", "/opt/zimbra/data/ldap/mdb/db" ]
+RUN [ "chown", "-R", "zimbra:zimbra", "/opt/zimbra/data/ldap/mdb/db" ]
 
 WORKDIR /opt/zimbra
 COPY common/Zimbra/TaskDispatch.pm common/lib/perl5/Zimbra/TaskDispatch.pm
