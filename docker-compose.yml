@@ -177,6 +177,7 @@ services:
       - ldap.root_password
       - ldap.nginx_password
     ports:
+      - '80:80'
       - '443:443'
       - '9071:9071'
 
