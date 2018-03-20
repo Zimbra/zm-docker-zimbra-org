@@ -178,6 +178,7 @@ services:
       - ldap.nginx_password
     ports:
       - '443:443'
+      - '9071:9071'
 
   zmc-solr:
     image: '${DOCKER_REPO_NS}/zmc-solr:${DOCKER_BUILD_TAG}'
