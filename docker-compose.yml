@@ -150,7 +150,7 @@ services:
     secrets:
       - mysql.password
     volumes:
-      - dbvolume:/opt/zimbra/db/data
+      - mdbvolume:/opt/zimbra/db/data
 
   zmc-proxy:
     image: '${DOCKER_REPO_NS}/zmc-proxy:${DOCKER_BUILD_TAG}'
@@ -275,7 +275,7 @@ volumes:
     driver_opts:
       backing: shared
       perfmode: maxio
-  dbvolume:
+  mdbvolume:
     driver: "cloudstor:aws"
     driver_opts:
       backing: relocatable
