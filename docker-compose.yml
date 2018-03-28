@@ -14,6 +14,9 @@ services:
       - /sys:/writable-sys
     deploy:
       mode: replicated
+      placement:
+        constraints:
+          - node.role == manager
       replicas: 1
 
   zmc-ldap:
@@ -26,11 +29,14 @@ services:
       args:
          DOCKER_REPO_NS: '${DOCKER_REPO_NS}'
          DOCKER_BUILD_TAG: '${DOCKER_BUILD_TAG}'
-    volumes:
-      - ${LOCAL_SRC_DIR}:/code
-      - build:/build
     configs:
       - domain_name
+    deploy:
+      mode: replicated
+      placement:
+        constraints:
+          - node.role == worker
+      replicas: 1
     secrets:
       - ca.key
       - ca.pem
@@ -42,6 +48,10 @@ services:
       - ldap.postfix_password
       - ldap.amavis_password
       - ldap.nginx_password
+    volumes:
+      - type: bind
+        source: /mnt/ldap
+        target: /opt/zimbra/data/ldap/mdb/db
 
   zmc-mta:
     image: '${DOCKER_REPO_NS}/zmc-mta:${DOCKER_BUILD_TAG}'
@@ -53,11 +63,17 @@ services:
       args:
          DOCKER_REPO_NS: '${DOCKER_REPO_NS}'
          DOCKER_BUILD_TAG: '${DOCKER_BUILD_TAG}'
-    volumes:
-      - ${LOCAL_SRC_DIR}:/code
     configs:
       - av_notify_email
       - zimbra_ldap_userdn
+    deploy:
+      mode: replicated
+      placement:
+        constraints:
+          - node.role == manager
+      replicas: 1
+    ports:
+      - '587:587'
     secrets:
       - ca.key
       - ca.pem
@@ -82,11 +98,13 @@ services:
       - zmc-redis
     deploy:
       mode: replicated
+      placement:
+        constraints:
+          - node.role == manager
       replicas: 2
     volumes:
-      - ${LOCAL_SRC_DIR}:/code
-      - blobvolume:/opt/zimbra/store
-      - tmpvolume:/opt/zimbra/data/tmp
+      - /mnt/blob:/opt/zimbra/store
+      - /mnt/tmp:/opt/zimbra/data/tmp
     configs:
       - domain_name
       - admin_account_name
@@ -119,10 +137,18 @@ services:
       args:
          DOCKER_REPO_NS: '${DOCKER_REPO_NS}'
          DOCKER_BUILD_TAG: '${DOCKER_BUILD_TAG}'
-    volumes:
-      - ${LOCAL_SRC_DIR}:/code
+    deploy:
+      mode: replicated
+      placement:
+        constraints:
+          - node.role == worker
+      replicas: 1
     secrets:
       - mysql.password
+    volumes:
+      - type: bind
+        source: /mnt/mariadb
+        target: /opt/zimbra/db/data
 
   zmc-proxy:
     image: '${DOCKER_REPO_NS}/zmc-proxy:${DOCKER_BUILD_TAG}'
@@ -134,8 +160,12 @@ services:
       args:
          DOCKER_REPO_NS: '${DOCKER_REPO_NS}'
          DOCKER_BUILD_TAG: '${DOCKER_BUILD_TAG}'
-    volumes:
-      - ${LOCAL_SRC_DIR}:/code
+    deploy:
+      mode: replicated
+      placement:
+        constraints:
+          - node.role == manager
+      replicas: 1
     secrets:
       - ca.key
       - ca.pem
@@ -145,8 +175,8 @@ services:
       - ldap.root_password
       - ldap.nginx_password
     ports:
-      - '8080:80'
-      - '8443:443'
+      - '80:80'
+      - '443:443'
       - '9071:9071'
 
   zmc-solr:
@@ -156,11 +186,21 @@ services:
       context: '.'
       dockerfile: 'solr/Dockerfile'
       cache_from: [ '${DOCKER_REPO_NS}/zmc-solr:${DOCKER_CACHE_TAG}' ]
+    deploy:
+      mode: replicated
+      placement:
+        constraints:
+          - node.role == worker
+      replicas: 1
     environment:
       - SOLR_MODE=${SOLR_MODE}
       - SOLR_MEMORY=${SOLR_MEMORY}
     ports:
       - "8983:8983"
+    volumes:
+      - type: bind
+        source: /mnt/solr
+        target: /opt/solr/server/solr
 
 secrets:
    ca.key:
@@ -224,7 +264,3 @@ configs:
    zimbra_ldap_userdn:
      file: ./.config/zimbra_ldap_userdn
 
-volumes:
-  blobvolume: {}
-  tmpvolume: {}
-  build: {}
