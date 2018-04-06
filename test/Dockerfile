@@ -39,7 +39,7 @@ WORKDIR /tmp
 # Caching the STAF binary in S3 due to intermittent reliability issues with sourceforge
 # Original URL: http://downloads.sourceforge.net/project/staf/staf/V3.4.26/STAF3426-setup-linux-amd64-NoJVM.bin
 RUN curl -k -L -O https://docker.zimbra.com.s3.amazonaws.com/staf/STAF3426-setup-linux-amd64-NoJVM.bin
-RUN curl -k -L -o soapvalidator.tar.gz https://docker.zimbra.com.s3.amazonaws.com/assets/soapvalidator-20181302.tar.gz
+RUN curl -k -L -o soapvalidator.tar.gz https://docker.zimbra.com.s3.amazonaws.com/assets/soapvalidator-20180604.tar.gz
 RUN curl -k -L -o genesis.tar https://docker.zimbra.com.s3.amazonaws.com/assets/genesis-20180201.tar
 RUN mkdir -p /opt/qa && \
     mkdir -p /opt/qa/logs/soap-harness && \
@@ -47,12 +47,12 @@ RUN mkdir -p /opt/qa && \
     tar xzf /tmp/soapvalidator.tar.gz -C /opt/qa/ && \
     tar xf /tmp/genesis.tar -C /opt/qa/ && \
     sync && \
-    chmod +x /tmp/STAF3426-setup-linux-amd64-NoJVM.bin && \
+    chmod +x /tmp/STAF3426-setup-linux-amd64-NoJVM.bin;sync && \
     /tmp/STAF3426-setup-linux-amd64-NoJVM.bin -i silent \
        -DACCEPT_LICENSE=1 \
        -DCHOSEN_INSTALL_SET=Custom \
        -DCHOSEN_INSTALL_FEATURE_LIST=STAF,ExtSvcs,Langs,Codepage && \
-    rm /tmp/STAF3426-setup-linux-amd64-NoJVM.bin && \
+    rm /tmp/STAF3426-setup-linux-amd64-NoJVM.bin;sync && \
     rm /tmp/soapvalidator.tar.gz && \
     rm /tmp/genesis.tar && \
     echo /usr/local/staf/lib > /etc/ld.so.conf.d/zzz-staf.conf && \
