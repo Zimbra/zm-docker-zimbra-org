@@ -1,0 +1,13 @@
+#!/bin/bash
+# Small entrypoint script that just updates somaxconn before starting docker.
+# NOTE: This setting is also in the rc.local file; however, I found that
+#       having it there alone did not cause the somaxconn value to be altered
+#       from its default value of 128.  There are some additional notes in
+#       that file as well that talk about the configuration that is
+#       required in the docker-compose.yml file.
+
+echo "entrypoint - updating somaxconn..."
+echo 1024 > /writable-proc/sys/net/core/somaxconn
+
+echo "entrypoint - starting redis..."
+/usr/local/bin/docker-entrypoint.sh redis-server

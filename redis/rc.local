@@ -1,0 +1,43 @@
+#!/bin/sh -e
+#
+# rc.local
+#
+# This script is executed at the end of each multiuser runlevel.
+# Make sure that the script will "exit 0" on success or any other
+# value on error.
+#
+# In order to enable or disable this script just change the execution
+# bits.
+#
+# By default this script does nothing.
+#
+# Notes:
+#
+# We need to make a couple of updates for Redis
+#
+# 1. Need to increase somaxconn above its default value of 128
+#    You cannot just do this:
+#      sysctl -w net.core.somaxconn=1024
+#    Also, because /proc is mounted read-only, you must 
+#    remount it as follows in the docker-compose.yml file and
+#    write changes to `/writable-proc` instead of `/proc`.
+#
+#    volumes:
+#      - /proc:/writable-proc
+#
+#    These constraints are not the same if you are deploying a single 
+#    container via `docker run...` or if you are deploying via
+#    `docker-compose up -d`.  Both of those methods have other
+#    alternatives that are not available when deploying into
+#    a swarm.
+#
+# 2. Need to disable THP (Transparent Huge Pages).
+
+# This is also done in the entrypoint script.  It
+# is included here in case we manually restart redis
+# on the container for some reason.
+echo 1024 > /writable-proc/sys/net/core/somaxconn
+# This does not need to be in the entrypoint script.
+echo never > /sys/kernel/mm/transparent_hugepage/enabled
+
+exit 0
