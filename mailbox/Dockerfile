@@ -20,4 +20,4 @@ RUN chmod +x healthcheck.py
 RUN perl -c entry-point.pl
 
 ENTRYPOINT ./entry-point.pl
-EXPOSE 110 143 993 995 80 443 8080 8443 7071 7073
+EXPOSE 110 143 993 995 80 443 8080 8443 7071 7073 6500 6550
