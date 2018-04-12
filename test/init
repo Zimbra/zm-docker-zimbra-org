@@ -155,6 +155,8 @@ function setup {
       -e "s/ZIMBRA_HOST_NAME/zmc-proxy/" \
       -e "s/ZIMBRA_DEFAULT_DOMAIN/${ZIMBRA_DEFAULT_DOMAIN}/" \
       -e "s/MAILBOX_SERVICE_NAME/zmc-mailbox/" \
+      -e "s/LDAP_SERVICE_NAME/zmc-ldap/" \
+      -e "s/MTA_SERVICE_NAME/zmc-mta/" \
       -e "s/ADMIN_PORT/${ADMIN_PORT}/" \
       -e "s/HTTPS_PORT/${HTTPS_PORT}/" \
       -e "s/SOAPSERVICE_PORT/${SOAPSERVICE_PORT}/" \
