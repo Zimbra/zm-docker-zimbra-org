@@ -1,0 +1,13 @@
+version: '3.3'
+
+services:
+  zmc-account:
+    image: 'myapp.local:latest'
+    hostname: 'zmc-account'
+    entrypoint:
+      - /app/init
+    build:
+      context: '.'
+      dockerfile: 'Dockerfile'
+    ports:
+      - "5000:5000"

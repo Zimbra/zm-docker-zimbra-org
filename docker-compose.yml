@@ -74,7 +74,9 @@ services:
       - redis
     deploy:
       mode: replicated
-      replicas: 2
+      replicas: 1
+    ports:
+      - '23:23'
     volumes:
       - ${LOCAL_SRC_DIR}:/code
       - blobvolume:/opt/zimbra/store
@@ -100,6 +102,17 @@ services:
       - spam_account_password
       - ham_account_password
       - virus_quarantine_account_password
+
+  zmc-account:
+    image: 'zmc-account:latest'
+    hostname: 'zmc-account'
+    entrypoint:
+      - /app/init
+    volumes:
+      - ${LOCAL_SRC_DIR}:/code
+      - ./account/src/:/app/src
+    ports:
+      - "8081:5000"
 
   zmc-mysql:
     image: '${DOCKER_REPO_NS}/zmc-mysql:${DOCKER_BUILD_TAG}'

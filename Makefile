@@ -31,7 +31,7 @@ IMAGE_NAMES      = $(shell sed -n -e '/image:.*\/zmc-*/ { s,.*/,,; s,:.*,,; p; }
 LOCAL_SRC_DIR    = $(shell test -z "$$DOCKER_HOST" && echo .)/
 DOCKER_NODE_ADDR = $(shell docker node inspect --format '{{ .Status.Addr }}' self)
 
-build-all: $(patsubst %,build-%,$(IMAGE_NAMES))
+build-all: $(patsubst %,build-%,$(IMAGE_NAMES)) build-zmc-account
 	@mkdir -p _cache
 	@echo ${DOCKER_BUILD_TAG} > _cache/id.txt
 	docker images
@@ -49,6 +49,15 @@ _conf/pkg-key: _conf/pkg-key.in
 	cp $< $@
 
 ################################################################
+
+build-zmc-account: 
+	@echo "-----------------------------------------------------------------"
+	@echo Building zmc-account
+	@echo
+	docker build \
+	    --tag  'zmc-account' \
+	    --file  account/Dockerfile \.
+	@echo "-----------------------------------------------------------------"
 
 build-zmc-base: _base/* ${PACKAGE_CNF} ${PACKAGE_KEY}
 	@echo "-----------------------------------------------------------------"

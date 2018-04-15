@@ -1,0 +1,4 @@
+Flask
+setuptools
+paramiko
+fabric3

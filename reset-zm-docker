@@ -1,0 +1,24 @@
+#!/bin/bash
+# Completely reset the zm-coker build environment
+# Run from the top-level of the zm-docker repo
+
+cd=$(basename "${PWD}")
+if [ "$cd" != "zm-docker" ]; then
+    echo "Please run this script from the top-level of the zm-docker repository"
+    exit 1
+fi
+
+docker swarm init 2>/dev/null
+make down
+
+# It takes a little while for all of the containers to stop.  Wait until that happens
+# before continuing...
+
+#while [ "$(docker ps -q)" != "" ]; do
+#    echo "Waiting for the service containers to stop..."
+#    sleep 10
+#done
+
+docker system prune -f
+docker volume rm $(docker volume ls | grep -E 'ZM-BUILDS|zm-docker' | awk '{print $2}') 2>/dev/null
+docker rmi $(docker images | grep -E 'zmc-|zm-docker-build' | awk '{print $3}') 2>/dev/null
