@@ -1,0 +1,221 @@
+version: '3.3'
+
+services:
+  redis:
+    image: '252733421092.dkr.ecr.us-east-2.amazonaws.com/sodo:redis'
+    hostname: redis
+    deploy:
+      mode: replicated
+      placement:
+        constraints:
+          - node.role == manager
+      replicas: 1
+
+  zmc-ldap:
+    image: '252733421092.dkr.ecr.us-east-2.amazonaws.com/sodo:zmc-ldap'
+    hostname: 'zmc-ldap'
+    volumes:
+      - ${LOCAL_SRC_DIR}:/code
+      - build:/build
+    configs:
+      - domain_name
+    deploy:
+      mode: replicated
+      placement:
+        constraints:
+          - node.role == manager
+      replicas: 1
+    secrets:
+      - ca.key
+      - ca.pem
+      - ldap.key
+      - ldap.crt
+      - ldap.master_password
+      - ldap.root_password
+      - ldap.replication_password
+      - ldap.postfix_password
+      - ldap.amavis_password
+      - ldap.nginx_password
+
+  zmc-mta:
+    image: '252733421092.dkr.ecr.us-east-2.amazonaws.com/sodo:zmc-mta'
+    hostname: 'zmc-mta'
+    volumes:
+      - ${LOCAL_SRC_DIR}:/code
+    configs:
+      - av_notify_email
+      - zimbra_ldap_userdn
+    deploy:
+      mode: replicated
+      placement:
+        constraints:
+          - node.role == manager
+      replicas: 1
+    ports:
+      - '587:587'
+    secrets:
+      - ca.key
+      - ca.pem
+      - mta.key
+      - mta.crt
+      - ldap.master_password
+      - ldap.root_password
+      - ldap.postfix_password
+      - ldap.amavis_password
+
+  zmc-mailbox:
+    image: '252733421092.dkr.ecr.us-east-2.amazonaws.com/sodo:zmc-mailbox'
+    hostname: 'zmc-mailbox'
+    depends_on:
+      - redis
+    deploy:
+      mode: replicated
+      placement:
+        constraints:
+          - node.role == manager
+      replicas: 2
+    volumes:
+      - ${LOCAL_SRC_DIR}:/code
+      - blobvolume:/opt/zimbra/store
+      - tmpvolume:/opt/zimbra/data/tmp
+    configs:
+      - domain_name
+      - admin_account_name
+      - spam_account_name
+      - ham_account_name
+      - virus_quarantine_account_name
+      - gal_sync_account_name
+    environment:
+      - SOLR_MODE=${SOLR_MODE}
+    secrets:
+      - ca.key
+      - ca.pem
+      - mailbox.key
+      - mailbox.crt
+      - ldap.master_password
+      - ldap.root_password
+      - mysql.password
+      - admin_account_password
+      - spam_account_password
+      - ham_account_password
+      - virus_quarantine_account_password
+
+  zmc-mysql:
+    image: '252733421092.dkr.ecr.us-east-2.amazonaws.com/sodo:zmc-mysql'
+    hostname: 'zmc-mysql'
+    volumes:
+      - ${LOCAL_SRC_DIR}:/code
+    deploy:
+      mode: replicated
+      placement:
+        constraints:
+          - node.role == worker
+      replicas: 1
+    secrets:
+      - mysql.password
+
+  zmc-proxy:
+    image: '252733421092.dkr.ecr.us-east-2.amazonaws.com/sodo:zmc-proxy'
+    hostname: 'zmc-proxy'
+    volumes:
+      - ${LOCAL_SRC_DIR}:/code
+    deploy:
+      mode: replicated
+      placement:
+        constraints:
+          - node.role == manager
+      replicas: 1
+    secrets:
+      - ca.key
+      - ca.pem
+      - proxy.key
+      - proxy.crt
+      - ldap.master_password
+      - ldap.root_password
+      - ldap.nginx_password
+    ports:
+      - '8080:80'
+      - '8443:443'
+      - '9071:9071'
+
+  zmc-solr:
+    image: '252733421092.dkr.ecr.us-east-2.amazonaws.com/sodo:zmc-solr'
+    hostname: 'zmc-solr'
+    deploy:
+      mode: replicated
+      placement:
+        constraints:
+          - node.role == worker
+      replicas: 1
+    environment:
+      - SOLR_MODE=${SOLR_MODE}
+      - SOLR_MEMORY=${SOLR_MEMORY}
+    ports:
+      - "8983:8983"
+
+secrets:
+   ca.key:
+     file: ./.keystore/ca.key
+   ca.pem:
+     file: ./.keystore/ca.pem
+   ldap.key:
+     file: ./.keystore/ldap.key
+   ldap.crt:
+     file: ./.keystore/ldap.crt
+   mta.key:
+     file: ./.keystore/mta.key
+   mta.crt:
+     file: ./.keystore/mta.crt
+   mailbox.key:
+     file: ./.keystore/mailbox.key
+   mailbox.crt:
+     file: ./.keystore/mailbox.crt
+   proxy.key:
+     file: ./.keystore/proxy.key
+   proxy.crt:
+     file: ./.keystore/proxy.crt
+   ldap.master_password:
+     file: ./.secrets/ldap.master_password
+   ldap.root_password:
+     file: ./.secrets/ldap.root_password
+   ldap.replication_password:
+     file: ./.secrets/ldap.replication_password
+   ldap.postfix_password:
+     file: ./.secrets/ldap.postfix_password
+   ldap.amavis_password:
+     file: ./.secrets/ldap.amavis_password
+   ldap.nginx_password:
+     file: ./.secrets/ldap.nginx_password
+   mysql.password:
+     file: ./.secrets/mysql.password
+   admin_account_password:
+     file: ./.secrets/admin_account_password
+   spam_account_password:
+     file: ./.secrets/spam_account_password
+   ham_account_password:
+     file: ./.secrets/ham_account_password
+   virus_quarantine_account_password:
+     file: ./.secrets/virus_quarantine_account_password
+
+configs:
+   av_notify_email:
+     file: ./.config/av_notify_email
+   domain_name:
+     file: ./.config/domain_name
+   admin_account_name:
+     file: ./.config/admin_account_name
+   spam_account_name:
+     file: ./.config/spam_account_name
+   ham_account_name:
+     file: ./.config/ham_account_name
+   virus_quarantine_account_name:
+     file: ./.config/virus_quarantine_account_name
+   gal_sync_account_name:
+     file: ./.config/gal_sync_account_name
+   zimbra_ldap_userdn:
+     file: ./.config/zimbra_ldap_userdn
+
+volumes:
+  blobvolume: {}
+  tmpvolume: {}
+  build: {}
