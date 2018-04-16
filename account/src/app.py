@@ -1,5 +1,5 @@
 from __future__ import with_statement
-from flask import Flask, request, send_from_directory
+from flask import Flask, request, send_from_directory, redirect
 from fabric.api import *
 from fabric.contrib.console import confirm
 
@@ -8,6 +8,10 @@ app = Flask(__name__)
 @app.route('/', methods=['GET'])
 def index():
     return send_from_directory('static', 'index.html')
+
+@app.route('/success', methods=['GET'])
+def success():
+    return send_from_directory('static', 'success.html')
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -33,9 +37,9 @@ def register():
         result = run(createUserCommand)
 
     if result.failed:
-        return "Something was wrong :( " + result, 500
+        return '', 500
     else:
-        return '', 204
+        return redirect("/success", code=302)
 
 
 if __name__ == '__main__':
