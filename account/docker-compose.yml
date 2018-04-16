@@ -2,8 +2,10 @@ version: '3.3'
 
 services:
   zmc-account:
-    image: 'myapp.local:latest'
+    image: 'zmc-account:latest'
     hostname: 'zmc-account'
+    volumes:
+      - ./src:/app/src
     entrypoint:
       - /app/init
     build:

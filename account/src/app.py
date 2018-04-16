@@ -30,7 +30,8 @@ def register():
 
     recoveryEmail = request.form['recoveryEmail']
 
-    createUserCommand = "zmprov ca {} {} displayName {}".format(email, password, displayName)
+    createUserCommand = 'zmprov ca {} {} displayName "{}"'.format(email, password, displayName)
+    print ('zmprov ca {} {} displayName "{}"'.format(email, password, displayName))
 
     # run the command remotly through ssh via a fabric's high -level library
     with settings(host_string="zmc-mailbox", port=23 ,user="zimbra", password="zimbra", warn_only=True):
