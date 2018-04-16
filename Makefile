@@ -142,7 +142,7 @@ CONFIGS += .config/zimbra_ldap_userdn
 	touch "$@"
 
 .config/domain_name: .config/.init
-	@echo zmc.com > $@
+	@echo bc.lonni.me > $@
 	@echo Created default $@ : $$(cat $@)
 
 .config/admin_account_name: .config/.init
