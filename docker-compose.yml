@@ -108,9 +108,6 @@ services:
     hostname: 'zmc-account'
     entrypoint:
       - /app/init
-    volumes:
-      - ${LOCAL_SRC_DIR}:/code
-      - ./account/src/:/app/src
     ports:
       - "8081:5000"
 
