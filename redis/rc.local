@@ -19,11 +19,7 @@
 #    You cannot just do this:
 #      sysctl -w net.core.somaxconn=1024
 #    Also, because /proc is mounted read-only, you must 
-#    remount it as follows in the docker-compose.yml file and
-#    write changes to `/writable-proc` instead of `/proc`.
-#
-#    volumes:
-#      - /proc:/writable-proc
+#    remount it as specified in item 3.
 #
 #    These constraints are not the same if you are deploying a single 
 #    container via `docker run...` or if you are deploying via
@@ -32,12 +28,20 @@
 #    a swarm.
 #
 # 2. Need to disable THP (Transparent Huge Pages).
+#    This change also requires an update to the
+#    docker-compose.yml as shown in item 3.
+#
+# 3. Volume mounts in the docker-compose.yml file:
+#
+#    volumes:
+#      - /proc:/writable-proc
+#      - /sys:/writable-sys
+#
 
-# This is also done in the entrypoint script.  It
-# is included here in case we manually restart redis
+# These are also done in the entrypoint script. They
+# are included here in case we manually restart redis
 # on the container for some reason.
 echo 1024 > /writable-proc/sys/net/core/somaxconn
-# This does not need to be in the entrypoint script.
-echo never > /sys/kernel/mm/transparent_hugepage/enabled
+echo never > /writable-sys/kernel/mm/transparent_hugepage/enabled
 
 exit 0

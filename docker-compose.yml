@@ -11,6 +11,7 @@ services:
         - BASE=4.0.9
     volumes:
       - /proc:/writable-proc
+      - /sys:/writable-sys
     deploy:
       mode: replicated
       replicas: 1

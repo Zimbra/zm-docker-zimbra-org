@@ -9,5 +9,8 @@
 echo "entrypoint - updating somaxconn..."
 echo 1024 > /writable-proc/sys/net/core/somaxconn
 
+echo "entrypoint - updating THP setting..."
+echo never > /writable-sys/kernel/mm/transparent_hugepage/enabled
+
 echo "entrypoint - starting redis..."
 /usr/local/bin/docker-entrypoint.sh redis-server
