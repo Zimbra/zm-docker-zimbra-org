@@ -37,11 +37,19 @@
 #      - /proc:/writable-proc
 #      - /sys:/writable-sys
 #
+# 4. There is one addtional setting to address the following
+#    warning we saw when deploying from a Linux host:
+#
+#      WARNING overcommit_memory is set to 0! 
+#      Background save may fail under low memory condition
+#
+#    The fix is so set vm.overcommit_memory = 1
 
 # These are also done in the entrypoint script. They
 # are included here in case we manually restart redis
 # on the container for some reason.
 echo 1024 > /writable-proc/sys/net/core/somaxconn
+echo 1 > /writable-proc/sys/vm/overcommit_memory
 echo never > /writable-sys/kernel/mm/transparent_hugepage/enabled
 
 exit 0

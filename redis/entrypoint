@@ -9,6 +9,9 @@
 echo "entrypoint - updating somaxconn..."
 echo 1024 > /writable-proc/sys/net/core/somaxconn
 
+echo "entrypoint - setting vm.overcommit_memory..."
+echo 1 > /writable-proc/sys/vm/overcommit_memory
+
 echo "entrypoint - updating THP setting..."
 echo never > /writable-sys/kernel/mm/transparent_hugepage/enabled
 
