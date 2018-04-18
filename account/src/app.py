@@ -19,7 +19,7 @@ def success():
 def register():
     firstName = request.form["firstName"]
     lastName = request.form["lastName"]
-    displayName = " ".join([ firstName, lastName ])
+    displayName = " ".join([ name for name in [ firstName, lastName ] if name is not None ])
 
     userName = request.form["userName"]
     email = userName.replace("@bc.lonni.me", "") + "@bc.lonni.me"
