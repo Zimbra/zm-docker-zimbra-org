@@ -42,7 +42,7 @@ def register():
     if result.failed:
         return "", 500
     else:
-        return redirect("/success", code=302)
+        return redirect("https://bc.lonni.me:8443/success", code=302)
 
 
 if __name__ == "__main__":
