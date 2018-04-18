@@ -2,3 +2,4 @@ Flask
 setuptools
 paramiko
 fabric3
+flask-cors

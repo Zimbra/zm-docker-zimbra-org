@@ -1,9 +1,11 @@
 from __future__ import with_statement
 from flask import Flask, request, send_from_directory, redirect
+from flask_cors import CORS
 from fabric.api import *
 from fabric.contrib.console import confirm
 
 app = Flask(__name__)
+CORS(app)
 
 @app.route("/", methods=["GET"])
 def index():
