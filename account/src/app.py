@@ -5,30 +5,30 @@ from fabric.contrib.console import confirm
 
 app = Flask(__name__)
 
-@app.route('/', methods=['GET'])
+@app.route("/", methods=["GET"])
 def index():
-    return send_from_directory('static', 'index.html')
+    return send_from_directory("static", "index.html")
 
-@app.route('/success', methods=['GET'])
+@app.route("/success", methods=["GET"])
 def success():
-    return send_from_directory('static', 'success.html')
+    return send_from_directory("static", "success.html")
 
-@app.route('/register', methods=['POST'])
+@app.route("/register", methods=["POST"])
 def register():
-    firstName = request.form['firstName']
-    lastName = request.form['lastName']
-    displayName = ''
+    firstName = request.form["firstName"]
+    lastName = request.form["lastName"]
+    displayName = ""
     if firstName:
         displayName += firstName
     if lastName:
         displayName += lastName
 
-    userName = request.form['userName']
-    email = userName
+    userName = request.form["userName"]
+    email = userName.replace("@bc.lonni.me", "") + "@bc.lonni.me"
 
     password = "abc123"
 
-    recoveryEmail = request.form['recoveryEmail']
+    recoveryEmail = request.form["recoveryEmail"]
 
     createUserCommand = 'zmprov ca {} {} displayName "{}"'.format(email, password, displayName)
     print ('zmprov ca {} {} displayName "{}"'.format(email, password, displayName))
@@ -38,10 +38,10 @@ def register():
         result = run(createUserCommand)
 
     if result.failed:
-        return '', 500
+        return "", 500
     else:
         return redirect("/success", code=302)
 
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", debug=True)
