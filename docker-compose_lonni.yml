@@ -111,14 +111,14 @@ services:
     ports:
       - "8081:5000"
     
-    zm-x-web:
-      image: 252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain:zm-x-web
-      container_name: zm-x-web
-      hostname: zm-x-web
-      entrypoint:
-        - /app/init
-      ports:
-        - "443:443"
+  zm-x-web:
+    image: 252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain:zm-x-web
+    container_name: zm-x-web
+    hostname: zm-x-web
+    entrypoint:
+       - /app/init
+    ports:
+      - "443:443"
 
   zmc-mysql:
     image: '252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain:zmc-mysql'
