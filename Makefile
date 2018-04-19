@@ -275,7 +275,7 @@ up: .up.lock
 	    LOCAL_SRC_DIR=${LOCAL_SRC_DIR} \
 	    SOLR_MODE=${SOLR_MODE} \
 	    SOLR_MEMORY=${SOLR_MEMORY} \
-	    docker stack deploy -c docker-compose.yml '${DOCKER_STACK_NAME}'
+	    docker stack deploy -c docker-compose_lonni.yml '${DOCKER_STACK_NAME}'
 	@touch .up.lock
 
 down:
