@@ -2,29 +2,27 @@ version: '3.3'
 
 services:
   redis:
-    image: '252733421092.dkr.ecr.us-east-2.amazonaws.com/sodo:redis'
+    image: 252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain:redis
     hostname: redis
     deploy:
       mode: replicated
-      placement:
-        constraints:
-          - node.role == manager
       replicas: 1
 
   zmc-ldap:
-    image: '252733421092.dkr.ecr.us-east-2.amazonaws.com/sodo:zmc-ldap'
+    image: '252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain:zmc-ldap'
     hostname: 'zmc-ldap'
+    build:
+      context: '.'
+      dockerfile: 'ldap/Dockerfile'
+      cache_from: [ '252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain:zmc-ldap' ]
+      args:
+         DOCKER_REPO_NS: '252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain'
+         DOCKER_BUILD_TAG: 'zmc-ldap'
     volumes:
       - ${LOCAL_SRC_DIR}:/code
       - build:/build
     configs:
       - domain_name
-    deploy:
-      mode: replicated
-      placement:
-        constraints:
-          - node.role == manager
-      replicas: 1
     secrets:
       - ca.key
       - ca.pem
@@ -38,21 +36,20 @@ services:
       - ldap.nginx_password
 
   zmc-mta:
-    image: '252733421092.dkr.ecr.us-east-2.amazonaws.com/sodo:zmc-mta'
+    image: '252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain:zmc-mta'
     hostname: 'zmc-mta'
+    build:
+      context: '.'
+      dockerfile: 'mta/Dockerfile'
+      cache_from: [ '252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain:zmc-mta' ]
+      args:
+         DOCKER_REPO_NS: '252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain'
+         DOCKER_BUILD_TAG: 'zmc-mta'
     volumes:
       - ${LOCAL_SRC_DIR}:/code
     configs:
       - av_notify_email
       - zimbra_ldap_userdn
-    deploy:
-      mode: replicated
-      placement:
-        constraints:
-          - node.role == manager
-      replicas: 1
-    ports:
-      - '587:587'
     secrets:
       - ca.key
       - ca.pem
@@ -64,16 +61,22 @@ services:
       - ldap.amavis_password
 
   zmc-mailbox:
-    image: '252733421092.dkr.ecr.us-east-2.amazonaws.com/sodo:zmc-mailbox'
+    image: '252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain:zmc-mailbox'
     hostname: 'zmc-mailbox'
+    build:
+      context: '.'
+      dockerfile: 'mailbox/Dockerfile'
+      cache_from: [ '252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain:zmc-mailbox' ]
+      args:
+         DOCKER_REPO_NS: '252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain'
+         DOCKER_BUILD_TAG: 'zmc-mailbox'
     depends_on:
       - redis
     deploy:
       mode: replicated
-      placement:
-        constraints:
-          - node.role == manager
       replicas: 2
+    ports:
+      - '23:23'
     volumes:
       - ${LOCAL_SRC_DIR}:/code
       - blobvolume:/opt/zimbra/store
@@ -100,31 +103,41 @@ services:
       - ham_account_password
       - virus_quarantine_account_password
 
+  zmc-account:
+    image: '252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain:zmc-account'
+    hostname: 'zmc-account'
+    entrypoint:
+      - /app/init
+    ports:
+      - "8081:5000"
+
   zmc-mysql:
-    image: '252733421092.dkr.ecr.us-east-2.amazonaws.com/sodo:zmc-mysql'
+    image: '252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain:zmc-mysql'
     hostname: 'zmc-mysql'
+    build:
+      context: '.'
+      dockerfile: 'mysql/Dockerfile'
+      cache_from: [ '252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain:zmc-mysql' ]
+      args:
+         DOCKER_REPO_NS: '252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain'
+         DOCKER_BUILD_TAG: 'zmc-mysql'
     volumes:
       - ${LOCAL_SRC_DIR}:/code
-    deploy:
-      mode: replicated
-      placement:
-        constraints:
-          - node.role == worker
-      replicas: 1
     secrets:
       - mysql.password
 
   zmc-proxy:
-    image: '252733421092.dkr.ecr.us-east-2.amazonaws.com/sodo:zmc-proxy'
+    image: '252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain:zmc-proxy'
     hostname: 'zmc-proxy'
+    build:
+      context: '.'
+      dockerfile: 'proxy/Dockerfile'
+      cache_from: [ '252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain:zmc-proxy' ]
+      args:
+         DOCKER_REPO_NS: '252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain'
+         DOCKER_BUILD_TAG: 'zmc-proxy'
     volumes:
       - ${LOCAL_SRC_DIR}:/code
-    deploy:
-      mode: replicated
-      placement:
-        constraints:
-          - node.role == manager
-      replicas: 1
     secrets:
       - ca.key
       - ca.pem
@@ -139,14 +152,12 @@ services:
       - '9071:9071'
 
   zmc-solr:
-    image: '252733421092.dkr.ecr.us-east-2.amazonaws.com/sodo:zmc-solr'
+    image: '252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain:zmc-solr'
     hostname: 'zmc-solr'
-    deploy:
-      mode: replicated
-      placement:
-        constraints:
-          - node.role == worker
-      replicas: 1
+    build:
+      context: '.'
+      dockerfile: 'solr/Dockerfile'
+      cache_from: [ '252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain:zmc-solr' ]
     environment:
       - SOLR_MODE=${SOLR_MODE}
       - SOLR_MEMORY=${SOLR_MEMORY}
