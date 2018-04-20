@@ -1,9 +1,17 @@
 version: '3.3'
 
 services:
-  redis:
-    image: library/redis
+  zmc-redis:
+    image: '${DOCKER_REPO_NS}/zmc-redis:${DOCKER_BUILD_TAG}'
     hostname: redis
+    build:
+      context: "."
+      dockerfile: 'redis/Dockerfile'
+      args:
+        - BASE=4.0.9
+    volumes:
+      - /proc:/writable-proc
+      - /sys:/writable-sys
     deploy:
       mode: replicated
       replicas: 1
@@ -71,7 +79,7 @@ services:
          DOCKER_REPO_NS: '${DOCKER_REPO_NS}'
          DOCKER_BUILD_TAG: '${DOCKER_BUILD_TAG}'
     depends_on:
-      - redis
+      - zmc-redis
     deploy:
       mode: replicated
       replicas: 2
