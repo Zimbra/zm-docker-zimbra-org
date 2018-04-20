@@ -94,6 +94,9 @@ services:
       - ham_account_name
       - virus_quarantine_account_name
       - gal_sync_account_name
+      - tzdata_area
+      - tzdata_zone
+      - time_zone_id
     environment:
       - SOLR_MODE=${SOLR_MODE}
     secrets:
@@ -147,6 +150,8 @@ services:
     ports:
       - '8080:80'
       - '8443:443'
+      - '8071:7071'
+      - '8000:5000'
       - '9071:9071'
 
   zmc-solr:
@@ -161,6 +166,29 @@ services:
       - SOLR_MEMORY=${SOLR_MEMORY}
     ports:
       - "8983:8983"
+
+  zmc-test:
+    image: '${DOCKER_REPO_NS}/zmc-test:${DOCKER_BUILD_TAG}'
+    hostname: 'zmc-test'
+    build:
+      context: '.'
+      dockerfile: 'test/Dockerfile'
+      cache_from: [ '${DOCKER_REPO_NS}/zmc-test:${DOCKER_CACHE_TAG}' ]
+    configs:
+      - domain_name
+    depends_on:
+      - zmc-proxy
+    entrypoint:
+      - /zimbra/init
+      - --shutdown
+      - "no"
+    environment:
+      ADMIN_PORT: "9071"
+      HTTPS_PORT: "443"
+      SOAPSERVICE_PORT: "8443"
+    secrets:
+      - admin_account_password
+
 
 secrets:
    ca.key:
@@ -223,6 +251,12 @@ configs:
      file: ./.config/gal_sync_account_name
    zimbra_ldap_userdn:
      file: ./.config/zimbra_ldap_userdn
+   tzdata_area:
+     file: ./.config/tzdata_area
+   tzdata_zone:
+     file: ./.config/tzdata_zone
+   time_zone_id:
+     file: ./.config/time_zone_id
 
 volumes:
   blobvolume: {}

@@ -39,6 +39,9 @@ my $HAM_PASSWORD                  = Secret("ham_account_password");
 my $VIRUS_QUARANTINE_ACCOUNT_NAME = Config("virus_quarantine_account_name");
 my $VIRUS_QUARANTINE_PASSWORD     = Secret("virus_quarantine_account_password");
 my $GAL_SYNC_ACCOUNT_NAME         = Config("gal_sync_account_name");
+my $TZDATA_AREA                   = Config("tzdata_area");
+my $TZDATA_ZONE                   = Config("tzdata_zone");
+my $TIME_ZONE_ID                  = Config("time_zone_id");
 
 ## CONNECTIONS TO OTHER HOSTS ##########################
 
@@ -90,6 +93,7 @@ my $PKCS_PASSWORD              = "zimbra3";
 
 EntryExec(
    seq => [
+      sub { { update_tzdata_config => { area => $TZDATA_AREA, zone => $TZDATA_ZONE, }, }; },
       sub {
          {
             local_config => {
@@ -117,6 +121,9 @@ EntryExec(
                mailboxd_keystore_password       => $MAILBOXD_KEYSTORE_PASSWORD,
                imapd_keystore                   => $IMAPD_KEYSTORE,
                imapd_keystore_password          => $IMAPD_KEYSTORE_PASSWORD,
+               imap_max_consecutive_error       => 0,
+               pop3_max_consecutive_error       => 0,
+               allow_unauthed_ping              => "true",
             },
          };
       },
@@ -208,8 +215,8 @@ EntryExec(
                $THIS_HOST => {
                   zimbraIPMode                    => "ipv4",
                   zimbraSpellCheckURL             => "http://$THIS_HOST:7780/aspell.php",
-                  zimbraServiceInstalled          => [ "stats", "mailbox", "imapd" ],
-                  zimbraServiceEnabled            => [ "stats", "mailbox", "service", "imapd", "zimbra", "zimlet", "zimbraAdmin" ],
+                  zimbraServiceInstalled          => [ "stats", "mailbox", "imapd", "spell" ],
+                  zimbraServiceEnabled            => [ "stats", "mailbox", "service", "imapd", "zimbra", "zimlet", "zimbraAdmin", "spell" ],
                   zimbraConvertdURL               => "http://$THIS_HOST:7047/convert",
                   zimbraAdminPort                 => $ADMIN_PORT,
                   zimbraAdminProxyPort            => $PROXY_ADMIN_PORT,
@@ -260,6 +267,7 @@ EntryExec(
 
       # FIXME - requires LDAP
       #sub { { desc => "Updating IP Settings", exec => { args => ["/opt/zimbra/libexec/zmiptool"], }, }; },
+      sub { { desc => "Starting ssh-server", exec => { user => "root", args => [ "/usr/sbin/service", "ssh", "start" ], }, }; },
 
       # FIXME - requires LDAP
       sub { { desc => "Bringing up all services", exec => { args => [ "/opt/zimbra/bin/zmcontrol", "start" ], }, }; },
@@ -292,6 +300,30 @@ EntryExec(
                      EvalExecAs( { user => "zimbra", args => [ "/opt/zimbra/bin/zmprov", "-r", "-m", "-l", "gs", $THIS_HOST, "zimbraId" ] } )->{result}
                   ),
                },
+            },
+         };
+      },
+
+      #######################################################################
+
+      sub { { configure_staf => {}, }; },
+
+      #######################################################################
+
+      sub {
+         {
+            desc => "Running zmsshkeygen",
+            exec => {
+               args => [ "/opt/zimbra/bin/zmsshkeygen" ]
+            },
+         };
+      },
+
+      sub {
+         {
+            desc => "Running zmupdateauthkeys",
+            exec => {
+               args => [ "/opt/zimbra/bin/zmupdateauthkeys" ]
             },
          };
       },
@@ -372,7 +404,7 @@ EntryExec(
          {
             cos_config => {
                default => {
-                  zimbraPrefTimeZoneId           => "UTC",
+                  zimbraPrefTimeZoneId           => "$TIME_ZONE_ID",
                   zimbraFeatureTasksEnabled      => "TRUE",
                   zimbraFeatureBriefcasesEnabled => "TRUE",
                   zimbraFeatureNotebookEnabled   => "TRUE",
