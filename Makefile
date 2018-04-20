@@ -82,7 +82,7 @@ build-zmc-%: build-zmc-base docker-compose_lonni.yml
 	@echo Building zmc-$*
 	@echo
 	DOCKER_REPO_NS_BASE=${DOCKER_REPO_NS_BASE} \
-	DOCKER_REPO_NS=${DOCKER_REPO_NS}-zmc-$* \
+	DOCKER_REPO_NS=${DOCKER_REPO_NS} \
 	    DOCKER_BUILD_TAG=${DOCKER_BUILD_TAG} \
 	    DOCKER_CACHE_TAG=${DOCKER_CACHE_TAG} \
 	    LOCAL_SRC_DIR=${LOCAL_SRC_DIR} \
