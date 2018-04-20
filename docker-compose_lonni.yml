@@ -2,22 +2,22 @@ version: '3.3'
 
 services:
   redis:
-    image: 252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain:redis
+    image: ${DOCKER_REPO_NS}-redis:${DOCKER_BUILD_TAG}
     hostname: redis
     deploy:
       mode: replicated
       replicas: 1
 
   zmc-ldap:
-    image: '252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain:zmc-ldap'
+    image: ${DOCKER_REPO_NS}-zmc-ldap:${DOCKER_BUILD_TAG}
     hostname: 'zmc-ldap'
     build:
       context: '.'
       dockerfile: 'ldap/Dockerfile'
-      cache_from: [ '252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain:zmc-ldap' ]
+      cache_from: [  '${DOCKER_REPO_NS}-zmc-ldap:${DOCKER_BUILD_TAG}' ]
       args:
-         DOCKER_REPO_NS: '252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain'
-         DOCKER_BUILD_TAG: 'zmc-ldap'
+         DOCKER_REPO_NS_BASE: ${DOCKER_REPO_NS_BASE}
+         DOCKER_BUILD_TAG: ${DOCKER_BUILD_TAG}
     volumes:
       - ${LOCAL_SRC_DIR}:/code
       - build:/build
@@ -36,15 +36,15 @@ services:
       - ldap.nginx_password
 
   zmc-mta:
-    image: '252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain:zmc-mta'
+    image: ${DOCKER_REPO_NS}-zmc-mta:${DOCKER_BUILD_TAG}
     hostname: 'zmc-mta'
     build:
       context: '.'
       dockerfile: 'mta/Dockerfile'
-      cache_from: [ '252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain:zmc-mta' ]
+      cache_from: [ '${DOCKER_REPO_NS}-zmc-mta:${DOCKER_BUILD_TAG}' ]
       args:
-         DOCKER_REPO_NS: '252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain'
-         DOCKER_BUILD_TAG: 'zmc-mta'
+         DOCKER_REPO_NS_BASE: ${DOCKER_REPO_NS_BASE}
+         DOCKER_BUILD_TAG: ${DOCKER_BUILD_TAG}
     volumes:
       - ${LOCAL_SRC_DIR}:/code
     configs:
@@ -61,15 +61,15 @@ services:
       - ldap.amavis_password
 
   zmc-mailbox:
-    image: '252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain:zmc-mailbox'
+    image: ${DOCKER_REPO_NS}-zmc-mailbox:${DOCKER_BUILD_TAG}
     hostname: 'zmc-mailbox'
     build:
       context: '.'
       dockerfile: 'mailbox/Dockerfile'
-      cache_from: [ '252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain:zmc-mailbox' ]
+      cache_from: [ '${DOCKER_REPO_NS}-zmc-mailbox:${DOCKER_BUILD_TAG}' ]
       args:
-         DOCKER_REPO_NS: '252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain'
-         DOCKER_BUILD_TAG: 'zmc-mailbox'
+         DOCKER_REPO_NS_BASE: ${DOCKER_REPO_NS_BASE}
+         DOCKER_BUILD_TAG: ${DOCKER_BUILD_TAG}
     depends_on:
       - redis
     deploy:
@@ -104,7 +104,7 @@ services:
       - virus_quarantine_account_password
 
   zmc-account:
-    image: '252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain:zmc-account'
+    image: ${DOCKER_REPO_NS}-zmc-account:${DOCKER_BUILD_TAG}
     hostname: 'zmc-account'
     entrypoint:
       - /app/init
@@ -112,7 +112,7 @@ services:
       - "8081:5000"
     
   zm-x-web:
-    image: 252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain:zm-x-web
+    image: ${DOCKER_REPO_NS}-zm-x-web:${DOCKER_BUILD_TAG}
     container_name: zm-x-web
     hostname: zm-x-web
     entrypoint:
@@ -121,30 +121,30 @@ services:
       - "443:443"
 
   zmc-mysql:
-    image: '252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain:zmc-mysql'
+    image: ${DOCKER_REPO_NS}-zmc-mysql:${DOCKER_BUILD_TAG}
     hostname: 'zmc-mysql'
     build:
       context: '.'
       dockerfile: 'mysql/Dockerfile'
-      cache_from: [ '252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain:zmc-mysql' ]
+      cache_from: [ '${DOCKER_REPO_NS}-zmc-mysql:${DOCKER_BUILD_TAG}' ]
       args:
-         DOCKER_REPO_NS: '252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain'
-         DOCKER_BUILD_TAG: 'zmc-mysql'
+         DOCKER_REPO_NS_BASE: ${DOCKER_REPO_NS_BASE}
+         DOCKER_BUILD_TAG: ${DOCKER_BUILD_TAG}
     volumes:
       - ${LOCAL_SRC_DIR}:/code
     secrets:
       - mysql.password
 
   zmc-proxy:
-    image: '252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain:zmc-proxy'
+    image: ${DOCKER_REPO_NS}-zmc-proxy:${DOCKER_BUILD_TAG}
     hostname: 'zmc-proxy'
     build:
       context: '.'
       dockerfile: 'proxy/Dockerfile'
-      cache_from: [ '252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain:zmc-proxy' ]
+      cache_from: [ '${DOCKER_REPO_NS}-zmc-proxy:${DOCKER_BUILD_TAG}' ]
       args:
-         DOCKER_REPO_NS: '252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain'
-         DOCKER_BUILD_TAG: 'zmc-proxy'
+         DOCKER_REPO_NS_BASE: ${DOCKER_REPO_NS_BASE}
+         DOCKER_BUILD_TAG: ${DOCKER_BUILD_TAG}
     volumes:
       - ${LOCAL_SRC_DIR}:/code
     secrets:
@@ -161,12 +161,12 @@ services:
       - '9071:9071'
 
   zmc-solr:
-    image: '252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain:zmc-solr'
+    image: ${DOCKER_REPO_NS}-zmc-solr:${DOCKER_BUILD_TAG}
     hostname: 'zmc-solr'
     build:
       context: '.'
       dockerfile: 'solr/Dockerfile'
-      cache_from: [ '252733421092.dkr.ecr.us-east-2.amazonaws.com/test-blockchain:zmc-solr' ]
+      cache_from: [ '${DOCKER_REPO_NS}-zmc-solr:${DOCKER_BUILD_TAG}' ]
     environment:
       - SOLR_MODE=${SOLR_MODE}
       - SOLR_MEMORY=${SOLR_MEMORY}
