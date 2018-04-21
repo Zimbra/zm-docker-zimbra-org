@@ -262,7 +262,7 @@ compile:
 # using a docker volume instead
 	@docker volume create ZM-BUILDS
 	$(eval WPWD=$(shell bash -c "echo ${PWD} | sed -e 's/^\/mnt//'"))
-	docker run --rm -it -v ZM-BUILDS:/home/build/zm/BUILDS zm-docker-build
+	docker run --rm -it -v ZM-BUILDS:/home/build/zm/BUILDS -v $(WPWD)/build/config:/home/build/config zm-docker-build
 	@rm -rf ./BUILDS
 	@mkdir -p ./BUILDS
 # mount the docker volume containing the build output so that we can CP it to the host
