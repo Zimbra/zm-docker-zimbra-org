@@ -156,7 +156,7 @@ function setup {
       -e "s/ZIMBRA_DEFAULT_DOMAIN/${ZIMBRA_DEFAULT_DOMAIN}/" \
       -e "s/MAILBOX_SERVICE_NAME/zmc-mailbox/" \
       -e "s/LDAP_SERVICE_NAME/zmc-ldap/" \
-      -e "s/MTA_SERVICE_NAME/zmc-mta/" \
+      -e "s/TEST_SERVICE_NAME/zmc-test/" \
       -e "s/ADMIN_PORT/${ADMIN_PORT}/" \
       -e "s/HTTPS_PORT/${HTTPS_PORT}/" \
       -e "s/SOAPSERVICE_PORT/${SOAPSERVICE_PORT}/" \
@@ -176,6 +176,7 @@ function setup {
     echo "adding STAF services"
     STAF local service add service SOAP LIBRARY JSTAF EXECUTE /opt/qa/soapvalidator/bin/zimbrastaf.jar
     STAF local service add service LOG LIBRARY STAFLog
+    STAF local service add service INJECT LIBRARY JSTAF EXECUTE /opt/qa/soapvalidator/bin/zimbrainject.jar
 
     # Wait for the mailbox service to finish configuration
     # We do this by waiting for STAF to come up, as that is the last service
