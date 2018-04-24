@@ -19,8 +19,6 @@ DOCKER_REPO_NS    ?= 252733421092.dkr.ecr.us-east-2.amazonaws.com/test
 DOCKER_REPO_NS_BASE	?= ${DOCKER_REPO_NS}-zmc-base
 DOCKER_BUILD_TAG  ?= latest
 DOCKER_CACHE_TAG  ?= ${DOCKER_BUILD_TAG}
-DOCKER_PUSH_TAG   ?=
-DOCKER_PULL_TAG   ?=
 DOCKER_STACK_NAME ?= zm-docker
 
 SOLR_MODE         ?= cloud
@@ -28,11 +26,12 @@ SOLR_MEMORY       ?= 2g
 
 ################################################################
 
-IMAGE_NAMES      = zmc-base zmc-solr zmc-ldap zmc-mysql zmc-mailbox zmc-proxy zmc-mta
-LOCAL_SRC_DIR    = $(shell test -z "$$DOCKER_HOST" && echo .)/
-DOCKER_NODE_ADDR = $(shell docker node inspect --format '{{ .Status.Addr }}' self)
+BUILD_IMAGE_NAMES  = zmc-base zmc-solr zmc-ldap zmc-mysql zmc-mailbox zmc-proxy zmc-mta
+PUBLISH_IMAGE_NAMES= zm-x-web zmc-account zmc-solr zmc-ldap zmc-mysql zmc-mailbox zmc-proxy zmc-mta
+LOCAL_SRC_DIR      = $(shell test -z "$$DOCKER_HOST" && echo .)/
+DOCKER_NODE_ADDR   = $(shell docker node inspect --format '{{ .Status.Addr }}' self)
 
-build-all: $(patsubst %,build-%,$(IMAGE_NAMES)) build-zmc-account build-redis
+build-all: $(patsubst %,build-%,$(BUILD_IMAGE_NAMES)) build-zmc-account build-redis
 	@mkdir -p _cache
 	@echo ${DOCKER_BUILD_TAG} > _cache/id.txt
 	docker images
@@ -288,7 +287,7 @@ test-zmc-%: up
 get-curl:
 	docker pull nhoag/curl
 
-test: $(patsubst %,test-%,$(IMAGE_NAMES)) up get-curl
+test: $(patsubst %,test-%,$(BUILD_IMAGE_NAMES)) up get-curl
 	@echo "-----------------------------------------------------------------"
 	@echo Testing overall
 	@echo
@@ -325,3 +324,10 @@ test: $(patsubst %,test-%,$(IMAGE_NAMES)) up get-curl
 	exit $$failure
 
 ################################################################
+make push:  $(patsubst %,make-push-%,$(PUBLISH_IMAGE_NAMES))
+
+make-push-%:
+	@echo "-----------------------------------------------------------------"
+	@echo Publish $*
+	docker push  $(DOCKER_REPO_NS)-$*
+	@echo "-----------------------------------------------------------------"
