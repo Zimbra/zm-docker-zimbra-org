@@ -60,8 +60,9 @@ RUN mkdir -p /opt/qa && \
     gpg --keyserver keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 && \
     curl -sSL https://get.rvm.io | bash -s stable && \
     /bin/bash -c 'source /etc/profile.d/rvm.sh && rvm install 2.0.0 --with-zlib-directory=/usr/local/rvm/usr --with-openssl-directory=/usr/local/rvm/usr' && \
-    /bin/bash -c 'source /etc/profile.d/rvm.sh && gem install soap4r-spox log4r net-ldap json httpclient parseconfig' && \
+    /bin/bash -c 'source /etc/profile.d/rvm.sh' && \
     /bin/bash -c 'source /etc/profile.d/rvm.sh && rvm cleanup all' && \
+    /bin/bash -c 'gem install soap4r log4r net-ldap json httpclient parseconfig' && \
     apt-get clean && \
     curl -o /root/s3curl.pl  https://raw.githubusercontent.com/rtdp/s3curl/master/s3curl.pl && \
     chmod +x /root/s3curl.pl
@@ -75,7 +76,7 @@ RUN mkdir -p /opt/qa && \
 RUN sed -i.bak 's/^mesg/# mesg/' /root/.profile && \
     ln -s /usr/bin/env /bin/env && \
     echo 'PATH=/usr/local/staf/bin:$PATH' >> /root/.bashrc
-
+RUN sed -i '66 s/c\./c\.to\_s\./' /var/lib/gems/2.3.0/gems/soap4r-1.5.8/lib/xsd/xmlparser.rb
 
 RUN mkdir /zimbra
 COPY ./test/init /zimbra/init
