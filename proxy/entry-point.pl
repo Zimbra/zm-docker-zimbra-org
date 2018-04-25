@@ -156,6 +156,8 @@ EntryExec(
       # FIXME - requires LDAP
       #sub { { desc => "Updating IP Settings", exec => { args => ["/opt/zimbra/libexec/zmiptool"], }, }; },
 
+      sub { { wait_for_service_to_resolve => $MAILBOX_HOST, }; },
+
       # FIXME - requires LDAP
       sub { { desc => "Bringing up all services", exec => { args => [ "/opt/zimbra/bin/zmcontrol", "start" ], }, }; },
 
