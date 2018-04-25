@@ -71,6 +71,19 @@ my %MAPPING = (
            foreach ( $a->{service} || (), @{ $a->{services} || [] } );
       },
    },
+   wait_for_service_to_resolve => {
+      desc => "Waiting for service to resolve...",
+      impl => sub {
+         my $svc = shift;
+         my $sleep = 5;   # seconds
+         my $total = 0;
+         while ( system("getent hosts ${svc} > /dev/null") != 0 ) {
+            print "Waiting for service ${svc} to resolve for ${sleep} seconds (Total wait time so far=${total} seconds)\n";
+            $total += $sleep;
+            sleep $sleep;
+         }
+      },
+   },
    exec => {
       desc => undef,
       impl => sub {
