@@ -15,8 +15,8 @@ OPENSSL_CNF ?= _conf/openssl.cnf
 PACKAGE_CNF ?= _conf/pkg-list
 PACKAGE_KEY ?= _conf/pkg-key
 
-DOCKER_REPO_NS    ?= 252733421092.dkr.ecr.us-east-2.amazonaws.com/test
-DOCKER_REPO_NS_BASE	?= ${DOCKER_REPO_NS}-zmc-base
+DOCKER_REPO_NS    ?= 252733421092.dkr.ecr.us-east-2.amazonaws.com/test-
+DOCKER_REPO_NS_BASE	?= ${DOCKER_REPO_NS}zmc-base
 DOCKER_BUILD_TAG  ?= latest
 DOCKER_CACHE_TAG  ?= ${DOCKER_BUILD_TAG}
 DOCKER_STACK_NAME ?= zm-docker
@@ -50,7 +50,7 @@ build-redis:
 	@echo Building zmc-redisdocke
 	@echo
 	docker build \
-	    --tag  '${DOCKER_REPO_NS}-redis' \
+	    --tag  '${DOCKER_REPO_NS}redis' \
 	    --file  redis/Dockerfile \.
 	@echo "-----------------------------------------------------------------"
 
@@ -59,7 +59,7 @@ build-zmc-account:
 	@echo Building zmc-account
 	@echo
 	docker build \
-	    --tag  '${DOCKER_REPO_NS}-zmc-account' \
+	    --tag  '${DOCKER_REPO_NS}zmc-account' \
 	    --file  account/Dockerfile \.
 	@echo "-----------------------------------------------------------------"
 
@@ -70,8 +70,8 @@ build-zmc-base: _base/* ${PACKAGE_CNF} ${PACKAGE_KEY}
 	docker build \
 	    --build-arg "PACKAGE_CNF=${PACKAGE_CNF}" \
 	    --build-arg "PACKAGE_KEY=${PACKAGE_KEY}" \
-	    --cache-from '${DOCKER_REPO_NS}-zmc-base:${DOCKER_CACHE_TAG}' \
-	    --tag        '${DOCKER_REPO_NS}-zmc-base:${DOCKER_BUILD_TAG}' \
+	    --cache-from '${DOCKER_REPO_NS_BASE}:${DOCKER_CACHE_TAG}' \
+	    --tag        '${DOCKER_REPO_NS_BASE}:${DOCKER_BUILD_TAG}' \
 	    --file       _base/Dockerfile \
 	    .
 	@echo "-----------------------------------------------------------------"
@@ -329,5 +329,5 @@ make push:  $(patsubst %,make-push-%,$(PUBLISH_IMAGE_NAMES))
 make-push-%:
 	@echo "-----------------------------------------------------------------"
 	@echo Publish $*
-	docker push  $(DOCKER_REPO_NS)-$*
+	docker push  $(DOCKER_REPO_NS)$*
 	@echo "-----------------------------------------------------------------"

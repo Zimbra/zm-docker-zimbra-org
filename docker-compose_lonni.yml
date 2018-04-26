@@ -2,19 +2,19 @@ version: '3.3'
 
 services:
   redis:
-    image: ${DOCKER_REPO_NS}-redis:${DOCKER_BUILD_TAG}
+    image: ${DOCKER_REPO_NS}redis:${DOCKER_BUILD_TAG}
     hostname: redis
     deploy:
       mode: replicated
       replicas: 1
 
   zmc-ldap:
-    image: ${DOCKER_REPO_NS}-zmc-ldap:${DOCKER_BUILD_TAG}
+    image: ${DOCKER_REPO_NS}zmc-ldap:${DOCKER_BUILD_TAG}
     hostname: 'zmc-ldap'
     build:
       context: '.'
       dockerfile: 'ldap/Dockerfile'
-      cache_from: [  '${DOCKER_REPO_NS}-zmc-ldap:${DOCKER_BUILD_TAG}' ]
+      cache_from: [  '${DOCKER_REPO_NS}zmc-ldap:${DOCKER_BUILD_TAG}' ]
       args:
          DOCKER_REPO_NS_BASE: ${DOCKER_REPO_NS_BASE}
          DOCKER_BUILD_TAG: ${DOCKER_BUILD_TAG}
@@ -36,12 +36,12 @@ services:
       - ldap.nginx_password
 
   zmc-mta:
-    image: ${DOCKER_REPO_NS}-zmc-mta:${DOCKER_BUILD_TAG}
+    image: ${DOCKER_REPO_NS}zmc-mta:${DOCKER_BUILD_TAG}
     hostname: 'zmc-mta'
     build:
       context: '.'
       dockerfile: 'mta/Dockerfile'
-      cache_from: [ '${DOCKER_REPO_NS}-zmc-mta:${DOCKER_BUILD_TAG}' ]
+      cache_from: [ '${DOCKER_REPO_NS}zmc-mta:${DOCKER_BUILD_TAG}' ]
       args:
          DOCKER_REPO_NS_BASE: ${DOCKER_REPO_NS_BASE}
          DOCKER_BUILD_TAG: ${DOCKER_BUILD_TAG}
@@ -61,12 +61,12 @@ services:
       - ldap.amavis_password
 
   zmc-mailbox:
-    image: ${DOCKER_REPO_NS}-zmc-mailbox:${DOCKER_BUILD_TAG}
+    image: ${DOCKER_REPO_NS}zmc-mailbox:${DOCKER_BUILD_TAG}
     hostname: 'zmc-mailbox'
     build:
       context: '.'
       dockerfile: 'mailbox/Dockerfile'
-      cache_from: [ '${DOCKER_REPO_NS}-zmc-mailbox:${DOCKER_BUILD_TAG}' ]
+      cache_from: [ '${DOCKER_REPO_NS}zmc-mailbox:${DOCKER_BUILD_TAG}' ]
       args:
          DOCKER_REPO_NS_BASE: ${DOCKER_REPO_NS_BASE}
          DOCKER_BUILD_TAG: ${DOCKER_BUILD_TAG}
@@ -104,7 +104,7 @@ services:
       - virus_quarantine_account_password
 
   zmc-account:
-    image: ${DOCKER_REPO_NS}-zmc-account:${DOCKER_BUILD_TAG}
+    image: ${DOCKER_REPO_NS}zmc-account:${DOCKER_BUILD_TAG}
     hostname: 'zmc-account'
     entrypoint:
       - /app/init
@@ -112,7 +112,7 @@ services:
       - "8081:5000"
     
   zm-x-web:
-    image: ${DOCKER_REPO_NS}-zm-x-web:${DOCKER_BUILD_TAG}
+    image: ${DOCKER_REPO_NS}zm-x-web:${DOCKER_BUILD_TAG}
     container_name: zm-x-web
     hostname: zm-x-web
     entrypoint:
@@ -121,12 +121,12 @@ services:
       - "443:443"
 
   zmc-mysql:
-    image: ${DOCKER_REPO_NS}-zmc-mysql:${DOCKER_BUILD_TAG}
+    image: ${DOCKER_REPO_NS}zmc-mysql:${DOCKER_BUILD_TAG}
     hostname: 'zmc-mysql'
     build:
       context: '.'
       dockerfile: 'mysql/Dockerfile'
-      cache_from: [ '${DOCKER_REPO_NS}-zmc-mysql:${DOCKER_BUILD_TAG}' ]
+      cache_from: [ '${DOCKER_REPO_NS}zmc-mysql:${DOCKER_BUILD_TAG}' ]
       args:
          DOCKER_REPO_NS_BASE: ${DOCKER_REPO_NS_BASE}
          DOCKER_BUILD_TAG: ${DOCKER_BUILD_TAG}
@@ -136,12 +136,12 @@ services:
       - mysql.password
 
   zmc-proxy:
-    image: ${DOCKER_REPO_NS}-zmc-proxy:${DOCKER_BUILD_TAG}
+    image: ${DOCKER_REPO_NS}zmc-proxy:${DOCKER_BUILD_TAG}
     hostname: 'zmc-proxy'
     build:
       context: '.'
       dockerfile: 'proxy/Dockerfile'
-      cache_from: [ '${DOCKER_REPO_NS}-zmc-proxy:${DOCKER_BUILD_TAG}' ]
+      cache_from: [ '${DOCKER_REPO_NS}zmc-proxy:${DOCKER_BUILD_TAG}' ]
       args:
          DOCKER_REPO_NS_BASE: ${DOCKER_REPO_NS_BASE}
          DOCKER_BUILD_TAG: ${DOCKER_BUILD_TAG}
@@ -161,12 +161,12 @@ services:
       - '9071:9071'
 
   zmc-solr:
-    image: ${DOCKER_REPO_NS}-zmc-solr:${DOCKER_BUILD_TAG}
+    image: ${DOCKER_REPO_NS}zmc-solr:${DOCKER_BUILD_TAG}
     hostname: 'zmc-solr'
     build:
       context: '.'
       dockerfile: 'solr/Dockerfile'
-      cache_from: [ '${DOCKER_REPO_NS}-zmc-solr:${DOCKER_BUILD_TAG}' ]
+      cache_from: [ '${DOCKER_REPO_NS}zmc-solr:${DOCKER_BUILD_TAG}' ]
     environment:
       - SOLR_MODE=${SOLR_MODE}
       - SOLR_MEMORY=${SOLR_MEMORY}
