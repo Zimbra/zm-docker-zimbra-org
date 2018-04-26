@@ -83,6 +83,7 @@ services:
     deploy:
       mode: replicated
       replicas: 2
+      endpoint_mode: dnsrr
     healthcheck:
       test: ["CMD-SHELL", "su - zimbra -c 'zmsoap -z PingRequest' | grep -e PingResponse"]
       interval: 10s
