@@ -27,7 +27,7 @@ SOLR_MEMORY       ?= 2g
 ################################################################
 
 BUILD_IMAGE_NAMES  = zmc-base zmc-solr zmc-ldap zmc-mysql zmc-mailbox zmc-proxy zmc-mta
-PUBLISH_IMAGE_NAMES= zm-x-web zmc-account zmc-solr zmc-ldap zmc-mysql zmc-mailbox zmc-proxy zmc-mta
+PUBLISH_IMAGE_NAMES= zm-x-web zmc-account zmc-solr zmc-ldap zmc-mysql zmc-mailbox zmc-proxy zmc-mta redis
 LOCAL_SRC_DIR      = $(shell test -z "$$DOCKER_HOST" && echo .)/
 DOCKER_NODE_ADDR   = $(shell docker node inspect --format '{{ .Status.Addr }}' self)
 
