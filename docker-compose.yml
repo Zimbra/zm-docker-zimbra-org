@@ -68,9 +68,9 @@ services:
       - ldap.postfix_password
       - ldap.amavis_password
 
-  zmc-mailbox:
+  zmc-mailbox-worker:
     image: '${DOCKER_REPO_NS}/zmc-mailbox:${DOCKER_BUILD_TAG}'
-    hostname: 'zmc-mailbox'
+    hostname: 'zmc-mailbox-worker'
     build:
       context: '.'
       dockerfile: 'mailbox/Dockerfile'

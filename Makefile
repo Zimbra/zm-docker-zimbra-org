@@ -63,6 +63,17 @@ build-zmc-base: _base/* ${PACKAGE_CNF} ${PACKAGE_KEY}
 	    .
 	@echo "-----------------------------------------------------------------"
 
+build-zmc-mailbox-worker: build-zmc-base docker-compose.yml
+	@echo "-----------------------------------------------------------------"
+	@echo Building zmc-mailbox-worker
+	@echo
+	DOCKER_REPO_NS=${DOCKER_REPO_NS} \
+	    DOCKER_BUILD_TAG=${DOCKER_BUILD_TAG} \
+	    DOCKER_CACHE_TAG=${DOCKER_CACHE_TAG} \
+	    LOCAL_SRC_DIR=${LOCAL_SRC_DIR} \
+	    docker-compose build 'zmc-mailbox-worker'
+	@echo "-----------------------------------------------------------------"
+
 build-zmc-%: build-zmc-base docker-compose.yml
 	@echo "-----------------------------------------------------------------"
 	@echo Building zmc-$*
