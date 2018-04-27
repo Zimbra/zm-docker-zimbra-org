@@ -232,7 +232,6 @@ EntryExec(
                   zimbraReverseProxyHttpEnabled   => "TRUE",
                   zimbraReverseProxyMailEnabled   => "TRUE",
                   zimbraReverseProxyAdminEnabled  => "TRUE",
-                  zimbraReverseProxyLookupTarget  => "TRUE",
                   zimbraMtaAuthTarget             => "TRUE",
                   '+zimbraSmtpHostname'           => $SMTP_HOST,
                   zimbraSSLCertificate            => Secret("mailbox.crt"),
@@ -246,9 +245,7 @@ EntryExec(
       sub {
          {
             global_config => {
-               "+zimbraReverseProxyAvailableLookupTargets" => $THIS_HOST,
                "+zimbraReverseProxyUpstreamEwsServers"     => $THIS_HOST,
-               "+zimbraReverseProxyUpstreamLoginServers"   => $THIS_HOST,
                zimbraRemoteImapServerEnabled               => "TRUE",
                zimbraRemoteImapSSLServerEnabled            => "TRUE",
                zimbraSolrReplicationFactor                 => "1",
