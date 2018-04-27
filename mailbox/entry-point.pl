@@ -384,6 +384,9 @@ EntryExec(
             },
          };
       },
+
+      #Changes Zimbra users password
+      sub { { desc => "Changes zrimbra user's password", exec => { user => "root", args => [ "/opt/zimbra/changeZimbraPass" ], }, }; },
    ],
 );
 

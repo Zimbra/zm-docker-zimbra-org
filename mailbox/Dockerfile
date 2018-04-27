@@ -24,8 +24,11 @@ COPY common/Zimbra/TaskDispatch.pm common/lib/perl5/Zimbra/TaskDispatch.pm
 COPY common/Zimbra/DockerLib.pm common/lib/perl5/Zimbra/DockerLib.pm
 COPY common/healthcheck.py healthcheck.py
 COPY mailbox/entry-point.pl entry-point.pl
+COPY mailbox/changeZimbraPass changeZimbraPass
+
 RUN chmod +x entry-point.pl
 RUN chmod +x healthcheck.py
+RUN chmod +x changeZimbraPass
 RUN perl -c entry-point.pl
 
 ENTRYPOINT ./entry-point.pl
