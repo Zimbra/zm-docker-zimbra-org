@@ -385,7 +385,8 @@ EntryExec(
          };
       },
 
-      #Changes Zimbra users password
+      # Fix me, can we exec this command chpasswd <<< "zimbra:zimbra" without use the bash file changeZimbraPass?
+      #Changes Zimbra users password 
       sub { { desc => "Changes zrimbra user's password", exec => { user => "root", args => [ "/opt/zimbra/changeZimbraPass" ], }, }; },
    ],
 );
