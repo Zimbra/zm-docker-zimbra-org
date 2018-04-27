@@ -331,3 +331,15 @@ make-push-%:
 	@echo Publish $*
 	docker push  $(DOCKER_REPO_NS)$*
 	@echo "-----------------------------------------------------------------"
+
+make reTag: $(patsubst %,make-reTag-%,$(PUBLISH_IMAGE_NAMES))
+	$(eval DOCKER_REPO_NS = $(newTag))
+	@echo "All images were re-Tagged with" $(DOCKER_REPO_NS)
+	docker images
+
+
+make-reTag-%:
+	@echo "-----------------------------------------------------------------"
+	@echo reTag: $*
+	docker tag $(DOCKER_REPO_NS)$* $(newTag)$*:$(DOCKER_BUILD_TAG)
+	@echo "-----------------------------------------------------------------"
