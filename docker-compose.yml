@@ -68,6 +68,33 @@ services:
       - ldap.postfix_password
       - ldap.amavis_password
 
+  zmc-mailbox:
+    image: '${DOCKER_REPO_NS}/zmc-mailbox-proxy:${DOCKER_BUILD_TAG}'
+    hostname: 'zmc-mailbox'
+    build:
+      context: '.'
+      dockerfile: 'mailbox-proxy/Dockerfile'
+      cache_from: [ '${DOCKER_REPO_NS}/zmc-mailbox:${DOCKER_CACHE_TAG}' ]
+      args:
+         DOCKER_REPO_NS: '${DOCKER_REPO_NS}'
+         DOCKER_BUILD_TAG: '${DOCKER_BUILD_TAG}'
+    environment:
+      - USE_SSL=True
+    depends_on:
+      - zmc-mailbox-worker
+    configs:
+      - domain_name
+      - admin_account_name
+    secrets:
+      - ca.key
+      - ca.pem
+      - proxy.key
+      - proxy.crt
+      - ldap.master_password
+      - ldap.root_password
+      - mysql.password
+      - admin_account_password
+
   zmc-mailbox-worker:
     image: '${DOCKER_REPO_NS}/zmc-mailbox:${DOCKER_BUILD_TAG}'
     hostname: 'zmc-mailbox-worker'

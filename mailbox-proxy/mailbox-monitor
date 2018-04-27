@@ -1,0 +1,121 @@
+#!/usr/bin/python3
+
+import os
+import time
+import subprocess
+import syslog
+
+USE_SSL = 'true' == os.getenv("USE_SSL", 'False').lower()
+HAPROXY = '/usr/sbin/haproxy'
+HAPROXYCFG_SRC = '/opt/zimbra/haproxy.cfg'
+HAPROXYCFG = '/etc/haproxy/haproxy.cfg'
+PID_FILE = '/var/tmp/haproxy.pid'
+
+mailbox_addresses = []
+
+def update_mailboxes():
+    global mailbox_addresses
+    try:
+         response = subprocess.run("dig zmc-mailbox-worker. | grep -i '^zmc-mailbox-worker'",
+                                   shell=True, check=True, stdout=subprocess.PIPE)
+    except subprocess.CalledProcessError:
+         return []
+    else:
+        mailboxes = list(filter(lambda x: x,
+                                map(lambda x: x.split('\t')[-1:][0],
+                                    response.stdout.decode("utf-8").split('\n'))))
+        mailboxes.sort()
+        if mailbox_addresses != mailboxes:
+           syslog.syslog("zmc-mailbox-worker change detected: %s != %s" % (str(mailbox_addresses), str(mailboxes)))
+           mailbox_addresses = mailboxes
+           return True
+
+def generate_haproxy_base():
+    return '''
+global
+    daemon
+    log 127.0.0.1 local0
+    log 127.0.0.1 local1 notice
+    maxconn 15000
+    stats socket /var/run/haproxy.sock mode 0600 level admin
+    tune.ssl.default-dh-param 2048
+
+defaults
+    balance roundrobin
+    log global
+    mode http
+    option forwardfor
+    option httpclose
+    option redispatch
+    timeout check 5s
+    timeout client 60s
+    timeout connect 9s
+    timeout server 30s
+    option httplog'''
+
+
+def copy_haproxy_base(output_file):
+    with open(HAPROXYCFG_SRC) as r:
+        for l in r:
+            output_file.write(l)
+
+
+def generate_frontend(name, port, ssl=False):
+    return '''
+frontend %s
+    bind :%s%s
+    default_backend zimbra_%s
+    ''' % (name, port, ' ssl crt /etc/haproxy/server.pem' if ssl else '', port)
+
+
+def generate_backend(name, port, ssl=True):
+    servers = []
+    i = 0
+    for address in mailbox_addresses:
+        servers.append("    server zmc-mailbox-worker%i %s:%s ssl verify none\n" % (i, address, port))
+        i += 1
+
+    return '''
+backend %s
+    http-request del-header Referer
+    http-request set-header Host zmc.com:%s
+    reqadd X-Forwarded-Proto:https
+    reqadd X-Forwarded-Port:%s
+    option forwardfor
+%s''' % (name, port, port, '\n'.join(servers))
+
+
+def update_and_restart_haproxy():
+    syslog.syslog("Updating haproxy.cfg and restarting")
+
+    ports = [(8080, False), (7072, True), (8443, True)]
+
+    with open(HAPROXYCFG, 'w') as f:
+        f.write(generate_haproxy_base())
+        f.write("\n")
+
+        i = 0
+        for port, ssl in ports:
+            f.write(generate_frontend('zimbra_%s' % port, port, ssl))
+            f.write('\n')
+
+        for port, ssl in ports:
+            f.write(generate_backend('zimbra_%s' % port, port, ssl))
+            f.write('\n')
+
+    try:
+         command = ["haproxy", "-f", HAPROXYCFG, "-p", PID_FILE]
+         if os.path.exists(PID_FILE):
+             command += ["-sf", str(open(PID_FILE).read())]
+
+         response = subprocess.run(command)
+
+    except subprocess.CalledProcessError:
+         syslog.syslog("FATAL: Failed to start haproxy")
+
+
+while (True):
+    if update_mailboxes():
+        update_and_restart_haproxy()
+
+    time.sleep(.25)

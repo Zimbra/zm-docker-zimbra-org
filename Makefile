@@ -27,7 +27,7 @@ SOLR_MEMORY       ?= 2g
 
 ################################################################
 
-IMAGE_NAMES      = $(shell sed -n -e '/image:.*\/zmc-*/ { s,.*/,,; s,:.*,,; p; }' docker-compose.yml) zmc-base
+IMAGE_NAMES      = $(shell sed -n -e '/image:.*\/zmc-*/ { s,.*/,,; s,:.*,,; p; }' docker-compose.yml) zmc-base zmc-mailbox-worker
 LOCAL_SRC_DIR    = $(shell test -z "$$DOCKER_HOST" && echo .)/
 DOCKER_NODE_ADDR = $(shell docker node inspect --format '{{ .Status.Addr }}' self)
 
@@ -61,6 +61,17 @@ build-zmc-base: _base/* ${PACKAGE_CNF} ${PACKAGE_KEY}
 	    --tag        '${DOCKER_REPO_NS}/zmc-base:${DOCKER_BUILD_TAG}' \
 	    --file       _base/Dockerfile \
 	    .
+	@echo "-----------------------------------------------------------------"
+
+build-zmc-mailbox-proxy: build-zmc-base docker-compose.yml
+	@echo "-----------------------------------------------------------------"
+	@echo Building zmc-mailbox-proxy
+	@echo
+	DOCKER_REPO_NS=${DOCKER_REPO_NS} \
+	    DOCKER_BUILD_TAG=${DOCKER_BUILD_TAG} \
+	    DOCKER_CACHE_TAG=${DOCKER_CACHE_TAG} \
+	    LOCAL_SRC_DIR=${LOCAL_SRC_DIR} \
+	    docker-compose build 'zmc-mailbox'
 	@echo "-----------------------------------------------------------------"
 
 build-zmc-mailbox-worker: build-zmc-base docker-compose.yml
