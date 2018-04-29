@@ -15,8 +15,10 @@ COPY common/Zimbra/TaskDispatch.pm common/lib/perl5/Zimbra/TaskDispatch.pm
 COPY common/Zimbra/DockerLib.pm common/lib/perl5/Zimbra/DockerLib.pm
 COPY mysql/healthcheck.py healthcheck.py
 COPY mysql/entry-point.pl entry-point.pl
+COPY mysql/migrate-db-from-version-108 migrate-db-from-version-108
 RUN chmod +x entry-point.pl
 RUN chmod +x healthcheck.py
+RUN chmod +x migrate-db-from-version-108
 RUN perl -c entry-point.pl
 
 ENTRYPOINT ./entry-point.pl

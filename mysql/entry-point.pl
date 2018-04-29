@@ -59,6 +59,7 @@ EntryExec(
       sub { { desc => "Updating ownership of /opt/zimbra/db/data", exec => { user => "root", args => [ "chown", "-R", "zimbra", "/opt/zimbra/db/data" ], }, }; },
 
       sub { { desc => "Initialize and start MySQL", exec => { user => "zimbra", args => [ "/opt/zimbra/libexec/zmmyinit", "--sql_root_pw", $MYSQL_PASSWORD ], }, }; },
+      sub { { desc => "Patching MySQL schema", exec => { user => "zimbra", args => [ "/opt/zimbra/migrate-db-from-version-108" ], }, }; },
 
       #######################################################################
 
