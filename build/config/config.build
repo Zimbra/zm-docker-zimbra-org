@@ -9,3 +9,4 @@ INTERACTIVE = 0
 DISABLE_BUNDLE = 1
 %GIT_OVERRIDES = zm-mailbox.branch=feature/ha
 %GIT_OVERRIDES = zm-db-conf.branch=feature/ha
+%GIT_OVERRIDES = zm-core-utils.branch=feature/ha
