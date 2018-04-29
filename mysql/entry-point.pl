@@ -59,8 +59,6 @@ EntryExec(
       sub { { desc => "Updating ownership of /opt/zimbra/db/data", exec => { user => "root", args => [ "chown", "-R", "zimbra", "/opt/zimbra/db/data" ], }, }; },
 
       sub { { desc => "Initialize and start MySQL", exec => { user => "zimbra", args => [ "/opt/zimbra/libexec/zmmyinit", "--sql_root_pw", $MYSQL_PASSWORD ], }, }; },
-      #FIXME - is start required?
-      sub { { desc => "Bringing up services", exec => { args => [ "/opt/zimbra/bin/mysql.server", "start" ], }, }; },
 
       #######################################################################
 
