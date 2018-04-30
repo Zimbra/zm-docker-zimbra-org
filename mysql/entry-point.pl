@@ -56,6 +56,7 @@ EntryExec(
       sub { { desc => "Setting up syslog", exec => { user => "root", args => [ "/opt/zimbra/libexec/zmsyslogsetup", "local" ], }, }; },
 
       #######################################################################
+      sub { { desc => "Make sure dir for chat DB exists", exec => { user => "root", args => [ "mkdir", "-p", "-m", "750", "/opt/zimbra/db/data/chat" ], }, }; },
       sub { { desc => "Updating ownership of /opt/zimbra/db/data", exec => { user => "root", args => [ "chown", "-R", "zimbra", "/opt/zimbra/db/data" ], }, }; },
 
       sub { { desc => "Initialize and start MySQL", exec => { user => "zimbra", args => [ "/opt/zimbra/libexec/zmmyinit", "--sql_root_pw", $MYSQL_PASSWORD ], }, }; },
