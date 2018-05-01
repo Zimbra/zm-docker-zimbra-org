@@ -1,0 +1,25 @@
+#!/bin/bash
+# Due to new schema added in develop, we have to force re-running
+# migration version scripts that were previously applied.
+# This should be executed as the zimbra user
+
+echo "$0 - running database migration scripts"
+(
+    set -x
+    mkdir -p -m 700 /opt/zimbra/db/data/chat
+    chown zimbra:zimbra /opt/zimbra/db/data/chat
+)
+echo "Resetting db.version to 107 prior to running migration scripts"
+/opt/zimbra/bin/mysql <<EOF
+update zimbra.config set value=107 where  name='db.version';
+EOF
+inc_common="/opt/zimbra/common/lib/perl5/x86_64-linux-gnu-thread-multi"
+inc_scripts="/opt/zimbra/libexec/scripts"
+for script in migrate20170301-ZimbraChat.pl \
+              migrate20180301-ZimbraChat.pl \
+              migrate20170829-SearchHistory.pl \
+              migrate20180110-DistributedRedolog.pl
+do
+    (set -x; /usr/bin/perl -I${inc_common} -I${inc_scripts} /opt/zimbra/libexec/scripts/${script})
+done
+echo "DB migration complete"
