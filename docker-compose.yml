@@ -4,11 +4,6 @@ services:
   zmc-redis:
     image: '${DOCKER_REPO_NS}/zmc-redis:${DOCKER_BUILD_TAG}'
     hostname: redis
-    build:
-      context: "."
-      dockerfile: 'redis/Dockerfile'
-      args:
-        - BASE=4.0.9
     volumes:
       - /proc:/writable-proc
       - /sys:/writable-sys
@@ -22,13 +17,6 @@ services:
   zmc-ldap:
     image: '${DOCKER_REPO_NS}/zmc-ldap:${DOCKER_BUILD_TAG}'
     hostname: 'zmc-ldap'
-    build:
-      context: '.'
-      dockerfile: 'ldap/Dockerfile'
-      cache_from: [ '${DOCKER_REPO_NS}/zmc-ldap:${DOCKER_CACHE_TAG}' ]
-      args:
-         DOCKER_REPO_NS: '${DOCKER_REPO_NS}'
-         DOCKER_BUILD_TAG: '${DOCKER_BUILD_TAG}'
     configs:
       - domain_name
     deploy:
@@ -54,13 +42,6 @@ services:
   zmc-mta:
     image: '${DOCKER_REPO_NS}/zmc-mta:${DOCKER_BUILD_TAG}'
     hostname: 'zmc-mta'
-    build:
-      context: '.'
-      dockerfile: 'mta/Dockerfile'
-      cache_from: [ '${DOCKER_REPO_NS}/zmc-mta:${DOCKER_CACHE_TAG}' ]
-      args:
-         DOCKER_REPO_NS: '${DOCKER_REPO_NS}'
-         DOCKER_BUILD_TAG: '${DOCKER_BUILD_TAG}'
     configs:
       - av_notify_email
       - zimbra_ldap_userdn
@@ -85,13 +66,6 @@ services:
   zmc-mailbox:
     image: '${DOCKER_REPO_NS}/zmc-mailbox:${DOCKER_BUILD_TAG}'
     hostname: 'zmc-mailbox'
-    build:
-      context: '.'
-      dockerfile: 'mailbox/Dockerfile'
-      cache_from: [ '${DOCKER_REPO_NS}/zmc-mailbox:${DOCKER_CACHE_TAG}' ]
-      args:
-         DOCKER_REPO_NS: '${DOCKER_REPO_NS}'
-         DOCKER_BUILD_TAG: '${DOCKER_BUILD_TAG}'
     depends_on:
       - zmc-redis
     deploy:
@@ -99,11 +73,11 @@ services:
       placement:
         constraints:
           - node.role == manager
-      replicas: 2
+      replicas: 1
     healthcheck:
       test: ["CMD-SHELL", "su - zimbra -c 'zmsoap -z PingRequest' | grep -e PingResponse"]
-      interval: 10s
-      timeout: 5s
+      interval: 30s
+      timeout: 10s
       retries: 2
       start_period: 240s
     volumes:
@@ -134,13 +108,6 @@ services:
   zmc-mysql:
     image: '${DOCKER_REPO_NS}/zmc-mysql:${DOCKER_BUILD_TAG}'
     hostname: 'zmc-mysql'
-    build:
-      context: '.'
-      dockerfile: 'mysql/Dockerfile'
-      cache_from: [ '${DOCKER_REPO_NS}/zmc-mysql:${DOCKER_CACHE_TAG}' ]
-      args:
-         DOCKER_REPO_NS: '${DOCKER_REPO_NS}'
-         DOCKER_BUILD_TAG: '${DOCKER_BUILD_TAG}'
     deploy:
       mode: replicated
       placement:
@@ -155,13 +122,6 @@ services:
   zmc-proxy:
     image: '${DOCKER_REPO_NS}/zmc-proxy:${DOCKER_BUILD_TAG}'
     hostname: 'zmc-proxy'
-    build:
-      context: '.'
-      dockerfile: 'proxy/Dockerfile'
-      cache_from: [ '${DOCKER_REPO_NS}/zmc-proxy:${DOCKER_CACHE_TAG}' ]
-      args:
-         DOCKER_REPO_NS: '${DOCKER_REPO_NS}'
-         DOCKER_BUILD_TAG: '${DOCKER_BUILD_TAG}'
     deploy:
       mode: replicated
       placement:
@@ -184,10 +144,6 @@ services:
   zmc-solr:
     image: '${DOCKER_REPO_NS}/zmc-solr:${DOCKER_BUILD_TAG}'
     hostname: 'zmc-solr'
-    build:
-      context: '.'
-      dockerfile: 'solr/Dockerfile'
-      cache_from: [ '${DOCKER_REPO_NS}/zmc-solr:${DOCKER_CACHE_TAG}' ]
     deploy:
       mode: replicated
       placement:
