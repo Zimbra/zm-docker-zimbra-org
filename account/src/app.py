@@ -7,15 +7,15 @@ from fabric.contrib.console import confirm
 app = Flask(__name__)
 CORS(app)
 
-@app.route("/", methods=["GET"])
+@app.route("/__account", methods=["GET"])
 def index():
     return send_from_directory("static", "index.html")
 
-@app.route("/success", methods=["GET"])
+@app.route("/__account/success", methods=["GET"])
 def success():
     return send_from_directory("static", "success.html")
 
-@app.route("/register", methods=["POST"])
+@app.route("/__account/register", methods=["POST"])
 def register():
     firstName = request.form["firstName"]
     lastName = request.form["lastName"]
