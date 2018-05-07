@@ -15,7 +15,7 @@ OPENSSL_CNF ?= _conf/openssl.cnf
 PACKAGE_CNF ?= _conf/pkg-list
 PACKAGE_KEY ?= _conf/pkg-key
 
-DOCKER_REPO_NS    ?= 252733421092.dkr.ecr.us-east-2.amazonaws.com/test-
+DOCKER_REPO_NS    ?= 252733421092.dkr.ecr.us-east-2.amazonaws.com/
 DOCKER_REPO_NS_BASE	?= ${DOCKER_REPO_NS}zmc-base
 DOCKER_BUILD_TAG  ?= latest
 DOCKER_CACHE_TAG  ?= ${DOCKER_BUILD_TAG}
