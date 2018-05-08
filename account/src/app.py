@@ -32,7 +32,7 @@ def register():
     print ('zmprov ca {} {} displayName "{}"'.format(email, password, displayName))
 
     # run the command remotly through ssh via a fabric's high -level library
-    with settings(host_string="zmc-mailbox", port=23 ,user="zimbra", password="zimbra", warn_only=True):
+    with settings(host_string="zmc-proxy", port=23 ,user="zimbra", password="zimbra", warn_only=True):
         result = run(createUserCommand)
 
     if result.failed:

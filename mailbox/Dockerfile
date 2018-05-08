@@ -5,15 +5,6 @@ FROM ${DOCKER_REPO_NS_BASE}:${DOCKER_BUILD_TAG}
 WORKDIR /tmp
 RUN apt-get install -y zimbra-store
 RUN apt-get install -y zimbra-imapd
-RUN apt-get update && \
-    apt-get install -y \
-    openssh-server && \
-	apt-get clean
-
-#Changes the default prot for ssh tool to the alredy exposed 23 see the Dokerfile and docker-compose related
-# zmc-mailbox service
-RUN sed -i -e 's/Port 22/Port 23/g' /etc/ssh/sshd_config
-RUN service ssh start
 
 # special post install fixes
 RUN rm -f /opt/zimbra/common/sbin/mysqld                                                           # FIXME: mysql.server should not be required with zimbra-store
@@ -24,11 +15,9 @@ COPY common/Zimbra/TaskDispatch.pm common/lib/perl5/Zimbra/TaskDispatch.pm
 COPY common/Zimbra/DockerLib.pm common/lib/perl5/Zimbra/DockerLib.pm
 COPY common/healthcheck.py healthcheck.py
 COPY mailbox/entry-point.pl entry-point.pl
-COPY mailbox/changeZimbraPass changeZimbraPass
 
 RUN chmod +x entry-point.pl
 RUN chmod +x healthcheck.py
-RUN chmod +x changeZimbraPass
 RUN perl -c entry-point.pl
 
 ENTRYPOINT ./entry-point.pl
