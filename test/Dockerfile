@@ -40,12 +40,18 @@ WORKDIR /tmp
 # Original URL: http://downloads.sourceforge.net/project/staf/staf/V3.4.26/STAF3426-setup-linux-amd64-NoJVM.bin
 RUN curl -k -L -O https://docker.zimbra.com.s3.amazonaws.com/staf/STAF3426-setup-linux-amd64-NoJVM.bin
 RUN curl -k -L -o soapvalidator.tar.gz https://docker.zimbra.com.s3.amazonaws.com/assets/soapvalidator-20180420.tar.gz
-RUN curl -k -L -o genesis.tar https://docker.zimbra.com.s3.amazonaws.com/assets/genesis-20180201.tar
+#RUN curl -k -L -o genesis.tar https://docker.zimbra.com.s3.amazonaws.com/assets/genesis-20180201.tar
+RUN git clone https://github.com/Zimbra/zimbra-package-stub.git
+RUN git clone https://github.com/Zimbra/zm-zcs.git
+RUN git clone https://github.com/Zimbra/zm-genesis -b develop
+WORKDIR /tmp/zm-genesis
+RUN ant clean build-genesis
+WORKDIR /tmp
 RUN mkdir -p /opt/qa && \
     mkdir -p /opt/qa/logs/soap-harness && \
     mkdir -p /opt/qa/logs/genesis && \
     tar xzf /tmp/soapvalidator.tar.gz -C /opt/qa/ && \
-    tar xf /tmp/genesis.tar -C /opt/qa/ && \
+    tar xf /tmp/zm-genesis/build/genesis.tar -C /opt/qa/ && \
     sync && \
     chmod +x /tmp/STAF3426-setup-linux-amd64-NoJVM.bin;sync && \
     /tmp/STAF3426-setup-linux-amd64-NoJVM.bin -i silent \
@@ -54,7 +60,7 @@ RUN mkdir -p /opt/qa && \
        -DCHOSEN_INSTALL_FEATURE_LIST=STAF,ExtSvcs,Langs,Codepage && \
     rm /tmp/STAF3426-setup-linux-amd64-NoJVM.bin;sync && \
     rm /tmp/soapvalidator.tar.gz && \
-    rm /tmp/genesis.tar && \
+    rm -rf /tmp/zm-genesis && \
     echo /usr/local/staf/lib > /etc/ld.so.conf.d/zzz-staf.conf && \
     ldconfig && \
     gpg --keyserver keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 && \
